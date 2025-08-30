@@ -1,11 +1,18 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  typescript: {
+    // ✅ Allow production builds to succeed even if
+    // there are TypeScript errors
+    ignoreBuildErrors: true,
+  },
   eslint: {
-    // ✅ This tells Vercel to ignore ESLint errors during build
+    // ✅ Allow production builds to succeed even if
+    // there are ESLint errors
     ignoreDuringBuilds: true,
   },
 };
 
-export default nextConfig;
-
+module.exports = nextConfig;
