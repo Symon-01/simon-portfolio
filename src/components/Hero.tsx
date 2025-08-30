@@ -88,7 +88,7 @@ export default function Hero() {
     setTimeout(() => setIsTransitioning(false), 2500);
   };
 
-  const goToSlide = (index) => {
+  const goToSlide = (index: number) => {
     if (isTransitioning || index === currentImageIndex) return;
     setIsTransitioning(true);
     setTextVisible(false);
