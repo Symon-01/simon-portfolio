@@ -190,28 +190,67 @@ export default function Hero() {
           transform: translateY(-2px) scale(1.02);
         }
         
-        /* Ensure single line for titles with responsive behavior */
-        .title-single-line {
-          white-space: nowrap;
-          overflow: visible;
+        /* Mobile-optimized title styling - maintaining desktop proportions */
+        .hero-title {
+          line-height: 1.1;
+          letter-spacing: -0.02em;
         }
         
-        @media (max-width: 1200px) {
-          .title-single-line {
-            white-space: normal;
+        /* Mobile button container to control width */
+        .mobile-button-container {
+          max-width: 280px; /* Constrain button container width on mobile */
+        }
+        
+        /* Maintain desktop-like proportions on mobile */
+        @media (max-width: 768px) {
+          .hero-title {
             line-height: 1.1;
+            letter-spacing: -0.02em;
+            font-size: 2.35rem; /* Increased mobile title size by 1 point */
+          }
+          
+          .hero-description {
+            line-height: 1.4;
+            font-size: 1.125rem; /* Slightly larger mobile description */
+          }
+          
+          .mobile-button {
+            min-width: 95px; /* Increased button minimum width */
+            max-width: 125px; /* Increased maximum button width on mobile */
+            padding: 10px 16px; /* Increased padding */
+            font-size: 1rem; /* Increased button text size */
+          }
+          
+          .mobile-button-container {
+            max-width: 260px; /* Adjusted for larger buttons */
+            gap: 0.75rem; /* Increased gap between buttons */
           }
         }
         
-        @media (max-width: 768px) {
-          .title-single-line {
-            white-space: normal;
-            line-height: 1.2;
+        @media (max-width: 480px) {
+          .hero-title {
+            font-size: 2.3rem; /* Increased for very small screens */
+          }
+          
+          .hero-description {
+            font-size: 0.9rem;
+          }
+          
+          .mobile-button {
+            min-width: 85px; /* Increased for tiny screens */
+            max-width: 115px; /* Increased max width */
+            padding: 10px 14px; /* Increased padding */
+            font-size: 0.95rem; /* Increased text size */
+          }
+          
+          .mobile-button-container {
+            max-width: 245px; /* Adjusted for larger buttons */
+            gap: 0.5rem; /* Maintained gap */
           }
         }
       `}</style>
       
-      <section className="relative w-full h-[66vh] flex items-center justify-center text-center text-white overflow-hidden">
+      <section className="relative w-full h-[60vh] md:h-[58vh] min-h-[450px] md:min-h-[550px] flex items-center justify-center text-center text-white overflow-hidden">
         {/* Background Image Slider with enhanced transitions */}
         {backgroundImages.map((image, index) => (
           <div
@@ -223,19 +262,19 @@ export default function Hero() {
             }`}
             style={{ backgroundImage: `url('${image}')` }}
           >
-            {/* Dark overlay for text readability */}
-            <div className="absolute inset-0 bg-black/66"></div>
+            {/* Dark overlay for text readability - consistent across devices */}
+            <div className="absolute inset-0 bg-black/65"></div>
           </div>
         ))}
 
-        {/* Navigation Arrows */}
+        {/* Navigation Arrows - Better mobile positioning */}
         <button
           onClick={goToPrevious}
           disabled={isTransitioning}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed group"
+          className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/40 hover:bg-black/60 text-white p-2.5 md:p-3 rounded-full transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed group"
         >
           <svg 
-            className="w-6 h-6 transform group-hover:-translate-x-1 transition-transform duration-300" 
+            className="w-4 h-4 md:w-6 md:h-6 transform group-hover:-translate-x-1 transition-transform duration-300" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -247,10 +286,10 @@ export default function Hero() {
         <button
           onClick={goToNext}
           disabled={isTransitioning}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed group"
+          className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/40 hover:bg-black/60 text-white p-2.5 md:p-3 rounded-full transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed group"
         >
           <svg 
-            className="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300" 
+            className="w-4 h-4 md:w-6 md:h-6 transform group-hover:translate-x-1 transition-transform duration-300" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -259,14 +298,14 @@ export default function Hero() {
           </svg>
         </button>
 
-        {/* Enhanced Slider Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
+        {/* Enhanced Slider Indicators - Better mobile positioning */}
+        <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 md:space-x-3 z-20">
           {backgroundImages.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
               disabled={isTransitioning}
-              className={`w-4 h-4 rounded-full transition-all duration-700 transform hover:scale-125 disabled:cursor-not-allowed ${
+              className={`w-2.5 h-2.5 md:w-4 md:h-4 rounded-full transition-all duration-700 transform hover:scale-125 disabled:cursor-not-allowed ${
                 index === currentImageIndex 
                   ? 'bg-white shadow-lg scale-110' 
                   : 'bg-white/40 hover:bg-white/70'
@@ -275,15 +314,15 @@ export default function Hero() {
           ))}
         </div>
         
-        {/* Dynamic Hero Content with Enhanced Animations */}
-        <div className="max-w-7xl px-4 relative z-10 mx-auto">
+        {/* Dynamic Hero Content with Enhanced Mobile Layout */}
+        <div className="max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 mx-auto">
           {slideContent.map((content, index) => (
             <div
               key={index}
               className={`${index === currentTextIndex ? 'block' : 'hidden'}`}
             >
               <h1 
-                className={`text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight text-center title-single-line ${
+                className={`hero-title text-5xl sm:text-5xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 leading-tight text-center ${
                   getAnimationClasses(content.animation, index === currentTextIndex, textVisible)
                 }`}
                 style={{ 
@@ -294,7 +333,7 @@ export default function Hero() {
                 {content.title}
               </h1>
               <p 
-                className={`text-lg md:text-xl mb-6 leading-relaxed text-center max-w-4xl mx-auto ${
+                className={`hero-description text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 leading-relaxed text-center max-w-xs sm:max-w-lg md:max-w-4xl mx-auto px-2 md:px-4 ${
                   getAnimationClasses(content.animation, index === currentTextIndex, textVisible)
                 }`}
                 style={{ 
@@ -305,13 +344,13 @@ export default function Hero() {
                 {content.description}
               </p>
               <div 
-                className={`flex justify-center gap-6 flex-wrap ${
+                className={`flex justify-center gap-2 md:gap-6 mobile-button-container md:max-w-none mx-auto ${
                   buttonsVisible ? 'opacity-100' : 'opacity-0'
                 } transition-opacity duration-800`}
               >
                 <a
                   href="#contact"
-                  className={`bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-4 rounded-full font-semibold min-w-[140px] button-hover subtle-bounce relative overflow-hidden group ${
+                  className={`bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white mobile-button md:min-w-[160px] px-3 sm:px-4 md:px-8 py-2 sm:py-2.5 md:py-4 rounded-full font-semibold button-hover subtle-bounce relative overflow-hidden group text-center text-sm sm:text-base md:text-base flex-1 md:flex-none ${
                     buttonsVisible ? 'pop-in' : ''
                   }`}
                   style={{ animationDelay: '0ms' }}
@@ -322,7 +361,7 @@ export default function Hero() {
                 </a>
                 <a
                   href="#pricing"
-                  className={`bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-full font-semibold min-w-[140px] button-hover subtle-bounce relative overflow-hidden group ${
+                  className={`bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white mobile-button md:min-w-[160px] px-3 sm:px-4 md:px-8 py-2 sm:py-2.5 md:py-4 rounded-full font-semibold button-hover subtle-bounce relative overflow-hidden group text-center text-sm sm:text-base md:text-base flex-1 md:flex-none ${
                     buttonsVisible ? 'pop-in' : ''
                   }`}
                   style={{ animationDelay: '200ms' }}

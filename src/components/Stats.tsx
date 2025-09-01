@@ -14,8 +14,8 @@ export default function Stats() {
       suffix: "+", 
       label: "Projects Completed", 
       subLabel: "Each Done with Precision",
-      color: "text-orange-600",
-      bgColor: "bg-orange-500",
+      color: "#EF6203",
+      bgColor: "#EF6203",
       icon: "📊"
     },
     { 
@@ -23,8 +23,8 @@ export default function Stats() {
       suffix: "+", 
       label: "Satisfied Clients", 
       subLabel: "Building lasting Partnerships",
-      color: "text-green-600",
-      bgColor: "bg-green-500", 
+      color: "#048F02",
+      bgColor: "#048F02", 
       icon: "😊"
     },
     { 
@@ -32,8 +32,8 @@ export default function Stats() {
       suffix: "", 
       label: "Services Offered", 
       subLabel: "Solutions Tailored to You",
-      color: "text-orange-600",
-      bgColor: "bg-orange-500",
+      color: "#EF6203",
+      bgColor: "#EF6203",
       icon: "🎨"
     },
     { 
@@ -41,8 +41,8 @@ export default function Stats() {
       suffix: "", 
       label: "Hours", 
       subLabel: "Dedicated Support",
-      color: "text-green-600",
-      bgColor: "bg-green-500",
+      color: "#048F02",
+      bgColor: "#048F02",
       icon: "🕒"
     },
   ];
@@ -191,59 +191,114 @@ export default function Stats() {
         .animate-slideInUp {
           animation: slideInUp 1.8s ease-out forwards;
         }
+
+        /* Mobile-specific title and description adjustments - matching Portfolio exactly */
+        @media (max-width: 1023px) {
+          .stats-title {
+            font-size: 1.75rem !important;
+            margin-bottom: 8px !important;
+          }
+          
+          .stats-desc {
+            font-size: 0.9rem !important;
+            padding: 0 8px;
+          }
+        }
         
+        /* Mobile-only styles for cards */
         @media (max-width: 768px) {
           .stat-card {
-            width: 160px;
-            height: 120px;
+            width: 140px !important;
+            height: 105px !important;
           }
           
           .icon-circle {
-            width: 40px;
-            height: 40px;
-            margin: 8px auto 10px auto;
-            font-size: 18px;
+            width: 24px !important;
+            height: 24px !important;
+            margin: 4px auto 10px auto !important;
+            font-size: 10px !important;
+            border-radius: 6px !important;
           }
+          
+          .number-text {
+            font-size: 1.3rem !important;
+            margin-bottom: 0.125rem !important;
+            line-height: 1.1 !important;
+          }
+          
+          .main-label-text {
+            font-size: 0.7rem !important;
+            margin-bottom: 0.125rem !important;
+            line-height: 1.1 !important;
+          }
+          
+          .sub-label-text {
+            font-size: 0.55rem !important;
+            line-height: 1 !important;
+          }
+
+          /* Improved mobile animation timing for 2x2 grid */
+          .stat-card:nth-child(1) { animation-delay: 100ms !important; }
+          .stat-card:nth-child(2) { animation-delay: 200ms !important; }
+          .stat-card:nth-child(3) { animation-delay: 400ms !important; }
+          .stat-card:nth-child(4) { animation-delay: 500ms !important; }
+        }
+
+        /* Desktop animation timing */
+        @media (min-width: 769px) {
+          .stat-card:nth-child(1) { animation-delay: 0ms; }
+          .stat-card:nth-child(2) { animation-delay: 300ms; }
+          .stat-card:nth-child(3) { animation-delay: 600ms; }
+          .stat-card:nth-child(4) { animation-delay: 900ms; }
         }
       `}</style>
       
-      <section ref={sectionRef} className="stats-container py-8">
-        {/* Header */}
-        <div className="text-center mb-6 max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl sm:text-4xl font-bold text-green-600 mb-3">
+      <section ref={sectionRef} className="stats-container py-6">
+        {/* ==================== Header Section - Matching Portfolio exactly ==================== */}
+        <div className={`text-center mb-8 ${isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-10'} transition-all duration-800 ease-out`}>
+          <h2 className="stats-title text-4xl sm:text-4xl font-bold mb-3" style={{color: '#048F02'}}>
             Our Impact in Numbers
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
-            Building trust through quality work and exceptional results
+          <p className="stats-desc text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
+            Building trust through quality work and exceptional results.
           </p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-6xl mx-auto px-20 place-items-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 max-w-6xl mx-auto px-6 md:px-20 place-items-center">
           {data.map((item, index) => (
             <div
               key={index}
               className={`stat-card text-center ${
                 isVisible ? 'animate-slideInUp' : 'opacity-0'
               }`}
-              style={{ animationDelay: `${index * 300}ms` }}
             >
               {/* Icon with more breathing space */}
-              <div className={`icon-circle ${item.bgColor} text-white transition-transform duration-300`}>
+              <div 
+                className={`icon-circle text-white transition-transform duration-300`}
+                style={{
+                  backgroundColor: item.bgColor
+                }}
+              >
                 {item.icon}
               </div>
               
               {/* Number */}
-              <div className={`text-2xl font-bold ${item.color} mb-2 number-animation`}>
+              <div 
+                className={`text-2xl font-bold mb-2 number-animation number-text`}
+                style={{
+                  color: item.color
+                }}
+              >
                 {animatedNumbers[index]}{item.suffix}
               </div>
               
               {/* Main Label */}
-              <div className="text-gray-800 font-semibold text-sm leading-tight mb-1">
+              <div className="text-gray-800 font-semibold text-sm leading-tight mb-1 main-label-text">
                 {item.label}
               </div>
               
               {/* Sub Label */}
-              <div className="text-gray-500 text-xs leading-tight">
+              <div className="text-gray-500 text-xs leading-tight sub-label-text">
                 {item.subLabel}
               </div>
             </div>

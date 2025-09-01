@@ -38,7 +38,7 @@ const services = [
 
 export default function Services() {
   const [isVisible, setIsVisible] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [hoveredCard, setHoveredCard] = useState(null);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -60,253 +60,120 @@ export default function Services() {
 
   return (
     <>
-      <style jsx>{`
-        .services-container {
-          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-          position: relative;
-        }
-        
-        .services-container::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, #e2e8f0 50%, transparent);
-        }
-        
-        .service-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border-radius: 20px;
-          /* Your specified shadow style */
-          box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1),
-                      0 2px 6px -1px rgba(0, 0, 0, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.7);
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-          height: 100%; /* Ensure equal height */
-        }
-        
-        .service-image-container {
-          position: relative;
-          overflow: hidden;
-          cursor: pointer;
-        }
-        
-        .service-image {
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .service-image-container:hover .service-image {
-          transform: scale(1.08);
-        }
-        
-        .service-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(16, 185, 129, 0.9));
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .service-image-container:hover .service-overlay {
-          opacity: 1;
-        }
-        
-        .service-icon {
-          font-size: 2.5rem;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
-        
-        .service-content {
-          transition: all 0.3s ease;
-          flex-grow: 1;
-          display: flex;
-          flex-direction: column;
-          background: rgba(255, 255, 255, 0.98);
-          position: relative;
-        }
-        
-        .service-content::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1) 50%, transparent);
-        }
-        
-        .service-title {
-          font-weight: 700;
-          font-size: 1.25rem;
-          color: #ea580c; /* Orange color */
-          transition: all 0.3s ease;
-          letter-spacing: -0.025em;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-          cursor: pointer;
-        }
-        
-        .service-title:hover {
-          color: #f97316; /* Brighter orange on hover */
-          transform: translateY(-1px);
-        }
-        
-        .service-desc {
-          color: #64748b;
-          line-height: 1.7;
-          transition: all 0.3s ease;
-          flex-grow: 1;
-          font-weight: 400;
-          text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
-          background: rgba(248, 250, 252, 0.6);
-          padding: 16px;
-          border-radius: 12px;
-          margin: 8px 0;
-          border: 1px solid rgba(226, 232, 240, 0.5);
-          cursor: pointer;
-        }
-        
-        .service-desc:hover {
-          color: #475569;
-          background: rgba(240, 253, 244, 0.8);
-          border-color: rgba(34, 197, 94, 0.2);
-          box-shadow: inset 0 1px 2px rgba(34, 197, 94, 0.1);
-        }
-        
-        .learn-more {
-          color: #16a34a; /* Green color */
-          font-weight: 600;
-          font-size: 0.875rem;
-          transition: all 0.3s ease;
-          background: rgba(240, 253, 244, 0.8);
-          padding: 8px 16px;
-          border-radius: 8px;
-          border: 1px solid rgba(34, 197, 94, 0.2);
-          text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
-          cursor: pointer;
-        }
-        
-        .learn-more svg {
-          color: #16a34a; /* Green arrow */
-          transition: all 0.3s ease;
-        }
-        
-        .learn-more:hover {
-          background: rgba(240, 253, 244, 1);
-          border-color: rgba(34, 197, 94, 0.3);
-          box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
-          color: #15803d; /* Slightly darker green on hover */
-        }
-        
-        .learn-more:hover svg {
-          color: #15803d; /* Darker green arrow on hover */
-          transform: translateX(2px);
-        }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        /* Mobile-specific title and description adjustments - matching Portfolio & Stats exactly */
+        @media (max-width: 1023px) {
+          .services-title {
+            font-size: 1.75rem !important;
+            margin-bottom: 4px !important;
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+          
+          .services-desc {
+            font-size: 0.9rem !important;
+            padding: 0 8px;
+          }
+          
+          /* Service card titles - smaller font for mobile to prevent ellipsis */
+          .service-card-title {
+            font-size: 0.75rem !important;
           }
         }
         
-        .animate-fadeInUp {
-          animation: fadeInUp 0.9s ease-out forwards;
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .service-card-title {
+            font-size: 0.85rem !important;
+          }
         }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        
-        .service-card:hover .service-icon {
-          animation: pulse 2s ease-in-out infinite;
-        }
-        
-        .section-header {
-          position: relative;
-          display: inline-block;
-        }
-      `}</style>
+        `
+      }} />
       
-      <section ref={sectionRef} className="services-container pt-4 pb-9 relative">
+      <section ref={sectionRef} className="pt-4 pb-9 relative bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className={`text-center mb-6 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}>
-            <div className="section-header">
-              <h2 className="text-4xl md:text-4xl font-bold text-gray-900 mb-2 leading-tight">
-                Creative Services 
-                <span className="text-green-600"> Tailored for You</span>
-              </h2>
-            </div>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium" style={{textDecoration: 'none'}}>
+          {/* ==================== Header Section - Matching Portfolio & Stats exactly ==================== */}
+          <div className={`text-center mb-8 ${isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-10'} transition-all duration-800 ease-out`}>
+            <h2 className="services-title text-4xl sm:text-4xl font-bold mb-1" style={{color: '#048F02'}}>
+              Creative Services Tailored for You
+            </h2>
+            <p className="services-desc text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
               Whether you're a startup, a business, or an individual, we offer a comprehensive range of design solutions engineered to help you stand out in today's competitive landscape.
             </p>
           </div>
 
-          {/* Services Grid */}
-          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5 lg:gap-5 items-stretch">
+          {/* Services Grid - Updated layout to match Image 2 */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 items-stretch">
             {services.map((service, index) => (
               <div
                 key={service.title}
-                className={`service-card group ${
-                  isVisible ? 'animate-fadeInUp' : 'opacity-0'
+                className={`bg-white rounded-2xl shadow-lg border border-white overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 ${
+                  isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-10'
                 }`}
-                style={{ animationDelay: `${index * 200}ms` }}
+                style={{ 
+                  transitionDelay: `${index * 150}ms`,
+                  animationDelay: `${index * 150}ms`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}
                 onMouseEnter={() => setHoveredCard(index)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                {/* Image Section */}
-                <div className="service-image-container relative h-55 w-full">
+                {/* Image Section - Responsive height */}
+                <div className="relative h-32 sm:h-40 xl:h-55 w-full overflow-hidden bg-gray-100">
                   <Image 
                     src={service.img} 
                     alt={service.title} 
                     fill 
-                    className="service-image object-cover" 
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-300 hover:scale-105" 
+                    sizes="(max-width: 1279px) 50vw, 25vw"
                     priority={index < 2}
                   />
                   
                   {/* Overlay with Icon */}
-                  <div className="service-overlay">
-                    <div className="service-icon text-white">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-600/90 to-green-500/90 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="text-white text-2xl sm:text-3xl filter drop-shadow-lg">
                       {service.icon}
                     </div>
                   </div>
                 </div>
                 
-                {/* Content Section */}
-                <div className="service-content p-3 flex-grow">
-                  <h3 className="service-title text-center mb-1">
-                    {service.title}
-                  </h3>
-                  <p className="service-desc text-center text-sm mb-5">
-                    {service.desc}
-                  </p>
+                {/* Content Section - Updated layout */}
+                <div className="p-3 sm:p-4 flex-grow flex flex-col">
+                  {/* Service Title - Orange box with white text */}
+                  <div className="mb-3">
+                    <div className="bg-orange-500 border border-orange-600 rounded-lg py-2 px-3">
+                      <h3 className="service-card-title font-bold text-base sm:text-lg text-center text-white whitespace-nowrap overflow-hidden text-ellipsis">
+                        {service.title}
+                      </h3>
+                    </div>
+                  </div>
                   
-                  {/* Read More Button */}
+                  {/* Description with Box - UPDATED */}
+                  <div className="flex-grow mb-4">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 h-full flex items-center">
+                      <p className="text-center text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        {service.desc}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Read More Button - Green color */}
                   <div className="text-center mt-auto">
                     <Link 
                       href={service.href}
-                      className="learn-more inline-flex items-center gap-2 justify-center"
+                      className="inline-flex items-center gap-2 font-semibold text-sm transition-all duration-200 hover:translate-x-1 group"
+                      style={{
+                        color: '#048F02'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#037a01';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#048F02';
+                      }}
                     >
                       Read More
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-1">
                         <path d="M5 12h14"/>
                         <path d="m12 5 7 7-7 7"/>
                       </svg>
