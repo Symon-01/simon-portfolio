@@ -1,0 +1,13 @@
+// Consolidated Sanity Client - Use this ONE file for all Sanity operations
+import { createClient } from 'next-sanity';
+
+export const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  apiVersion: '2024-01-01',
+  useCdn: true, // Changed to false for fresh data (important for development)
+  token: process.env.SANITY_API_TOKEN, // Optional: only needed for mutations
+});
+
+export default client;
+

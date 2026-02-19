@@ -2,11 +2,14 @@
 // components/Header.tsx
 import { FaPhoneAlt, FaTiktok, FaFacebook, FaInstagram, FaTwitter, FaBars } from "react-icons/fa";
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const pathname = usePathname(); // Get current path
 
   const toggleMobileMenu = () => {
     if (isMobileMenuOpen) {
@@ -46,6 +49,14 @@ export default function Header() {
     }
   }, [isMobileMenuOpen]);
 
+  // Helper function to check if link is active
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(path);
+  };
+
   return (
     <header className="relative w-full">
       {/* Background Banner Image */}
@@ -62,8 +73,8 @@ export default function Header() {
 
       {/* Desktop Header - Hidden on Mobile */}
       <div className="hidden md:block">
-        {/* Top Bar */}
-        <div className="max-w-7xl mx-auto flex justify-between items-center py-0.5 px-6 text-black">
+        {/* Top Bar - Updated container */}
+        <div className="max-w-6xl mx-auto flex justify-between items-center py-0.5 px-6 sm:px-8 lg:px-12 text-black">
           {/* Left - Contact */}
           <a href="tel:+254742323611" className="flex items-center gap-2 hover:opacity-75 transition-opacity duration-200">
             <FaPhoneAlt size={26} className="text-black" />
@@ -73,8 +84,8 @@ export default function Header() {
             </div>
           </a>
 
-          {/* Center - Logo */}
-          <div className="flex justify-center">
+          {/* Center - Logo (Now Clickable) */}
+          <Link href="/" className="flex justify-center hover:opacity-90 transition-opacity duration-200">
             <Image
               src="/logo.png"
               alt="Simon Designs Logo"
@@ -82,7 +93,7 @@ export default function Header() {
               height={35}
               className="object-contain"
             />
-          </div>
+          </Link>
 
           {/* Right: Socials */}
           <div className="flex flex-col items-center space-y-1">
@@ -135,8 +146,8 @@ export default function Header() {
           <FaBars size={24} />
         </button>
 
-        {/* Center - Logo */}
-        <div className="flex justify-center flex-1">
+        {/* Center - Logo (Now Clickable) */}
+        <Link href="/" className="flex justify-center flex-1 hover:opacity-90 transition-opacity duration-200">
           <Image
             src="/logo.png"
             alt="Simon Designs Logo"
@@ -144,7 +155,7 @@ export default function Header() {
             height={32}
             className="object-contain"
           />
-        </div>
+        </Link>
 
         {/* Right - Call Icon */}
         <a 
@@ -155,27 +166,147 @@ export default function Header() {
         </a>
       </div>
 
-      {/* Desktop Navigation Bar - Hidden on Mobile */}
+      {/* Desktop Navigation Bar - Hidden on Mobile - Updated container */}
       <nav className="hidden md:block bg-[#EF6203]">
-        <div className="max-w-7xl mx-auto flex justify-center space-x-8 py-3 text-white font-semibold">
-          <a href="#home" className="hover:text-gray-200 transition-colors duration-200">Home</a>
-          <a href="#about" className="hover:text-gray-200 transition-colors duration-200">About</a>
-          <a href="#services" className="hover:text-gray-200 transition-colors duration-200">Services</a>
-          <a href="#portfolio" className="hover:text-gray-200 transition-colors duration-200">Portfolio</a>
-          <a href="#pricing" className="hover:text-gray-200 transition-colors duration-200">Pricing</a>
-          <a href="#contact" className="hover:text-gray-200 transition-colors duration-200">Contact</a>
+        <div className="max-w-6xl mx-auto flex justify-center space-x-8 py-3 px-6 sm:px-8 lg:px-12 text-white font-semibold">
+          <Link 
+            href="/" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/') ? 'text-white' : ''
+            }`}
+          >
+            Home
+            {isActive('/') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-1 bg-white rounded-t-full"></span>
+            )}
+          </Link>
+          <Link 
+            href="/about" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/about') ? 'text-white' : ''
+            }`}
+          >
+            About
+            {isActive('/about') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-1 bg-white rounded-t-full"></span>
+            )}
+          </Link>
+          <Link 
+            href="/services" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/services') ? 'text-white' : ''
+            }`}
+          >
+            Services
+            {isActive('/services') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-1 bg-white rounded-t-full"></span>
+            )}
+          </Link>
+          <Link 
+            href="/portfolio" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/portfolio') ? 'text-white' : ''
+            }`}
+          >
+            Portfolio
+            {isActive('/portfolio') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-1 bg-white rounded-t-full"></span>
+            )}
+          </Link>
+          <Link 
+            href="/pricing" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/pricing') ? 'text-white' : ''
+            }`}
+          >
+            Pricing
+            {isActive('/pricing') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-1 bg-white rounded-t-full"></span>
+            )}
+          </Link>
+          <Link 
+            href="/contact" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/contact') ? 'text-white' : ''
+            }`}
+          >
+            Contact
+            {isActive('/contact') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-1 bg-white rounded-t-full"></span>
+            )}
+          </Link>
         </div>
       </nav>
 
       {/* Mobile Orange Strip with Navigation - Only visible on mobile */}
       <div className="md:hidden bg-[#EF6203] py-3">
         <div className="flex justify-center space-x-3.5 text-white text-xs font-semibold mx-4">
-          <a href="#home" className="hover:text-gray-200 transition-colors duration-200">Home</a>
-          <a href="#about" className="hover:text-gray-200 transition-colors duration-200">About</a>
-          <a href="#services" className="hover:text-gray-200 transition-colors duration-200">Services</a>
-          <a href="#portfolio" className="hover:text-gray-200 transition-colors duration-200">Portfolio</a>
-          <a href="#pricing" className="hover:text-gray-200 transition-colors duration-200">Pricing</a>
-          <a href="#contact" className="hover:text-gray-200 transition-colors duration-200">Contact</a>
+          <Link 
+            href="/" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/') ? 'text-white font-bold' : ''
+            }`}
+          >
+            Home
+            {isActive('/') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-white"></span>
+            )}
+          </Link>
+          <Link 
+            href="/about" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/about') ? 'text-white font-bold' : ''
+            }`}
+          >
+            About
+            {isActive('/about') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-white"></span>
+            )}
+          </Link>
+          <Link 
+            href="/services" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/services') ? 'text-white font-bold' : ''
+            }`}
+          >
+            Services
+            {isActive('/services') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-white"></span>
+            )}
+          </Link>
+          <Link 
+            href="/portfolio" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/portfolio') ? 'text-white font-bold' : ''
+            }`}
+          >
+            Portfolio
+            {isActive('/portfolio') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-white"></span>
+            )}
+          </Link>
+          <Link 
+            href="/pricing" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/pricing') ? 'text-white font-bold' : ''
+            }`}
+          >
+            Pricing
+            {isActive('/pricing') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-white"></span>
+            )}
+          </Link>
+          <Link 
+            href="/contact" 
+            className={`relative hover:text-gray-200 transition-colors duration-200 ${
+              isActive('/contact') ? 'text-white font-bold' : ''
+            }`}
+          >
+            Contact
+            {isActive('/contact') && (
+              <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-white"></span>
+            )}
+          </Link>
         </div>
       </div>
 
@@ -195,8 +326,8 @@ export default function Header() {
             isAnimating ? 'translate-x-0' : '-translate-x-full'
           }`}>
             <nav className="flex flex-col py-4 px-2 h-full overflow-y-auto">
-              {/* Logo at top of mobile menu - aligned left with navigation items */}
-              <div className="mx-5.5 mb-0 flex justify-start">
+              {/* Logo at top of mobile menu - Now Clickable */}
+              <Link href="/" className="mx-5.5 mb-0 flex justify-start hover:opacity-90 transition-opacity duration-200" onClick={closeMobileMenu}>
                 <Image
                   src="/logo.png"
                   alt="Simon Designs Logo"
@@ -204,51 +335,63 @@ export default function Header() {
                   height={6}
                   className="object-contain"
                 />
-              </div>
+              </Link>
               
               <div className="flex-1">
-                <a 
-                  href="#home" 
-                  className="block mx-4 px-4 py-3 text-[#EF6203] hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2"
+                <Link 
+                  href="/" 
+                  className={`block mx-4 px-4 py-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2 ${
+                    isActive('/') ? 'bg-orange-100 text-orange-700' : 'text-[#EF6203]'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   Home
-                </a>
-                <a 
-                  href="#about" 
-                  className="block mx-4 px-4 py-3 text-[#EF6203] hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2"
+                </Link>
+                <Link 
+                  href="/about" 
+                  className={`block mx-4 px-4 py-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2 ${
+                    isActive('/about') ? 'bg-orange-100 text-orange-700' : 'text-[#EF6203]'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   About
-                </a>
-                <a 
-                  href="#services" 
-                  className="block mx-4 px-4 py-3 text-[#EF6203] hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2"
+                </Link>
+                <Link 
+                  href="/services" 
+                  className={`block mx-4 px-4 py-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2 ${
+                    isActive('/services') ? 'bg-orange-100 text-orange-700' : 'text-[#EF6203]'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   Services
-                </a>
-                <a 
-                  href="#portfolio" 
-                  className="block mx-4 px-4 py-3 text-[#EF6203] hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2"
+                </Link>
+                <Link 
+                  href="/portfolio" 
+                  className={`block mx-4 px-4 py-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2 ${
+                    isActive('/portfolio') ? 'bg-orange-100 text-orange-700' : 'text-[#EF6203]'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   Portfolio
-                </a>
-                <a 
-                  href="#pricing" 
-                  className="block mx-4 px-4 py-3 text-[#EF6203] hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2"
+                </Link>
+                <Link 
+                  href="/pricing" 
+                  className={`block mx-4 px-4 py-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2 ${
+                    isActive('/pricing') ? 'bg-orange-100 text-orange-700' : 'text-[#EF6203]'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   Pricing
-                </a>
-                <a 
-                  href="#contact" 
-                  className="block mx-4 px-4 py-3 text-[#EF6203] hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2"
+                </Link>
+                <Link 
+                  href="/contact" 
+                  className={`block mx-4 px-4 py-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 font-semibold rounded-lg mb-2 ${
+                    isActive('/contact') ? 'bg-orange-100 text-orange-700' : 'text-[#EF6203]'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   Contact
-                </a>
+                </Link>
               </div>
               
               {/* Navigation Banner Image */}

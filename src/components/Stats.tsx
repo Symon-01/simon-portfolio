@@ -111,6 +111,32 @@ export default function Stats() {
   return (
     <>
       <style jsx>{`
+        /* ========== SIMON DESIGNS - STATS TYPOGRAPHY ========== */
+        .stats-title {
+          font-size: 2rem !important;
+          line-height: 1.3 !important;
+          margin-bottom: 0.375rem !important;
+          font-weight: 700;
+        }
+        
+        .stats-desc {
+          font-size: 1rem !important;
+          line-height: 1.6 !important;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1023px) {
+          .stats-title {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.25rem !important;
+          }
+          
+          .stats-desc {
+            font-size: 0.9rem !important;
+            padding: 0 8px;
+          }
+        }
+        
         .stats-container {
           background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         }
@@ -191,19 +217,6 @@ export default function Stats() {
         .animate-slideInUp {
           animation: slideInUp 1.8s ease-out forwards;
         }
-
-        /* Mobile-specific title and description adjustments - matching Portfolio exactly */
-        @media (max-width: 1023px) {
-          .stats-title {
-            font-size: 1.75rem !important;
-            margin-bottom: 8px !important;
-          }
-          
-          .stats-desc {
-            font-size: 0.9rem !important;
-            padding: 0 8px;
-          }
-        }
         
         /* Mobile-only styles for cards */
         @media (max-width: 768px) {
@@ -253,60 +266,62 @@ export default function Stats() {
         }
       `}</style>
       
-      <section ref={sectionRef} className="stats-container py-6">
-        {/* ==================== Header Section - Matching Portfolio exactly ==================== */}
-        <div className={`text-center mb-8 ${isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-10'} transition-all duration-800 ease-out`}>
-          <h2 className="stats-title text-4xl sm:text-4xl font-bold mb-3" style={{color: '#048F02'}}>
-            Our Impact in Numbers
-          </h2>
-          <p className="stats-desc text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
-            Building trust through quality work and exceptional results.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 max-w-6xl mx-auto px-6 md:px-20 place-items-center">
-          {data.map((item, index) => (
-            <div
-              key={index}
-              className={`stat-card text-center ${
-                isVisible ? 'animate-slideInUp' : 'opacity-0'
-              }`}
-            >
-              {/* Icon with more breathing space */}
-              <div 
-                className={`icon-circle text-white transition-transform duration-300`}
-                style={{
-                  backgroundColor: item.bgColor
-                }}
+      <section ref={sectionRef} className="stats-container py-6 lg:py-8">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+          {/* Header Section */}
+          <div className={`text-center mb-8 ${isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-10'} transition-all duration-800 ease-out`}>
+            <h2 className="stats-title" style={{color: '#048F02'}}>
+              Our Impact in Numbers
+            </h2>
+            <p className="stats-desc text-gray-600 max-w-2xl mx-auto leading-relaxed font-medium">
+              Building trust through quality work and exceptional results.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-3 place-items-center mb-10 md:px-20">
+            {data.map((item, index) => (
+              <div
+                key={index}
+                className={`stat-card text-center ${
+                  isVisible ? 'animate-slideInUp' : 'opacity-0'
+                }`}
               >
-                {item.icon}
+                {/* Icon with more breathing space */}
+                <div 
+                  className={`icon-circle text-white transition-transform duration-300`}
+                  style={{
+                    backgroundColor: item.bgColor
+                  }}
+                >
+                  {item.icon}
+                </div>
+                
+                {/* Number */}
+                <div 
+                  className={`text-2xl font-bold mb-2 number-animation number-text`}
+                  style={{
+                    color: item.color
+                  }}
+                >
+                  {animatedNumbers[index]}{item.suffix}
+                </div>
+                
+                {/* Main Label */}
+                <div className="text-gray-800 font-semibold text-sm leading-tight mb-1 main-label-text">
+                  {item.label}
+                </div>
+                
+                {/* Sub Label */}
+                <div className="text-gray-500 text-xs leading-tight sub-label-text">
+                  {item.subLabel}
+                </div>
               </div>
-              
-              {/* Number */}
-              <div 
-                className={`text-2xl font-bold mb-2 number-animation number-text`}
-                style={{
-                  color: item.color
-                }}
-              >
-                {animatedNumbers[index]}{item.suffix}
-              </div>
-              
-              {/* Main Label */}
-              <div className="text-gray-800 font-semibold text-sm leading-tight mb-1 main-label-text">
-                {item.label}
-              </div>
-              
-              {/* Sub Label */}
-              <div className="text-gray-500 text-xs leading-tight sub-label-text">
-                {item.subLabel}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         
         {/* Orange divider line */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 mt-8">
           <div className="h-0.75 bg-gradient-to-r from-transparent via-orange-500 to-transparent"></div>
         </div>
       </section>

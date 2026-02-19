@@ -1,0 +1,190 @@
+simon-designs/
+├── .gitignore
+├── eslint.config.mjs
+├── generate-tree.js
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+├── project-structure.txt
+├── PROJECT_STRUCTURE.txt
+├── public
+│   ├── app.png
+│   ├── banner-bg.png
+│   ├── brand.jpg
+│   ├── cta.jpeg
+│   ├── favicon.ico
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── hero.jpg
+│   ├── hero2.png
+│   ├── hero3.png
+│   ├── hero5.png
+│   ├── logo.jpg
+│   ├── logo.png
+│   ├── marketing.jpg
+│   ├── Nav.jpg
+│   ├── next.svg
+│   ├── pencil-1.jpg
+│   ├── pencil-2.jpg
+│   ├── pencil-3.jpg
+│   ├── pencil-4.jpg
+│   ├── poster-1.png
+│   ├── preview.png
+│   ├── print.jpg
+│   ├── simon.jpg
+│   ├── uiux.jpg
+│   ├── vercel.svg
+│   └── window.svg
+├── README.md
+├── sanity
+│   ├── .gitignore
+│   ├── .sanity
+│   │   └── runtime
+│   │       ├── app.js
+│   │       └── index.html
+│   ├── eslint.config.mjs
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── README.md
+│   ├── sanity.cli.ts
+│   ├── sanity.config.ts
+│   ├── schemaTypes
+│   │   ├── aboutMe.ts
+│   │   ├── banner.ts
+│   │   ├── contactInfo.ts
+│   │   ├── contactMessage.ts
+│   │   ├── coreValues.ts
+│   │   ├── creativePhilosophy.ts
+│   │   ├── designTools.ts
+│   │   ├── index.ts
+│   │   ├── missionVision.ts
+│   │   ├── myStorySection.ts
+│   │   ├── personalNote.ts
+│   │   ├── portfolio.ts
+│   │   ├── pricingCategory.ts
+│   │   ├── pricingService.ts
+│   │   ├── pricingSettings.ts
+│   │   ├── service.ts
+│   │   ├── servicesFeatures.ts
+│   │   ├── servicesProcess.ts
+│   │   ├── simonArts.ts
+│   │   ├── skillsExpertise.ts
+│   │   └── whoWeAre.ts
+│   ├── static
+│   │   └── .gitkeep
+│   └── tsconfig.json
+├── src
+│   ├── app
+│   │   ├── about
+│   │   │   └── page.tsx
+│   │   ├── about-me
+│   │   │   └── page.tsx
+│   │   ├── api
+│   │   │   └── contact
+│   │   │       └── route.ts
+│   │   ├── contact
+│   │   │   └── page.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── portfolio
+│   │   │   ├── page.tsx
+│   │   │   └── [slug]
+│   │   │       └── page.tsx
+│   │   ├── pricing
+│   │   │   └── page.tsx
+│   │   ├── services
+│   │   │   └── page.tsx
+│   │   ├── simon-arts
+│   │   │   ├── page.tsx
+│   │   │   └── [slug]
+│   │   │       └── page.tsx
+│   │   ├── test-banners
+│   │   │   └── page.tsx
+│   │   └── test-sanity
+│   │       └── page.tsx
+│   ├── components
+│   │   ├── about-me.tsx
+│   │   ├── About.tsx
+│   │   ├── AboutCTA.tsx
+│   │   ├── AboutHero.tsx
+│   │   ├── AboutMeCTA.tsx
+│   │   ├── AboutMeHero.tsx
+│   │   ├── BannerButtons.tsx
+│   │   ├── BannerSection.tsx
+│   │   ├── ContactCTA.tsx
+│   │   ├── ContactForm.tsx
+│   │   ├── ContactHero.tsx
+│   │   ├── ContactInfo.tsx
+│   │   ├── CoreValues.tsx
+│   │   ├── CreativePhilosophy.tsx
+│   │   ├── CreativeProcess.tsx
+│   │   ├── CTA.tsx
+│   │   ├── DesignTools.tsx
+│   │   ├── Footer.tsx
+│   │   ├── GetQuotePricing.tsx
+│   │   ├── Header.tsx
+│   │   ├── Hero.tsx
+│   │   ├── IntaSendProvider.tsx
+│   │   ├── LoadingBar.tsx
+│   │   ├── MissionVision.tsx
+│   │   ├── MyStory.tsx
+│   │   ├── PersonalTouch.tsx
+│   │   ├── portfolio
+│   │   │   ├── ProjectApproach.tsx
+│   │   │   ├── ProjectDescription.tsx
+│   │   │   ├── ProjectGallery.tsx
+│   │   │   ├── ProjectHeader.tsx
+│   │   │   ├── ProjectLiveLink.tsx
+│   │   │   ├── ProjectResources.tsx
+│   │   │   ├── ProjectTags.tsx
+│   │   │   ├── ProjectTestimonial.tsx
+│   │   │   └── RelatedProjects.tsx
+│   │   ├── Portfolio.tsx
+│   │   ├── PortfolioCTA.tsx
+│   │   ├── PortfolioGrid.tsx
+│   │   ├── PortfolioHero.tsx
+│   │   ├── PricingCTA.tsx
+│   │   ├── PricingGuide.tsx
+│   │   ├── PricingHero.tsx
+│   │   ├── Service
+│   │   ├── ServiceCard.tsx
+│   │   ├── Services.tsx
+│   │   ├── ServicesCTA.tsx
+│   │   ├── ServicesFeatures.tsx
+│   │   ├── ServicesHero.tsx
+│   │   ├── ServicesOverview.tsx
+│   │   ├── ServicesProcess.tsx
+│   │   ├── SimonArts
+│   │   │   ├── ArtworkHeader.tsx
+│   │   │   ├── ArtworkImages.tsx
+│   │   │   ├── ArtworkLightbox.tsx
+│   │   │   ├── ArtworkPurchaseCTA.tsx
+│   │   │   ├── ArtworkStory.tsx
+│   │   │   ├── ArtworkTags.tsx
+│   │   │   └── ArtworkTechnicalDetails.tsx
+│   │   ├── SimonArts.tsx
+│   │   ├── SimonArtsCTA.tsx
+│   │   ├── SimonArtsHero.tsx
+│   │   ├── SkillsExpertise.tsx
+│   │   ├── Stats.tsx
+│   │   ├── SupportButton.tsx
+│   │   ├── TawkToWidget.tsx
+│   │   ├── UniversalCTA.tsx
+│   │   ├── UniversalHero.tsx
+│   │   └── WhoWeAre.tsx
+│   ├── contexts
+│   │   └── QuoteModalContext.tsx
+│   ├── lib
+│   │   ├── sanity.client.ts
+│   │   ├── sanity.image.ts
+│   │   ├── sanity.queries.ts
+│   │   ├── sanity.ts
+│   │   └── sanity.types.ts
+│   └── types
+│       ├── banner.ts
+│       ├── portfolio.ts
+│       ├── sanity.queries.ts
+│       └── simonArts.ts
+└── tsconfig.json

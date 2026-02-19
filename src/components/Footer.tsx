@@ -5,11 +5,11 @@ import { FaTiktok, FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
 export default function Footer() {
   return (
     <footer className="bg-orange-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
         {/* Desktop Layout */}
         <div className="hidden md:block">
           {/* Match the exact spacing and width of Simon Arts cards */}
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-4 gap-4 lg:gap-6">
               {/* Logo and Tagline */}
               <div className="col-span-1">
                 <div className="flex flex-col items-center mb-4">
@@ -34,14 +34,14 @@ export default function Footer() {
                 </ul>
               </div>
 
-              {/* Services */}
+              {/* Services - UPDATED WITH QUERY PARAMETERS */}
               <div>
                 <h4 className="font-bold text-gray-900 mb-3">Services</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/brand-identity">Brand Identity</Link></li>
-                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/marketing-materials">Marketing Materials</Link></li>
-                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/ui-ux-design">UI/UX Design</Link></li>
-                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/print-publishing">Print & Publishing</Link></li>
+                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=brand-identity">Brand Identity</Link></li>
+                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=marketing-materials">Marketing Materials</Link></li>
+                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=uiux-design">UI/UX Design</Link></li>
+                  <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=print-publishing">Print & Publishing</Link></li>
                   <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/simon-arts">Simon Arts</Link></li>
                 </ul>
               </div>
@@ -79,16 +79,16 @@ export default function Footer() {
                 </ul>
                 {/* Social Media Icons below contact */}
                 <div className="flex gap-4">
-                  <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+                  <a href="https://www.tiktok.com/@simondesigns017?_t=ZM-90vVa2hryJw&_r=1" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                     <FaTiktok size={20} />
                   </a>
-                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+                  <a href="https://www.facebook.com/share/1BTSE1oVB8/" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                     <FaFacebook size={20} />
                   </a>
-                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+                  <a href="https://www.instagram.com/simon_designs01?igsh=MWR3czRlMHJpajdwcA==" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                     <FaInstagram size={20} />
                   </a>
-                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+                  <a href="https://x.com/Simon_Designs01?t=QNZGnOHUSuPmtqBk5T96qQ&s=09" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                     <FaTwitter size={20} />
                   </a>
                 </div>
@@ -110,22 +110,22 @@ export default function Footer() {
             </p>
             {/* Social Media Icons */}
             <div className="flex justify-center gap-4">
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+              <a href="https://www.tiktok.com/@simondesigns017?_t=ZM-90vVa2hryJw&_r=1" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                 <FaTiktok size={24} />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+              <a href="https://www.facebook.com/share/1BTSE1oVB8/" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                 <FaFacebook size={24} />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+              <a href="https://www.instagram.com/simon_designs01?igsh=MWR3czRlMHJpajdwcA==" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                 <FaInstagram size={24} />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
+              <a href="https://x.com/Simon_Designs01?t=QNZGnOHUSuPmtqBk5T96qQ&s=09" target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 transition-colors duration-200">
                 <FaTwitter size={24} />
               </a>
             </div>
           </div>
 
-          {/* Mobile 2x2 Grid Layout - Match Simon Arts mobile spacing */}
+          {/* Mobile 2x2 Grid Layout - UPDATED WITH QUERY PARAMETERS */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {/* Row 1: Quick Links and Services - Add padding inside */}
             <div className="pl-4">
@@ -142,10 +142,10 @@ export default function Footer() {
             <div className="pr-4">
               <h4 className="font-bold text-gray-900 mb-3">Services</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/brand-identity">Brand Identity</Link></li>
-                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/marketing-materials">Marketing Materials</Link></li>
-                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/ui-ux-design">UI/UX Design</Link></li>
-                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services/print-publishing">Print & Publishing</Link></li>
+                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=brand-identity">Brand Identity</Link></li>
+                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=marketing-materials">Marketing Materials</Link></li>
+                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=uiux-design">UI/UX Design</Link></li>
+                <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/services?service=print-publishing">Print & Publishing</Link></li>
                 <li><Link className="hover:underline text-gray-700 hover:text-[#EF6203] transition-colors" href="/simon-arts">Simon Arts</Link></li>
               </ul>
             </div>

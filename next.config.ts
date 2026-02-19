@@ -1,17 +1,23 @@
-// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   swcMinify: true,
   typescript: {
-    // ✅ Allow production builds to succeed even if
-    // there are TypeScript errors
     ignoreBuildErrors: true,
   },
   eslint: {
-    // ✅ Allow production builds to succeed even if
-    // there are ESLint errors
     ignoreDuringBuilds: true,
+  },
+  // Add this images configuration
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        port: '',
+        pathname: '/images/**',
+      },
+    ],
   },
 };
 
