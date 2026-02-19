@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
-  swcMinify: true,
 
-  // CRITICAL: this enables static export
+  // REQUIRED for Netlify static hosting
   output: "export",
 
   typescript: {
@@ -16,7 +15,7 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    unoptimized: true,
+    unoptimized: true, // REQUIRED for static export
     remotePatterns: [
       {
         protocol: "https",
