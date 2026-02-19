@@ -1,29 +1,24 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: false,
-
-  // REQUIRED for Netlify static hosting
-  output: "export",
-
+  swcMinify: true,
   typescript: {
     ignoreBuildErrors: true,
   },
-
   eslint: {
     ignoreDuringBuilds: true,
   },
-
+  // Add this images configuration
   images: {
-    unoptimized: true, // REQUIRED for static export
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "cdn.sanity.io",
-        pathname: "/images/**",
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        port: '',
+        pathname: '/images/**',
       },
     ],
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
