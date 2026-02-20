@@ -1,14 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  swcMinify: true,
+  // swcMinify is removed in Next.js 15 as it is now the default
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Add this images configuration
   images: {
     remotePatterns: [
       {
@@ -18,6 +17,15 @@ const nextConfig = {
         pathname: '/images/**',
       },
     ],
+  },
+  // This is the FIX for your sitemap 404
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/sitemap',
+      },
+    ]
   },
 };
 
