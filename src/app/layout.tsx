@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     title: "Simon Designs – Graphic Design & Pencil Art",
     description:
       "We bring ideas to life visually: branding, marketing materials, UI/UX, print & Simon Arts.",
-    url: "https://simon-portfolio-cetr.vercel.app/",
+    url: "https://simondesigns.co.ke",
     siteName: "Simon Designs",
     images: [
       {
-        url: "/preview.png",
+        url: "https://simondesigns.co.ke/preview.png",
         width: 1200,
         height: 630,
         alt: "Simon Designs Preview Image",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Simon Designs – Graphic Design & Pencil Art",
     description:
       "We bring ideas to life visually: branding, marketing materials, UI/UX, print & Simon Arts.",
-    images: ["/preview.png"],
+    images: ["https://simondesigns.co.ke/preview.png"],
   },
 };
 
@@ -49,8 +49,38 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Schema markup for Google - helps show your logo in search results
+  const schemaMarkup = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Simon Designs",
+    "url": "https://simondesigns.co.ke",
+    "logo": "https://simondesigns.co.ke/logo.png",
+    "description": "Professional graphic design and pencil art services in Kenya. We bring ideas to life visually.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "KE",
+      "addressLocality": "Kenya"
+    },
+    "sameAs": [
+      // Add your social media links here when you have them
+      // "https://www.facebook.com/simondesigns",
+      // "https://www.instagram.com/simondesigns",
+      // "https://twitter.com/simondesigns"
+    ]
+  };
+
   return (
     <html lang="en">
+      <head>
+        {/* Schema.org markup for Google logo */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schemaMarkup)
+          }}
+        />
+      </head>
       <body className={inter.className}>
         {/* Quote Modal Provider - Makes quote modal available globally */}
         <QuoteModalProvider>
