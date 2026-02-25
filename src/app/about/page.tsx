@@ -1,52 +1,31 @@
 // src/app/about/page.tsx
-'use client';
+import type { Metadata } from "next";
 
-import { useEffect } from 'react';
-import { useQuoteModal } from '@/contexts/QuoteModalContext';
-import UniversalHero from "@/components/UniversalHero";
-import WhoWeAre from "@/components/WhoWeAre";
-import MissionVision from "@/components/MissionVision";
-import CoreValues from "@/components/CoreValues";
-import DesignTools from "@/components/DesignTools";
-import AboutCTA from "@/components/AboutCTA";
+export const metadata: Metadata = {
+  title: "About Us – Simon Designs",
+  description: "Learn about Simon Designs: our mission, values, design philosophy, and the creative tools we use to bring your vision to life.",
+  openGraph: {
+    title: "About Us – Simon Designs",
+    description: "Learn about our mission, values, and design philosophy.",
+    url: "https://simondesigns.co.ke/about",
+    images: [
+      {
+        url: "https://simondesigns.co.ke/hero.jpg",
+        width: 1200,
+        height: 630,
+        alt: "About Simon Designs",
+      }
+    ],
+  },
+};
+
+// ⚠️ IMPORTANT: Remove 'use client' when adding metadata
+// Metadata only works in Server Components
+// But your hooks need Client Component...
+
+// Solution: Keep the page as Server Component and move client logic to a separate component
+import AboutPageClient from './AboutPageClient';
 
 export default function AboutPage() {
-  // Get the quote modal function
-  const { openModal } = useQuoteModal();
-
-  // ✨ AUTO-OPEN QUOTE MODAL - When URL has #quote
-  useEffect(() => {
-    const checkAndOpenModal = () => {
-      if (window.location.hash === '#quote') {
-        console.log('🎯 Opening quote modal from hash');
-        openModal();
-        window.history.replaceState(null, '', '/about');
-      }
-    };
-
-    checkAndOpenModal();
-    const timer = setTimeout(checkAndOpenModal, 100);
-    window.addEventListener('hashchange', checkAndOpenModal);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('hashchange', checkAndOpenModal);
-    };
-  }, [openModal]);
-
-  return (
-    <main>
-      <UniversalHero location="about-hero" scrollingBannerItems={[
-        '✨ Transform Your Brand Today',
-        '🎨 Award-Winning Design Team',
-        '🚀 Ready to Start Your Project?',
-        '💼 Professional Brand Solutions'
-      ]} />
-      <WhoWeAre />
-      <MissionVision />
-      <CoreValues />
-      <DesignTools />
-      <AboutCTA />
-    </main>
-  );
+  return <AboutPageClient />;
 }

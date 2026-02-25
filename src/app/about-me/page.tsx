@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from 'react';
 import { client } from '@/lib/sanity.client';
 import { 
@@ -23,6 +24,24 @@ import {
   Megaphone, Bell, Smartphone,
   Heart, Trophy, Eye, Brain
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "About Me – Simon Macharia | Graphic Designer & Artist",
+  description: "Meet Simon Macharia: graphic designer, pencil artist, and creative storyteller. Discover my journey, skills, and passion for visual design.",
+  openGraph: {
+    title: "About Me – Simon Macharia",
+    description: "Meet the creative mind behind Simon Designs.",
+    url: "https://simondesigns.co.ke/about-me",
+    images: [
+      {
+        url: "https://simondesigns.co.ke/simon.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Simon Macharia - Designer and Artist",
+      }
+    ],
+  },
+};
 
 type Skill = {
   skillName: string;
@@ -136,13 +155,11 @@ export default async function AboutMePage() {
   
   const { aboutMe, storySections } = aboutMeData || {};
 
-  // Build skills with icons for hero
   const skillsWithIcons = aboutMe?.skills?.map((skill: Skill) => ({
     name: skill.skillName,
     icon: iconMap[skill.skillIcon] || iconMap.palette,
   })) || [];
 
-  // Prepare hero data
   let profileImageUrl = '/simon.jpg';
   if (aboutMe?.profileImage) {
     profileImageUrl = urlFor(aboutMe.profileImage).url();
@@ -157,40 +174,28 @@ export default async function AboutMePage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Hero Section */}
       <AboutMeHero {...heroData} />
 
-      {/* My Story Section */}
       {storySections && storySections.length > 0 && (
         <MyStory storySections={storySections} />
       )}
 
-      {/* Skills & Expertise */}
       <SkillsExpertise 
         sectionDescription={skillsData?.sectionDescription}
         skillCategories={skillsData?.skillCategories}
         designTools={skillsData?.designTools}
       />
 
-      {/* Creative Philosophy */}
       <CreativePhilosophy 
         mainQuote={philosophyData?.mainQuote}
         pillars={philosophyData?.pillars}
       />
 
-      {/* Personal Touch */}
       <PersonalTouch 
         paragraphs={personalData?.paragraphs}
       />
 
-      {/* Call to Action */}
       <AboutMeCTA />
     </main>
   );
 }
-
-export const metadata = {
-  title: 'About Me - Simon Macharia | Creative Designer & Visual Storyteller',
-  description: 'Learn about Simon Macharia, a creative designer from Kenya specializing in graphic design, pencil art, and visual storytelling.',
-  keywords: ['Simon Macharia', 'Graphic Designer Kenya', 'Creative Designer', 'Pencil Artist', 'Visual Storytelling'],
-};

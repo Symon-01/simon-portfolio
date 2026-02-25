@@ -1,57 +1,25 @@
 // src/app/services/page.tsx
-'use client';
+import type { Metadata } from "next";
+import ServicesPageClient from './ServicesPageClient';
 
-import { useEffect } from 'react';
-import { useQuoteModal } from '@/contexts/QuoteModalContext';
-import UniversalHero from "@/components/UniversalHero";
-import ServicesOverview from "@/components/ServicesOverview";
-import ServicesProcess from "@/components/ServicesProcess";
-import ServicesFeatures from "@/components/ServicesFeatures";
-import ServicesCTA from "@/components/ServicesCTA";
+export const metadata: Metadata = {
+  title: "Our Services – Professional Graphic Design | Simon Designs",
+  description: "Explore our graphic design services: logo design, branding, web design, UI/UX, print materials, and more. Quality design tailored to your needs.",
+  openGraph: {
+    title: "Our Services – Simon Designs",
+    description: "Professional graphic design services: branding, web design, print, and more.",
+    url: "https://simondesigns.co.ke/services",
+    images: [
+      {
+        url: "https://simondesigns.co.ke/uiux.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Simon Designs Services",
+      }
+    ],
+  },
+};
 
 export default function ServicesPage() {
-  // Get the quote modal function
-  const { openModal } = useQuoteModal();
-
-  // ✨ AUTO-OPEN QUOTE MODAL - When URL has #quote
-  useEffect(() => {
-    // Function to check and open modal
-    const checkAndOpenModal = () => {
-      if (window.location.hash === '#quote') {
-        console.log('🎯 Opening quote modal from hash');
-        openModal();
-        // Clean up URL - remove #quote
-        window.history.replaceState(null, '', '/services');
-      }
-    };
-
-    // Check immediately
-    checkAndOpenModal();
-
-    // Also check after a short delay (in case of slow load)
-    const timer = setTimeout(checkAndOpenModal, 100);
-
-    // Listen for hash changes
-    window.addEventListener('hashchange', checkAndOpenModal);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('hashchange', checkAndOpenModal);
-    };
-  }, [openModal]);
-
-  return (
-    <main>
-      <UniversalHero location="services-hero" scrollingBannerItems={[
-        '💼 Professional Design Services',
-        '🎨 Custom Solutions',
-        '✨ Elevate Your Business',
-        '🚀 Get Started Today'
-      ]} />
-      <ServicesOverview />
-      <ServicesProcess />
-      <ServicesFeatures />
-      <ServicesCTA />
-    </main>
-  );
+  return <ServicesPageClient />;
 }
