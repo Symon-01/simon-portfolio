@@ -1,7 +1,7 @@
 // FILE LOCATION: src/app/pricing/PricingPageClient.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { client } from '@/lib/sanity.client';
 import { useQuoteModal } from '@/contexts/QuoteModalContext';
 import UniversalHero from "@/components/UniversalHero";
@@ -43,7 +43,7 @@ interface CategoryWithServices extends PricingCategory {
   services: PricingService[];
 }
 
-export default function PricingPageClient() {
+function PricingContent() {
   const [categories, setCategories] = useState<CategoryWithServices[]>([]);
   const [settings, setSettings] = useState<PricingSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -168,5 +168,19 @@ export default function PricingPageClient() {
       />
       <PricingCTA />
     </main>
+  );
+}
+
+export default function PricingPageClient() {
+  return (
+    <Suspense fallback={
+      <main>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+      </main>
+    }>
+      <PricingContent />
+    </Suspense>
   );
 }

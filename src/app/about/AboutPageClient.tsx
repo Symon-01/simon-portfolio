@@ -1,7 +1,7 @@
 // src/app/about/AboutPageClient.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useQuoteModal } from '@/contexts/QuoteModalContext';
 import UniversalHero from "@/components/UniversalHero";
 import WhoWeAre from "@/components/WhoWeAre";
@@ -10,7 +10,7 @@ import CoreValues from "@/components/CoreValues";
 import DesignTools from "@/components/DesignTools";
 import AboutCTA from "@/components/AboutCTA";
 
-export default function AboutPageClient() {
+function AboutContent() {
   const { openModal } = useQuoteModal();
 
   useEffect(() => {
@@ -46,5 +46,19 @@ export default function AboutPageClient() {
       <DesignTools />
       <AboutCTA />
     </main>
+  );
+}
+
+export default function AboutPageClient() {
+  return (
+    <Suspense fallback={
+      <main>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+      </main>
+    }>
+      <AboutContent />
+    </Suspense>
   );
 }

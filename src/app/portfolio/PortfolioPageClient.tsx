@@ -1,14 +1,14 @@
 // FILE LOCATION: src/app/portfolio/PortfolioPageClient.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useQuoteModal } from '@/contexts/QuoteModalContext';
 import UniversalHero from "@/components/UniversalHero";
 import PortfolioGrid from "@/components/PortfolioGrid";
 import PortfolioCTA from "@/components/PortfolioCTA";
 import SupportButton from "@/components/SupportButton";
 
-export default function PortfolioPageClient() {
+function PortfolioContent() {
   const { openModal } = useQuoteModal();
 
   useEffect(() => {
@@ -42,15 +42,12 @@ export default function PortfolioPageClient() {
         ]}
       />
      
-      {/* Portfolio Section with Support Button and Divider */}
       <section className="bg-gray-50 py-8 lg:py-10">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
           <PortfolioGrid />
-          {/* Support Button - Below portfolio grid, above divider */}
           <div className="mt-2 flex justify-center">
             <SupportButton position="bottom" />
           </div>
-          {/* Decorative Divider Line */}
           <div className="mt-8 h-0.5"
                style={{
                  background: "linear-gradient(to right, transparent, #EF6203, transparent)"
@@ -58,8 +55,21 @@ export default function PortfolioPageClient() {
           </div>
         </div>
       </section>
-      {/* CTA Section Below */}
       <PortfolioCTA />
     </main>
+  );
+}
+
+export default function PortfolioPageClient() {
+  return (
+    <Suspense fallback={
+      <main>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+      </main>
+    }>
+      <PortfolioContent />
+    </Suspense>
   );
 }

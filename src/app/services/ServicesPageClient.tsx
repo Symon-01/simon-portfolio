@@ -1,7 +1,7 @@
 // src/app/services/ServicesPageClient.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useQuoteModal } from '@/contexts/QuoteModalContext';
 import UniversalHero from "@/components/UniversalHero";
 import ServicesOverview from "@/components/ServicesOverview";
@@ -9,7 +9,7 @@ import ServicesProcess from "@/components/ServicesProcess";
 import ServicesFeatures from "@/components/ServicesFeatures";
 import ServicesCTA from "@/components/ServicesCTA";
 
-export default function ServicesPageClient() {
+function ServicesContent() {
   const { openModal } = useQuoteModal();
 
   useEffect(() => {
@@ -44,5 +44,19 @@ export default function ServicesPageClient() {
       <ServicesFeatures />
       <ServicesCTA />
     </main>
+  );
+}
+
+export default function ServicesPageClient() {
+  return (
+    <Suspense fallback={
+      <main>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+      </main>
+    }>
+      <ServicesContent />
+    </Suspense>
   );
 }
