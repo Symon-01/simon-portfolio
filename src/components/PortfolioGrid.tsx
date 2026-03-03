@@ -23,8 +23,8 @@ export default function PortfolioGrid() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      // Logic: Only Published & Not Deleted. Prioritize 'isCover' image.
-      const query = `*[_type == "portfolio" && status == "published" && (!defined(isDeleted) || isDeleted == false)] | order(projectDate desc) {
+      // Updated query - removed filters to show all projects
+      const query = `*[_type == "portfolio"] | order(_createdAt desc) {
         _id,
         title,
         slug,
@@ -94,15 +94,10 @@ export default function PortfolioGrid() {
                 <p className="text-gray-500">No projects found.</p>
             </div>
           ) : (
-            // ✅ UPDATED GRID: grid-cols-2 on mobile, smaller gap
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
               {filteredProjects.map((project) => (
                 <Link key={project._id} href={`/portfolio/${project.slug.current}`} className="group block h-full">
                   
-                  {/* ✅ CARD DESIGN: 
-                      - 'bg-gray-50': Grey background for visibility
-                      - 'hover:bg-white': Brightens on interaction 
-                  */}
                   <div className="bg-gray-50 hover:bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-[#048F02]/30 h-full flex flex-col hover:-translate-y-1 md:hover:-translate-y-2">
                     
                     {/* Image Area */}
