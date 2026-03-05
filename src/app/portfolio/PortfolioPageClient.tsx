@@ -14,7 +14,6 @@ function PortfolioContent() {
   useEffect(() => {
     const checkAndOpenModal = () => {
       if (window.location.hash === '#quote') {
-        console.log('🎯 Opening quote modal from hash');
         openModal();
         window.history.replaceState(null, '', '/portfolio');
       }
@@ -31,7 +30,8 @@ function PortfolioContent() {
   }, [openModal]);
 
   return (
-    <main>
+    // ✅ overflow-x-hidden prevents any child from causing sideways scroll
+    <main className="overflow-x-hidden">
       <UniversalHero
         location="portfolio-hero"
         scrollingBannerItems={[
@@ -41,20 +41,22 @@ function PortfolioContent() {
           '🚀 See What We Can Do'
         ]}
       />
-     
+
       <section className="bg-gray-50 py-8 lg:py-10">
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="max-w-6xl mx-auto px-0 sm:px-4 lg:px-12">
           <PortfolioGrid />
-          <div className="mt-2 flex justify-center">
+          <div className="mt-2 flex justify-center px-4 sm:px-0">
             <SupportButton position="bottom" />
           </div>
-          <div className="mt-8 h-0.5"
-               style={{
-                 background: "linear-gradient(to right, transparent, #EF6203, transparent)"
-               }}>
-          </div>
+          <div
+            className="mt-8 h-0.5 mx-4 sm:mx-0"
+            style={{
+              background: "linear-gradient(to right, transparent, #EF6203, transparent)"
+            }}
+          />
         </div>
       </section>
+
       <PortfolioCTA />
     </main>
   );

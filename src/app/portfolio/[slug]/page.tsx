@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { client } from '@/lib/sanity';
 import Link from 'next/link';
 import ProjectHeader from '@/components/portfolio/ProjectHeader';
@@ -20,8 +20,9 @@ import { Project } from '@/types/portfolio';
 export default function ProjectDetailPage({
   params
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
+  const unwrappedParams = use(params);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +41,6 @@ export default function ProjectDetailPage({
         featured,
         projectUrl,
         
-        // NEW: Enhanced testimonials array with ratings
         testimonials[]{
           quote,
           author,
@@ -52,7 +52,6 @@ export default function ProjectDetailPage({
           verified
         },
         
-        // LEGACY: Keep old testimonial for backward compatibility
         testimonial{
           quote,
           author,
@@ -76,15 +75,15 @@ export default function ProjectDetailPage({
           title,
           slug,
           category,
+          featured,
+          description,
           images
         }
       }`;
      
       try {
-        const data = await client.fetch(query, { slug: params.slug });
+        const data = await client.fetch(query, { slug: unwrappedParams.slug });
         console.log('🔍 FULL PROJECT DATA:', data);
-        console.log('📝 Testimonials (new array):', data?.testimonials);
-        console.log('📝 Testimonial (old single):', data?.testimonial);
         setProject(data);
       } catch (error) {
         console.error('Error fetching project:', error);
@@ -94,7 +93,7 @@ export default function ProjectDetailPage({
     };
 
     fetchProject();
-  }, [params.slug]);
+  }, [unwrappedParams.slug]);
 
   if (loading) {
     return (
@@ -112,7 +111,7 @@ export default function ProjectDetailPage({
           <p className="section-desc text-gray-600 mb-6">Sorry, we couldn't find the project you're looking for.</p>
           <Link
             href="/portfolio"
-            className="inline-flex items-center font-semibold link-text"
+            className="inline-flex items-center font-semibold link-text transition-colors"
             style={{ color: '#048F02' }}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +127,6 @@ export default function ProjectDetailPage({
   return (
     <>
       <style jsx>{`
-        /* ========== SIMON DESIGNS - TYPOGRAPHY SYSTEM ========== */
         .section-title {
           font-size: 2rem !important;
           line-height: 1.3 !important;
@@ -201,8 +199,8 @@ export default function ProjectDetailPage({
 
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
-         
-          {/* Back Button */}
+
+          {/* Back to Portfolio link */}
           <Link
             href="/portfolio"
             className="inline-flex items-center font-semibold mb-6 transition-colors link-text"
@@ -214,50 +212,57 @@ export default function ProjectDetailPage({
             Back to Portfolio
           </Link>
 
-          {/* All sections as separate components */}
+          {/* Project Header */}
           <ProjectHeader project={project} />
-         
+
+          {/* Project Gallery */}
           {project.images && project.images.length > 0 && (
             <ProjectGallery images={project.images} title={project.title} />
           )}
-         
+
+          {/* Project Description */}
           <ProjectDescription description={project.description} />
-         
+
+          {/* Creative Approach */}
           {project.approach && project.approach.length > 0 && (
             <ProjectApproach steps={project.approach} />
           )}
-         
-          {/* UPDATED: Support both new testimonials array and legacy single testimonial */}
-          {((project.testimonials && project.testimonials.length > 0) || 
+
+          {/* Testimonials */}
+          {((project.testimonials && project.testimonials.length > 0) ||
             (project.testimonial && project.testimonial.quote)) && (
-            <ProjectTestimonial 
+            <ProjectTestimonial
               testimonials={project.testimonials}
               testimonial={project.testimonial}
             />
           )}
-         
+
+          {/* Downloadable Resources */}
           {project.downloadableFiles && project.downloadableFiles.length > 0 && (
             <ProjectResources files={project.downloadableFiles} />
           )}
-         
+
+          {/* Tags */}
           {project.tags && project.tags.length > 0 && (
             <ProjectTags tags={project.tags} />
           )}
-         
+
+          {/* Live Link */}
           {project.projectUrl && (
             <ProjectLiveLink url={project.projectUrl} />
           )}
-         
+
+          {/* Related Projects */}
           {project.relatedProjects && project.relatedProjects.length > 0 && (
             <RelatedProjects projects={project.relatedProjects} />
           )}
 
-          {/* Support Button - Bottom */}
+          {/* Support Button */}
           <div className="text-center my-8">
             <SupportButton position="bottom" />
           </div>
 
-          {/* Back to Portfolio Button */}
+          {/* Back to Portfolio */}
           <div className="text-center mt-8">
             <Link
               href="/portfolio"

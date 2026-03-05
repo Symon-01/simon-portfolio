@@ -81,7 +81,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} overflow-x-hidden`}>
         {/* Quote Modal Provider - Makes quote modal available globally */}
         <QuoteModalProvider>
           {/* IntaSend Global Provider - Loads payment system once for entire site */}

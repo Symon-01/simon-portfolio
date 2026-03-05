@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from 'react';
-import { client } from '@/lib/sanity'; // Removed urlFor as we now fetch the URL directly
+import { client } from '@/lib/sanity';
 
 interface FeaturedProject {
   _id: string;
@@ -12,7 +12,7 @@ interface FeaturedProject {
   slug: { current: string };
   category: string;
   description: string;
-  coverImageUrl?: string; // Updated to use the direct URL
+  coverImageUrl?: string;
   featured: boolean;
 }
 
@@ -51,11 +51,8 @@ export default function Portfolio() {
     const fetchFeaturedProjects = async () => {
       console.log('🔍 Starting to fetch featured projects...');
       
-      // UPDATED QUERY: 
-      // 1. Checks status == "published"
-      // 2. Checks !isDeleted
-      // 3. Fetches 'coverImageUrl' based on your 'isCover' selection
-      const query = `*[_type == "portfolio" && featured == true && status == "published" && (!defined(isDeleted) || isDeleted == false)] | order(projectDate desc)[0...4] {
+      // UPDATED QUERY: Removed status and isDeleted filters
+      const query = `*[_type == "portfolio" && featured == true] | order(_createdAt desc)[0...4] {
         _id,
         title,
         slug,
@@ -68,7 +65,6 @@ export default function Portfolio() {
       console.log('📝 Query:', query);
       
       try {
-        // Added 'no-store' to ensure you see updates immediately (like deleting/restoring)
         const data = await client.fetch(query, {}, { cache: 'no-store' });
         console.log('✅ Fetched data:', data);
         setFeaturedProjects(data);
@@ -217,7 +213,6 @@ export default function Portfolio() {
                 >
                   
                   <div className="relative w-full aspect-square overflow-hidden bg-gray-100">
-                    {/* UPDATED IMAGE LOGIC: Uses coverImageUrl directly */}
                     {project.coverImageUrl ? (
                       <Image 
                         src={project.coverImageUrl}

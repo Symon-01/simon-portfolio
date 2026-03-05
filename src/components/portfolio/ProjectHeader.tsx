@@ -23,7 +23,7 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
   const handleShare = (platform: string) => {
     const url = encodeURIComponent(window.location.href);
     const text = encodeURIComponent(`Check out this project: ${project?.title}`);
-   
+
     const shareUrls: { [key: string]: string } = {
       whatsapp: `https://wa.me/?text=${text}%20${url}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
@@ -37,23 +37,32 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 mb-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-0">
-        <div className="flex-1 mb-0">
+    // ✅ FIX 1: mb-6 → mb-8 (design system standard spacing)
+    <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 mb-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex-1">
           {project.featured && (
-            <span className="inline-block text-white px-3 py-1.5 rounded-full font-bold mb-3 card-desc" style={{ backgroundColor: '#EF6203' }}>
+            <span
+              className="inline-block text-white px-3 py-1.5 rounded-full font-semibold mb-3 card-desc"
+              style={{ backgroundColor: '#EF6203' }}
+            >
               ⭐ Featured Project
             </span>
           )}
-         
-          <div className="font-bold uppercase tracking-wide mb-2 card-desc" style={{ color: '#048F02' }}>
+
+          {/* ✅ FIX 2: removed mb-2 override, font-bold → font-semibold (600 weight per system) */}
+          <div
+            className="font-semibold uppercase tracking-wide card-desc"
+            style={{ color: '#048F02' }}
+          >
             {categoryLabels[project.category] || project.category}
           </div>
-         
-          <h1 className="section-title font-bold text-gray-900 mt-2 mb-4">
+
+          {/* ✅ FIX 3: removed mt-2 mb-4 — let .section-title CSS handle spacing */}
+          <h1 className="section-title font-bold text-gray-900">
             {project.title}
           </h1>
-         
+
           <div className="flex flex-wrap gap-4 text-gray-600 card-desc">
             {project.client && (
               <div>
@@ -75,8 +84,8 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
           </div>
         </div>
 
-        {/* Social Share Buttons - Reduced height */}
-        <div className="bg-gray-50 p-3 rounded-xl">
+        {/* ✅ FIX 5: p-3 → p-4 for proper breathing room */}
+        <div className="bg-gray-50 p-4 rounded-xl">
           <p className="font-semibold text-gray-700 mb-2 card-desc">Share this project:</p>
           <div className="flex flex-wrap gap-2">
             {/* WhatsApp */}
@@ -167,8 +176,8 @@ export default function ProjectHeader({ project }: ProjectHeaderProps) {
             <p className="text-xs font-semibold mt-2" style={{ color: '#048F02' }}>Link copied!</p>
           )}
 
-          {/* Support Button - Right below share buttons with reduced spacing */}
-          <div className="mt-3 pt-3 border-t border-gray-200">
+          {/* ✅ FIX 6: mt-3 pt-3 → mt-4 pt-4 for proper breathing room */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
             <SupportButton position="top" />
           </div>
         </div>

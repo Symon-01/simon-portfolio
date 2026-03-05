@@ -38,6 +38,8 @@ export interface RelatedProject {
   title: string;
   slug: { current: string };
   category: string;
+  featured: boolean;        // ✅ ADDED
+  description?: string;     // ✅ ADDED
   images: any[];
 }
 
@@ -53,8 +55,8 @@ export interface Project {
   tags?: string[];
   featured: boolean;
   projectUrl?: string;
-  testimonials?: Testimonial[]; // New: Array of testimonials with ratings
-  testimonial?: LegacyTestimonial; // Old: Keep for backward compatibility
+  testimonials?: Testimonial[];
+  testimonial?: LegacyTestimonial;
   approach?: ApproachStep[];
   downloadableFiles?: DownloadableFile[];
   relatedProjects?: RelatedProject[];

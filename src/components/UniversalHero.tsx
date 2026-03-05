@@ -278,7 +278,7 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
       `}</style>
 
       {/* --- ADD REF HERE --- */}
-      <section ref={sectionRef} className="relative w-full">
+      <section ref={sectionRef} className="relative w-full overflow-x-hidden">
         {/* Hero Content Section */}
         <div className="relative w-full h-[42vh] md:h-[38vh] min-h-[320px] md:min-h-[360px] flex items-center justify-center text-center text-white overflow-hidden">
           {/* Background Image */}
@@ -383,7 +383,7 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
         </div>
 
         {/* Animated Green Banner - Full Width at Bottom */}
-        <div style={{ backgroundColor: '#048F02' }} className="overflow-hidden py-2.5">
+        <div style={{ backgroundColor: '#048F02', willChange: 'transform' }} className="overflow-hidden py-2.5">
           <div className="banner-scroll whitespace-nowrap inline-block">
             {scrollingItems.map((item, index) => (
               <span key={index} className="inline-block px-8 text-white font-semibold text-sm">
