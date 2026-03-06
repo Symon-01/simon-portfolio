@@ -2,7 +2,9 @@ simon-designs/
 ├── .gitignore
 ├── eslint.config.mjs
 ├── generate-tree.js
+├── netlify.toml
 ├── next-env.d.ts
+├── next-sitemap.config.js
 ├── next.config.ts
 ├── package.json
 ├── postcss.config.mjs
@@ -77,6 +79,7 @@ simon-designs/
 ├── src
 │   ├── app
 │   │   ├── about
+│   │   │   ├── AboutPageClient.tsx
 │   │   │   └── page.tsx
 │   │   ├── about-me
 │   │   │   └── page.tsx
@@ -86,20 +89,27 @@ simon-designs/
 │   │   ├── contact
 │   │   │   └── page.tsx
 │   │   ├── globals.css
+│   │   ├── HomePageClient.tsx
 │   │   ├── layout.tsx
 │   │   ├── page.tsx
 │   │   ├── portfolio
 │   │   │   ├── page.tsx
+│   │   │   ├── PortfolioPageClient.tsx
 │   │   │   └── [slug]
-│   │   │       └── page.tsx
+│   │   │       ├── page.tsx
+│   │   │       └── ProjectDetailClient.tsx
 │   │   ├── pricing
-│   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── PricingPageClient.tsx
 │   │   ├── services
-│   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── ServicesPageClient.tsx
 │   │   ├── simon-arts
 │   │   │   ├── page.tsx
+│   │   │   ├── SimonArtsPageClient.tsx
 │   │   │   └── [slug]
 │   │   │       └── page.tsx
+│   │   ├── sitemap.ts
 │   │   ├── test-banners
 │   │   │   └── page.tsx
 │   │   └── test-sanity
@@ -156,7 +166,7 @@ simon-designs/
 │   │   ├── ServicesHero.tsx
 │   │   ├── ServicesOverview.tsx
 │   │   ├── ServicesProcess.tsx
-│   │   ├── SimonArts
+│   │   ├── simonArts
 │   │   │   ├── ArtworkHeader.tsx
 │   │   │   ├── ArtworkImages.tsx
 │   │   │   ├── ArtworkLightbox.tsx

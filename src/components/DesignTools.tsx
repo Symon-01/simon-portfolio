@@ -116,7 +116,6 @@ export default function DesignTools() {
             iconName
           }
         }`;
-
         const result = await client.fetch(query);
         setData(result);
       } catch (error) {
@@ -130,69 +129,75 @@ export default function DesignTools() {
   }, []);
 
   if (loading) {
-    return <div className="py-6 lg:py-6 bg-white min-h-96"></div>;
+    return <div className="py-6 lg:py-8 bg-white min-h-96"></div>;
   }
 
   if (!data) {
-    return <div className="py-6 lg:py-6 bg-white text-center text-gray-600">No data found</div>;
+    return (
+      <div className="py-6 lg:py-8 bg-white text-center text-gray-600">
+        No data found
+      </div>
+    );
   }
 
   return (
     <>
       <style jsx>{`
+        /* ========== SIMON DESIGNS - TYPOGRAPHY SYSTEM ========== */
+
         .section-title {
           font-size: 2rem !important;
           line-height: 1.3 !important;
           margin-bottom: 0.375rem !important;
           font-weight: 700;
         }
-
         .section-desc {
           font-size: 1rem !important;
           line-height: 1.6 !important;
         }
-
         .card-title {
-          font-size: 0.875rem !important;
+          font-size: 0.95rem !important;
           font-weight: 700 !important;
         }
 
+        /* ========== MOBILE RESPONSIVE ========== */
         @media (max-width: 1023px) {
           .section-title {
             font-size: 1.5rem !important;
             margin-bottom: 0.25rem !important;
           }
-
           .section-desc {
             font-size: 0.9rem !important;
             padding: 0 8px;
           }
-
           .card-title {
-            font-size: 0.75rem !important;
+            font-size: 0.85rem !important;
           }
         }
 
+        /* Tablet adjustments */
         @media (min-width: 640px) and (max-width: 1023px) {
           .card-title {
-            font-size: 0.8rem !important;
+            font-size: 0.9rem !important;
           }
         }
       `}</style>
 
-      <section className="py-6 lg:py-6 bg-white">
+      <section className="py-6 lg:py-8 bg-white">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+
+          {/* Section Header */}
           <div className="text-center mb-8">
-            <h2 className="section-title text-green-600">
+            <h2 className="section-title font-bold" style={{ color: '#048F02' }}>
               {data.title}
             </h2>
-            <p className="section-desc text-gray-700 max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="section-desc text-gray-600 max-w-2xl mx-auto leading-relaxed font-medium">
               {data.description}
             </p>
           </div>
 
-          {/* Mobile: 3 columns, Tablet: 4 columns, Desktop: 6 columns */}
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
+          {/* Tools Grid — 3 cols mobile, 4 cols tablet, 6 cols desktop */}
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 lg:gap-6 mb-10">
             {data.tools.map((tool, index) => {
               const Icon = iconMap[tool.iconName.toLowerCase()] || Palette;
               const colors = toolColors[tool.iconName.toLowerCase()] || toolColors.palette;
@@ -203,7 +208,7 @@ export default function DesignTools() {
                   className={`group ${colors.cardGradient} ${colors.hoverGradient} rounded-2xl shadow-md p-4 lg:p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 ${colors.borderHover} flex flex-col items-center justify-center text-center`}
                 >
                   <div className={`${colors.bgColor} ${colors.hoverBg} w-10 h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center mb-3 transition-colors duration-300`}>
-                    <Icon className={`w-5 h-5 lg:w-5.5 lg:h-5.5 ${colors.iconColor} ${colors.hoverIcon} transition-colors duration-300`} />
+                    <Icon className={`w-5 h-5 ${colors.iconColor} ${colors.hoverIcon} transition-colors duration-300`} />
                   </div>
                   <h3 className={`card-title text-gray-800 transition-colors duration-300`}>
                     {tool.name}
@@ -212,6 +217,16 @@ export default function DesignTools() {
               );
             })}
           </div>
+        </div>
+
+        {/* Bottom Section Divider */}
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 mt-8">
+          <div
+            className="h-0.5"
+            style={{
+              background: 'linear-gradient(to right, transparent, #EF6203, transparent)',
+            }}
+          ></div>
         </div>
       </section>
     </>

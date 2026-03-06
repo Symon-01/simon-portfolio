@@ -26,63 +26,61 @@ export default function AboutMeHero({
 
   return (
     <div className="bg-gradient-to-b from-slate-50 via-green-50/50 to-white overflow-hidden relative">
-      {/* Enhanced decorative background elements */}
+      {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Animated gradient orbs */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-green-300/30 to-transparent rounded-full blur-3xl opacity-40 animate-pulse"></div>
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-gradient-to-tl from-orange-300/20 to-transparent rounded-full blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-80 h-80 bg-gradient-to-r from-green-200/20 via-orange-200/10 to-transparent rounded-full blur-3xl opacity-20"></div>
-        
+
         {/* Subtle grid pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-5"
           style={{
-            backgroundImage: 'linear-gradient(0deg, transparent 24%, rgba(4,143,2,.1) 25%, rgba(4,143,2,.1) 26%, transparent 27%, transparent 74%, rgba(4,143,2,.1) 75%, rgba(4,143,2,.1) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(4,143,2,.1) 25%, rgba(4,143,2,.1) 26%, transparent 27%, transparent 74%, rgba(4,143,2,.1) 75%, rgba(4,143,2,.1) 76%, transparent 77%, transparent)',
-            backgroundSize: '80px 80px'
+            backgroundImage:
+              'linear-gradient(0deg, transparent 24%, rgba(4,143,2,.1) 25%, rgba(4,143,2,.1) 26%, transparent 27%, transparent 74%, rgba(4,143,2,.1) 75%, rgba(4,143,2,.1) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(4,143,2,.1) 25%, rgba(4,143,2,.1) 26%, transparent 27%, transparent 74%, rgba(4,143,2,.1) 75%, rgba(4,143,2,.1) 76%, transparent 77%, transparent)',
+            backgroundSize: '80px 80px',
           }}
         ></div>
       </div>
 
-      <div className="relative z-10 max-w-6xl px-6 sm:px-8 lg:px-12 mx-auto py-4 md:py-2">
+      {/* Main Content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[550px]">
-          
+
           {/* Left Content */}
           <div className="space-y-6 flex flex-col justify-center">
             {/* Badge */}
             <div className="inline-flex w-fit">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm" style={{
-                background: 'rgba(4,143,2,0.1)',
-                borderColor: 'rgba(4,143,2,0.4)'
-              }}>
-                <span className="text-sm font-semibold text-gray-700">Creative Designer & Visual Storyteller</span>
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm"
+                style={{
+                  background: 'rgba(4,143,2,0.1)',
+                  borderColor: 'rgba(4,143,2,0.4)',
+                }}
+              >
+                <span className="text-sm font-semibold text-gray-700">
+                  Creative Designer & Visual Storyteller
+                </span>
               </div>
             </div>
 
             {/* Main Heading */}
-            <h1 
-              className="font-bold"
+            <h1
+              className="font-bold hero-title"
               style={{
-                fontSize: 'clamp(1.875rem, 5vw, 3rem)',
                 lineHeight: '1.2',
                 letterSpacing: '-0.02em',
                 background: 'linear-gradient(135deg, #048F02 0%, #EF6203 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                animation: 'fadeIn 1.2s ease-out'
               }}
             >
               {heroTitle?.trim() || "Simon Macharia"}
             </h1>
-            
+
             {/* Description */}
-            <p 
-              className="text-gray-600 max-w-2xl"
-              style={{
-                fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)',
-                lineHeight: '1.6'
-              }}
-            >
+            <p className="section-desc text-gray-600 max-w-2xl leading-relaxed font-medium">
               {heroDescription || "I blend creativity with strategy to deliver impactful designs that speak louder than words."}
             </p>
 
@@ -90,49 +88,52 @@ export default function AboutMeHero({
             {skills && skills.length > 0 && (
               <div className="flex flex-wrap gap-3 pt-2">
                 {skills.map((skill, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="flex items-center gap-2 px-5 py-3 rounded-lg border-2 transition-all hover:shadow-lg hover:scale-105"
                     style={{
                       borderColor: index % 2 === 0 ? '#048F02' : '#EF6203',
                       background: index % 2 === 0 ? 'rgba(4,143,2,0.05)' : 'rgba(239,98,3,0.05)',
-                      fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                      fontWeight: '600'
                     }}
                   >
                     <span style={{ color: index % 2 === 0 ? '#048F02' : '#EF6203' }}>
                       {skill.icon}
                     </span>
-                    <span className="text-gray-800">{skill.name}</span>
+                    <span className="card-title text-gray-800">{skill.name}</span>
                   </div>
                 ))}
               </div>
             )}
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
                 href="/portfolio"
-                className="group px-8 py-3 rounded-full font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-white hover:shadow-lg hover:scale-105"
+                className="cta-button group inline-flex items-center justify-center gap-2 rounded-full font-semibold text-white transition-all duration-300 hover:shadow-lg hover:scale-105"
                 style={{
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   background: 'linear-gradient(135deg, #048F02 0%, #037a01 100%)',
-                  boxShadow: '0 8px 20px rgba(4,143,2,0.3)'
+                  boxShadow: '0 8px 20px rgba(4,143,2,0.3)',
+                  padding: '8px 16px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
                 }}
               >
                 <span>View My Work</span>
-                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              
+
               <Link
                 href="/contact"
-                className="px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+                className="cta-button inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 hover:scale-105"
                 style={{
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   borderWidth: '2px',
+                  borderStyle: 'solid',
                   borderColor: '#048F02',
                   color: '#048F02',
-                  backgroundColor: 'rgba(4,143,2,0.05)'
+                  backgroundColor: 'rgba(4,143,2,0.05)',
+                  padding: '8px 16px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
                 }}
               >
                 Get In Touch
@@ -163,57 +164,74 @@ export default function AboutMeHero({
         </div>
       </div>
 
-      {/* Animated Green Banner - Full Width at Bottom */}
-      <div style={{backgroundColor: '#048F02'}} className="overflow-hidden py-2.5">
+      {/* Animated Green Banner */}
+      <div style={{ backgroundColor: '#048F02' }} className="overflow-hidden py-2.5">
         <div className="banner-scroll whitespace-nowrap inline-block">
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Graphic Design & Pencil Art
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Creative Solutions for Your Brand
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Professional Design Services
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Let's Create Something Amazing
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Graphic Design & Pencil Art
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Creative Solutions for Your Brand
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Professional Design Services
-          </span>
-          <span className="inline-block px-8 text-white font-semibold text-sm">
-            Let's Create Something Amazing
-          </span>
+          {[
+            'Graphic Design & Pencil Art',
+            'Creative Solutions for Your Brand',
+            'Professional Design Services',
+            "Let's Create Something Amazing",
+          ].flatMap((text, i) => [
+            <span key={`a-${i}`} className="inline-block px-8 text-white font-semibold text-sm">{text}</span>,
+            <span key={`b-${i}`} className="inline-block px-8 text-white font-semibold text-sm">{text}</span>,
+          ])}
         </div>
       </div>
 
-      {/* Fade-in animation */}
       <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
+        /* ========== SIMON DESIGNS - TYPOGRAPHY SYSTEM ========== */
+
+        /* Hero Title */
+        .hero-title {
+          font-size: 3rem;
+        }
+
+        /* Section Description */
+        .section-desc {
+          font-size: 1rem !important;
+          line-height: 1.6 !important;
+        }
+
+        /* Card Title (skill labels) */
+        .card-title {
+          font-size: 0.95rem !important;
+          font-weight: 700 !important;
+        }
+
+        /* CTA Button - Desktop */
+        @media (min-width: 1024px) {
+          a.cta-button {
+            padding: 10px 28px !important;
+            font-size: 0.9375rem !important;
+            min-height: 44px !important;
+            font-weight: 600 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+        }
+
+        /* ========== MOBILE RESPONSIVE ========== */
+        @media (max-width: 1023px) {
+          .hero-title {
+            font-size: 2rem;
+          }
+
+          .section-desc {
+            font-size: 0.9rem !important;
+            padding: 0 8px;
+          }
+
+          .card-title {
+            font-size: 0.85rem !important;
           }
         }
 
         /* Banner Animation */
         @keyframes slide {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
 
         .banner-scroll {

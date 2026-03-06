@@ -27,17 +27,21 @@ interface MyStoryProps {
 }
 
 export default function MyStory({ storySections }: MyStoryProps) {
-  // Sort sections by order
   const sortedSections = [...storySections].sort((a, b) => a.order - b.order);
 
   return (
     <>
       <style jsx>{`
-        /* Typography System */
+        /* ========== SIMON DESIGNS - TYPOGRAPHY SYSTEM ========== */
+
         .section-title {
           font-size: 2rem !important;
           line-height: 1.3 !important;
           margin-bottom: 0.375rem !important;
+        }
+        .section-desc {
+          font-size: 1rem !important;
+          line-height: 1.6 !important;
         }
         .story-section-title {
           font-size: 1.75rem !important;
@@ -52,10 +56,16 @@ export default function MyStory({ storySections }: MyStoryProps) {
           font-size: 0.875rem !important;
           line-height: 1.5 !important;
         }
+
+        /* ========== MOBILE RESPONSIVE ========== */
         @media (max-width: 1023px) {
           .section-title {
             font-size: 1.5rem !important;
             margin-bottom: 0.25rem !important;
+          }
+          .section-desc {
+            font-size: 0.9rem !important;
+            padding: 0 8px;
           }
           .story-section-title {
             font-size: 1.375rem !important;
@@ -72,31 +82,28 @@ export default function MyStory({ storySections }: MyStoryProps) {
 
       <section className="py-6 lg:py-8 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+
           {/* Section Header */}
           <div className="text-center mb-8">
             <h2 className="section-title font-bold" style={{ color: '#048F02' }}>
               My Story
             </h2>
-            <div
-              className="w-24 h-1 mx-auto rounded-full mt-4"
-              style={{
-                background: 'linear-gradient(to right, #048F02, #EF6203)'
-              }}
-            ></div>
+            <p className="section-desc text-gray-600 max-w-2xl mx-auto leading-relaxed font-medium">
+              A journey of passion, creativity, and the relentless pursuit of meaningful design.
+            </p>
           </div>
-         
+
           {/* Dynamic Story Sections */}
-          <div className="space-y-12 lg:space-y-16">
+          <div className="space-y-8">
             {sortedSections.map((section, index) => (
               <div key={section._id}>
                 <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-10 border border-gray-100 hover:shadow-xl transition-shadow">
+
                   {/* Section Title with Number Badge */}
                   <div className="flex items-start gap-4 mb-6">
                     <div
                       className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
-                      style={{
-                        background: 'linear-gradient(135deg, #048F02, #037a01)'
-                      }}
+                      style={{ background: 'linear-gradient(135deg, #048F02, #037a01)' }}
                     >
                       {index + 1}
                     </div>
@@ -104,7 +111,7 @@ export default function MyStory({ storySections }: MyStoryProps) {
                       {section.title}
                     </h3>
                   </div>
-                 
+
                   {/* Paragraphs */}
                   <div className="space-y-4 mb-6">
                     {section.paragraphs?.map((para) => (
@@ -143,11 +150,11 @@ export default function MyStory({ storySections }: MyStoryProps) {
 
                 {/* Divider between sections (except last) */}
                 {index < sortedSections.length - 1 && (
-                  <div className="mt-12 lg:mt-16">
+                  <div className="mt-8">
                     <div
                       className="h-px max-w-md mx-auto"
                       style={{
-                        background: 'linear-gradient(to right, transparent, #EF6203, transparent)'
+                        background: 'linear-gradient(to right, transparent, #EF6203, transparent)',
                       }}
                     ></div>
                   </div>
@@ -162,7 +169,7 @@ export default function MyStory({ storySections }: MyStoryProps) {
           <div
             className="h-0.5"
             style={{
-              background: 'linear-gradient(to right, transparent, #EF6203, transparent)'
+              background: 'linear-gradient(to right, transparent, #EF6203, transparent)',
             }}
           ></div>
         </div>
