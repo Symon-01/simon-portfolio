@@ -1,283 +1,66 @@
 // FILE LOCATION: src/app/portfolio/[slug]/page.tsx
+// ✅ This is now a SERVER component — enables dynamic OG metadata per project
 
-"use client";
-
-import { use, useEffect, useState } from 'react';
+import type { Metadata } from "next";
 import { client } from '@/lib/sanity';
-import Link from 'next/link';
-import ProjectHeader from '@/components/portfolio/ProjectHeader';
-import ProjectGallery from '@/components/portfolio/ProjectGallery';
-import ProjectDescription from '@/components/portfolio/ProjectDescription';
-import ProjectApproach from '@/components/portfolio/ProjectApproach';
-import ProjectTestimonial from '@/components/portfolio/ProjectTestimonial';
-import ProjectResources from '@/components/portfolio/ProjectResources';
-import ProjectTags from '@/components/portfolio/ProjectTags';
-import ProjectLiveLink from '@/components/portfolio/ProjectLiveLink';
-import RelatedProjects from '@/components/portfolio/RelatedProjects';
-import SupportButton from '@/components/SupportButton';
-import { Project } from '@/types/portfolio';
+import ProjectDetailClient from './ProjectDetailClient';
 
-export default function ProjectDetailPage({
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params;
+
+  const query = `*[_type == "portfolio" && slug.current == $slug][0]{
+    title,
+    description,
+    "coverImage": coalesce(
+      images[isCover == true][0].asset->url,
+      images[0].asset->url
+    )
+  }`;
+
+  const project = await client.fetch(query, { slug });
+
+  if (!project) return {};
+
+  // Handle both plain text and Portable Text array
+  const description = Array.isArray(project.description)
+    ? project.description
+        .map((block: any) => block.children?.map((c: any) => c.text).join('') ?? '')
+        .join(' ')
+    : project.description;
+
+  const ogImage = project.coverImage || 'https://simondesigns.co.ke/preview.png';
+
+  return {
+    title: `${project.title} | Simon Designs`,
+    description: description?.slice(0, 160),
+    openGraph: {
+      title: `${project.title} | Simon Designs`,
+      description: description?.slice(0, 160),
+      url: `https://simondesigns.co.ke/portfolio/${slug}`,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: project.title,
+        }
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${project.title} | Simon Designs`,
+      description: description?.slice(0, 160),
+      images: [ogImage],
+    },
+  };
+}
+
+export default function ProjectPage({
   params
 }: {
   params: Promise<{ slug: string }>
 }) {
-  const unwrappedParams = use(params);
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProject = async () => {
-      const query = `*[_type == "portfolio" && slug.current == $slug][0]{
-        _id,
-        title,
-        slug,
-        category,
-        description,
-        client,
-        projectDate,
-        images,
-        tags,
-        featured,
-        projectUrl,
-        
-        testimonials[]{
-          quote,
-          author,
-          position,
-          company,
-          rating,
-          photo,
-          date,
-          verified
-        },
-        
-        testimonial{
-          quote,
-          author,
-          position,
-          photo
-        },
-        
-        approach[]{
-          stepTitle,
-          stepDescription
-        },
-        downloadableFiles[]{
-          "asset": asset->{
-            url
-          },
-          fileTitle,
-          fileDescription
-        },
-        relatedProjects[]->{
-          _id,
-          title,
-          slug,
-          category,
-          featured,
-          description,
-          images
-        }
-      }`;
-     
-      try {
-        const data = await client.fetch(query, { slug: unwrappedParams.slug });
-        console.log('🔍 FULL PROJECT DATA:', data);
-        setProject(data);
-      } catch (error) {
-        console.error('Error fetching project:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProject();
-  }, [unwrappedParams.slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 card-desc">Loading project...</p>
-      </div>
-    );
-  }
-
-  if (!project) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="section-title font-bold mb-4 text-gray-900">Project Not Found</h1>
-          <p className="section-desc text-gray-600 mb-6">Sorry, we couldn't find the project you're looking for.</p>
-          <Link
-            href="/portfolio"
-            className="inline-flex items-center font-semibold link-text transition-colors"
-            style={{ color: '#048F02' }}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Portfolio
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <style jsx>{`
-        .section-title {
-          font-size: 2rem !important;
-          line-height: 1.3 !important;
-          margin-bottom: 0.375rem !important;
-        }
-
-        .section-desc {
-          font-size: 1rem !important;
-          line-height: 1.6 !important;
-        }
-
-        .card-title {
-          font-size: 0.95rem !important;
-          font-weight: 700 !important;
-        }
-
-        .card-desc {
-          font-size: 0.875rem !important;
-          line-height: 1.5 !important;
-        }
-
-        .link-text {
-          font-size: 0.875rem !important;
-        }
-
-        @media (min-width: 1024px) {
-          a.cta-button {
-            padding: 10px 28px !important;
-            font-size: 0.9375rem !important;
-            min-height: 44px !important;
-            font-weight: 600 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-          }
-        }
-
-        @media (max-width: 1023px) {
-          .section-title {
-            font-size: 1.5rem !important;
-            margin-bottom: 0.25rem !important;
-          }
-
-          .section-desc {
-            font-size: 0.9rem !important;
-            padding: 0 8px;
-          }
-
-          .card-title {
-            font-size: 0.85rem !important;
-            font-weight: 700 !important;
-          }
-
-          .card-desc {
-            font-size: 0.8rem !important;
-            line-height: 1.4 !important;
-          }
-
-          .link-text {
-            font-size: 0.8rem !important;
-          }
-        }
-
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .card-title {
-            font-size: 0.9rem !important;
-          }
-        }
-      `}</style>
-
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
-
-          {/* Back to Portfolio link */}
-          <Link
-            href="/portfolio"
-            className="inline-flex items-center font-semibold mb-6 transition-colors link-text"
-            style={{ color: '#048F02' }}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Portfolio
-          </Link>
-
-          {/* Project Header */}
-          <ProjectHeader project={project} />
-
-          {/* Project Gallery */}
-          {project.images && project.images.length > 0 && (
-            <ProjectGallery images={project.images} title={project.title} />
-          )}
-
-          {/* Project Description */}
-          <ProjectDescription description={project.description} />
-
-          {/* Creative Approach */}
-          {project.approach && project.approach.length > 0 && (
-            <ProjectApproach steps={project.approach} />
-          )}
-
-          {/* Testimonials */}
-          {((project.testimonials && project.testimonials.length > 0) ||
-            (project.testimonial && project.testimonial.quote)) && (
-            <ProjectTestimonial
-              testimonials={project.testimonials}
-              testimonial={project.testimonial}
-            />
-          )}
-
-          {/* Downloadable Resources */}
-          {project.downloadableFiles && project.downloadableFiles.length > 0 && (
-            <ProjectResources files={project.downloadableFiles} />
-          )}
-
-          {/* Tags */}
-          {project.tags && project.tags.length > 0 && (
-            <ProjectTags tags={project.tags} />
-          )}
-
-          {/* Live Link */}
-          {project.projectUrl && (
-            <ProjectLiveLink url={project.projectUrl} />
-          )}
-
-          {/* Related Projects */}
-          {project.relatedProjects && project.relatedProjects.length > 0 && (
-            <RelatedProjects projects={project.relatedProjects} />
-          )}
-
-          {/* Support Button */}
-          <div className="text-center my-8">
-            <SupportButton position="bottom" />
-          </div>
-
-          {/* Back to Portfolio */}
-          <div className="text-center mt-8">
-            <Link
-              href="/portfolio"
-              className="inline-flex items-center font-semibold link-text transition-colors"
-              style={{ color: '#048F02' }}
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to All Projects
-            </Link>
-          </div>
-
-        </div>
-      </div>
-    </>
-  );
+  return <ProjectDetailClient params={params} />;
 }

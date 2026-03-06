@@ -1,12 +1,16 @@
 // FILE LOCATION: src/components/portfolio/ProjectGallery.tsx
-
 "use client";
 
 import { useState } from 'react';
-import { urlFor } from '@/lib/sanity';
+
+interface GalleryImage {
+  asset: string; // now a direct URL string
+  isCover?: boolean;
+  alt?: string;
+}
 
 interface ProjectGalleryProps {
-  images: any[];
+  images: GalleryImage[];
   title: string;
 }
 
@@ -17,21 +21,16 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);
     setLightboxOpen(true);
-    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    document.body.style.overflow = 'hidden';
   };
 
   const closeLightbox = () => {
     setLightboxOpen(false);
-    document.body.style.overflow = 'unset'; // Restore scrolling
+    document.body.style.overflow = 'unset';
   };
 
-  const goToNext = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const goToPrevious = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  const goToNext = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  const goToPrevious = () => setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
 
   const handleDownloadImage = async (imageUrl: string, fileName: string) => {
     try {
@@ -50,39 +49,46 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
     }
   };
 
+  // ✅ Get URL directly from the new structure
+  const getImageUrl = (image: GalleryImage) => image.asset;
+
   return (
     <>
-      {/* Container Card: Standardized bg-white, rounded-2xl, shadow, and mb-8 */}
       <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 mb-8">
-        
-        {/* Header Section with standardized .section-title and .section-desc */}
+
         <div className="mb-6 lg:mb-8">
-          <h2 className="section-title font-bold text-gray-900">
-            Project Gallery
-          </h2>
+          <h2 className="section-title font-bold text-gray-900">Project Gallery</h2>
           <p className="section-desc text-gray-600">
             Click on any image to view full size, or download individual images for reference.
           </p>
         </div>
 
-        {/* Grid: Updated to match Design System gaps (gap-4 lg:gap-6) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-          {images.map((image: any, index: number) => {
-            const imageUrl = urlFor(image).width(800).height(800).url();
+          {images.map((image: GalleryImage, index: number) => {
+            const imageUrl = getImageUrl(image);
+            if (!imageUrl) return null;
+
             return (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gray-100"
                 onClick={() => openLightbox(index)}
               >
                 <img
                   src={imageUrl}
-                  alt={`${title} - Image ${index + 1}`}
+                  alt={image.alt || `${title} - Image ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                 />
-                
-                {/* Download Button: Using Brand Green #048F02 */}
+
+                {/* ✅ Cover badge */}
+                {image.isCover && (
+                  <span className="absolute top-2 left-2 bg-[#048F02] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                    ⭐ Cover
+                  </span>
+                )}
+
+                {/* Download Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -99,43 +105,32 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
                 </button>
 
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
-                  <svg className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                  </svg>
-                </div>
+                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none" />
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox */}
       {lightboxOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center backdrop-blur-sm"
           onClick={closeLightbox}
         >
-          {/* Close Button */}
           <button
             onClick={closeLightbox}
             className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors z-50 p-2 bg-white/10 rounded-full"
-            title="Close (ESC)"
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          {/* Previous Button */}
           {images.length > 1 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                goToPrevious();
-              }}
+              onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
               className="absolute left-6 text-white hover:scale-110 transition-transform z-50 p-3 bg-white/10 rounded-full"
-              title="Previous (←)"
             >
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -143,29 +138,24 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
             </button>
           )}
 
-          {/* Image Display */}
-          <div className="relative max-w-6xl max-h-[85vh] mx-4 flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-6xl max-h-[85vh] mx-4 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
-              src={urlFor(images[currentImageIndex]).width(1600).url()}
-              alt={`${title} - Image ${currentImageIndex + 1}`}
+              src={getImageUrl(images[currentImageIndex])}
+              alt={images[currentImageIndex].alt || `${title} - Image ${currentImageIndex + 1}`}
               className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
             />
-            
-            {/* Image counter using brand standards */}
             <div className="mt-6 bg-white/10 backdrop-blur-md text-white px-6 py-2 rounded-full font-bold card-desc">
               {currentImageIndex + 1} / {images.length}
             </div>
           </div>
 
-          {/* Next Button */}
           {images.length > 1 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                goToNext();
-              }}
+              onClick={(e) => { e.stopPropagation(); goToNext(); }}
               className="absolute right-6 text-white hover:scale-110 transition-transform z-50 p-3 bg-white/10 rounded-full"
-              title="Next (→)"
             >
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -175,7 +165,6 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
         </div>
       )}
 
-      {/* Keyboard navigation helper */}
       {lightboxOpen && (
         <div
           onKeyDown={(e) => {

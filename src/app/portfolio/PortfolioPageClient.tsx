@@ -30,8 +30,8 @@ function PortfolioContent() {
   }, [openModal]);
 
   return (
-    // ✅ overflow-x-hidden prevents any child from causing sideways scroll
-    <main className="overflow-x-hidden">
+    // ✅ Removed overflow-x-hidden from main — was causing scroll hang
+    <main>
       <UniversalHero
         location="portfolio-hero"
         scrollingBannerItems={[
@@ -42,20 +42,22 @@ function PortfolioContent() {
         ]}
       />
 
-      <section className="bg-gray-50 py-8 lg:py-10">
-        <div className="max-w-6xl mx-auto px-0 sm:px-4 lg:px-12">
-          <PortfolioGrid />
-          <div className="mt-2 flex justify-center px-4 sm:px-0">
+      {/* ✅ Removed wrapping section+div — PortfolioGrid handles its own container */}
+      <PortfolioGrid />
+
+      <div className="bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-12 pb-8">
+          <div className="pt-2 flex justify-center">
             <SupportButton position="bottom" />
           </div>
           <div
-            className="mt-8 h-0.5 mx-4 sm:mx-0"
+            className="mt-8 h-0.5"
             style={{
               background: "linear-gradient(to right, transparent, #EF6203, transparent)"
             }}
           />
         </div>
-      </section>
+      </div>
 
       <PortfolioCTA />
     </main>

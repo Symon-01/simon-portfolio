@@ -71,11 +71,11 @@ export default function PortfolioGrid() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* ✅ Changed from <section> to <div> — prevents scroll layer conflict */}
-      <div className="py-8 bg-white overflow-x-hidden">
+      {/* ✅ Single clean wrapper — no nested scroll contexts */}
+      <div className="bg-white py-8">
         <div className="max-w-6xl mx-auto px-3 sm:px-8 lg:px-12">
 
-          {/* Filters — scrollable on mobile */}
+          {/* Filters */}
           <div className="flex overflow-x-auto pb-4 md:pb-0 md:flex-wrap justify-start md:justify-center gap-2 md:gap-3 mb-8 md:mb-10 no-scrollbar">
             {categories.map((cat) => (
               <button
@@ -157,11 +157,6 @@ export default function PortfolioGrid() {
               ))}
             </div>
           )}
-        </div>
-
-        {/* Divider */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8 md:mt-12">
-          <div className="h-0.5" style={{ background: `linear-gradient(to right, transparent, #EF6203, transparent)` }} />
         </div>
       </div>
     </>

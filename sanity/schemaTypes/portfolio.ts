@@ -47,12 +47,63 @@ export default {
       title: 'Project Date',
       type: 'date'
     },
+
     {
       name: 'images',
       title: 'Project Images',
       type: 'array',
-      of: [{ type: 'image' }]
+      description: 'Upload project images. For new images, use "Add Project Image" to get the Cover Image toggle. Existing images are still fully supported.',
+      of: [
+        // ✅ OLD FORMAT — keeps all existing images working, no reupload needed
+        {
+          type: 'image',
+          options: { hotspot: true }
+        },
+        // ✅ NEW FORMAT — use this for new images going forward (has Cover Image toggle)
+        {
+          type: 'object',
+          name: 'projectImage',
+          title: 'Project Image',
+          fields: [
+            {
+              name: 'asset',
+              title: 'Image',
+              type: 'image',
+              options: { hotspot: true },
+              validation: (Rule: any) => Rule.required()
+            },
+            {
+              name: 'isCover',
+              title: '⭐ Set as Cover Image',
+              type: 'boolean',
+              description: 'This image will appear as the WhatsApp/Facebook/Twitter preview when sharing the link',
+              initialValue: false
+            },
+            {
+              name: 'alt',
+              title: 'Alt Text (optional)',
+              type: 'string',
+              description: 'Describe the image for accessibility'
+            }
+          ],
+          preview: {
+            select: {
+              media: 'asset',
+              isCover: 'isCover',
+              alt: 'alt'
+            },
+            prepare({ media, isCover, alt }: any) {
+              return {
+                title: isCover ? '⭐ Cover Image' : 'Project Image',
+                subtitle: alt || 'No alt text',
+                media
+              };
+            }
+          }
+        }
+      ]
     },
+
     {
       name: 'tags',
       title: 'Tags',
@@ -71,7 +122,7 @@ export default {
       type: 'url'
     },
 
-    // ✨ ENHANCED: Client Testimonials (Multiple with Ratings)
+    // Client Testimonials
     {
       name: 'testimonials',
       title: 'Client Testimonials',
@@ -85,7 +136,6 @@ export default {
               name: 'quote',
               title: 'Testimonial Quote',
               type: 'text',
-              description: 'What did the client say about the project?',
               validation: (Rule: any) => Rule.required()
             },
             {
@@ -98,20 +148,17 @@ export default {
               name: 'position',
               title: 'Client Position/Role',
               type: 'string',
-              description: 'e.g., CEO, Marketing Director, or Business Owner',
               validation: (Rule: any) => Rule.required()
             },
             {
               name: 'company',
               title: 'Company/Organization (optional)',
-              type: 'string',
-              description: 'Leave blank if working with individual'
+              type: 'string'
             },
             {
               name: 'rating',
               title: 'Star Rating',
               type: 'number',
-              description: 'Rating from 1 to 5 stars',
               validation: (Rule: any) => Rule.required().min(1).max(5),
               options: {
                 list: [
@@ -127,22 +174,17 @@ export default {
               name: 'photo',
               title: 'Client Photo (optional)',
               type: 'image',
-              description: 'Upload client photo or company logo',
-              options: {
-                hotspot: true
-              }
+              options: { hotspot: true }
             },
             {
               name: 'date',
               title: 'Testimonial Date (optional)',
-              type: 'date',
-              description: 'When did you receive this testimonial?'
+              type: 'date'
             },
             {
               name: 'verified',
               title: 'Verified Client',
               type: 'boolean',
-              description: 'Mark as verified to show badge',
               initialValue: true
             }
           ],
@@ -157,8 +199,8 @@ export default {
               const stars = '⭐'.repeat(rating || 0);
               return {
                 title: `${title} ${stars}`,
-                subtitle: subtitle,
-                media: media
+                subtitle,
+                media
               };
             }
           }
@@ -166,41 +208,27 @@ export default {
       ]
     },
 
-    // Keep existing testimonial field for backward compatibility (optional)
+    // Legacy testimonial — hidden but kept for backward compatibility
     {
       name: 'testimonial',
       title: 'Legacy Testimonial (Old Format)',
       type: 'object',
       description: '⚠️ Deprecated: Use "Client Testimonials" above instead',
-      hidden: true, // Hide from UI but keep data
+      hidden: true,
       fields: [
-        {
-          name: 'quote',
-          title: 'Testimonial Quote',
-          type: 'text'
-        },
-        {
-          name: 'author',
-          title: 'Client Name',
-          type: 'string'
-        },
-        {
-          name: 'position',
-          title: 'Client Position',
-          type: 'string'
-        },
+        { name: 'quote', title: 'Testimonial Quote', type: 'text' },
+        { name: 'author', title: 'Client Name', type: 'string' },
+        { name: 'position', title: 'Client Position', type: 'string' },
         {
           name: 'photo',
           title: 'Client Photo (optional)',
           type: 'image',
-          options: {
-            hotspot: true
-          }
+          options: { hotspot: true }
         }
       ]
     },
 
-    // Creative Approach/Process
+    // Creative Approach
     {
       name: 'approach',
       title: 'Creative Approach',
@@ -210,24 +238,11 @@ export default {
         {
           type: 'object',
           fields: [
-            {
-              name: 'stepTitle',
-              title: 'Step Title',
-              type: 'string',
-              description: 'e.g., Discovery & Research'
-            },
-            {
-              name: 'stepDescription',
-              title: 'Step Description',
-              type: 'text',
-              description: 'Explain what you did in this step'
-            }
+            { name: 'stepTitle', title: 'Step Title', type: 'string' },
+            { name: 'stepDescription', title: 'Step Description', type: 'text' }
           ],
           preview: {
-            select: {
-              title: 'stepTitle',
-              subtitle: 'stepDescription'
-            }
+            select: { title: 'stepTitle', subtitle: 'stepDescription' }
           }
         }
       ]
@@ -243,17 +258,8 @@ export default {
         {
           type: 'file',
           fields: [
-            {
-              name: 'fileTitle',
-              title: 'File Title',
-              type: 'string',
-              description: 'e.g., Brand Guidelines PDF, Case Study'
-            },
-            {
-              name: 'fileDescription',
-              title: 'File Description (optional)',
-              type: 'text'
-            }
+            { name: 'fileTitle', title: 'File Title', type: 'string' },
+            { name: 'fileDescription', title: 'File Description (optional)', type: 'text' }
           ]
         }
       ]
@@ -265,12 +271,7 @@ export default {
       title: 'Related Projects',
       type: 'array',
       description: 'Select 3-4 related projects to show at the bottom',
-      of: [
-        {
-          type: 'reference',
-          to: [{ type: 'portfolio' }]
-        }
-      ],
+      of: [{ type: 'reference', to: [{ type: 'portfolio' }] }],
       validation: (Rule: any) => Rule.max(4)
     }
   ],
@@ -278,15 +279,12 @@ export default {
   preview: {
     select: {
       title: 'title',
+      // ✅ Falls back gracefully for both old and new image formats
       media: 'images.0',
       category: 'category'
     },
     prepare({ title, media, category }: any) {
-      return {
-        title,
-        subtitle: category,
-        media
-      };
+      return { title, subtitle: category, media };
     }
   }
 };
