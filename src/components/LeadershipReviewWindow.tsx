@@ -56,31 +56,6 @@ export default function LeadershipReviewWindow() {
   const footerChunk = '📰 Published by Simon Designs  ★  Celebrating Exemplary Kenyan Leadership  ★  Ward · Constituency · County · National  ★  Your Number One Leadership Newspaper  ★  ';
   const footerRepeated = footerChunk.repeat(4);
 
-  const DownloadButton = ({ size }: { size: 'sm' | 'md' }) => (
-    <button
-      onClick={handleDownload}
-      disabled={downloading}
-      className={size === 'sm' ? 'lr-btn-secondary' : 'lr-btn-secondary-md'}
-    >
-      {downloading ? (
-        <>
-          <div
-            className="w-3 h-3 rounded-full border border-t-transparent animate-spin"
-            style={{ borderColor: '#cd171a', borderTopColor: 'transparent' }}
-          />
-          Downloading...
-        </>
-      ) : (
-        <>
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="#cd171a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Download PDF
-        </>
-      )}
-    </button>
-  );
-
   return (
     <section className="bg-white py-5">
       <style>{`
@@ -134,6 +109,7 @@ export default function LeadershipReviewWindow() {
           .lr-header-inner { padding: 16px 28px; gap: 16px; }
         }
 
+        /* NEW badge pill */
         .lr-badge {
           flex-shrink: 0;
           display: flex;
@@ -142,41 +118,44 @@ export default function LeadershipReviewWindow() {
           background: #cd171a;
           border: 2px solid #ffffff;
           border-radius: 999px;
+          /* Mobile: height matches the "NEW" white pill so text aligns flush */
           height: 28px;
           width: 120px;
         }
         @media (min-width: 400px) { .lr-badge { width: 150px; height: 30px; } }
         @media (min-width: 640px) { .lr-badge { width: 240px; height: 36px; } }
 
+        /* "NEW" white pill: same height as outer badge so text baseline aligns */
+        .lr-badge-new-pill {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 0 8px;
+          height: 100%;
+          flex-shrink: 0;
+          background: #ffffff;
+          border-radius: 999px 0 0 999px;
+        }
+        @media (min-width: 640px) { .lr-badge-new-pill { padding: 0 12px; gap: 5px; } }
+
         .lr-header-subtitle { display: none; }
         @media (min-width: 640px) { .lr-header-subtitle { display: block; } }
 
-        /* ─── Issue body wrapper ───
-           Mobile: flex column (top-row + bottom-row stacked)
-           Desktop: CSS grid with cover | details side by side
+        /* ─── Issue body ───
+           Mobile:  flex row — cover | [meta + tags + buttons stacked naturally]
+           Desktop: CSS grid — 220px cover col | auto details col
         ─── */
         .lr-issue-body {
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
+          align-items: stretch;
           background: white;
         }
         @media (min-width: 768px) {
           .lr-issue-body {
             display: grid;
             grid-template-columns: 220px minmax(0, 1fr);
-            grid-template-rows: auto;
           }
-        }
-
-        /* ─── Top row: cover + meta, side by side on mobile ─── */
-        .lr-top-row {
-          display: flex;
-          flex-direction: row;
-          align-items: stretch;
-        }
-        @media (min-width: 768px) {
-          /* Dissolve into grid — cover and details each become their own grid cell */
-          .lr-top-row { display: contents; }
         }
 
         /* ─── Cover panel ─── */
@@ -187,20 +166,17 @@ export default function LeadershipReviewWindow() {
           display: flex;
           align-items: center;
           justify-content: center;
-          /* Mobile: narrow fixed-width left column */
           width: 108px;
           padding: 26px 8px 10px 10px;
           border-right: 1px solid #e0e4f0;
         }
         @media (min-width: 400px) { .lr-cover-panel { width: 124px; } }
-        @media (min-width: 640px) { .lr-cover-panel { width: 148px; padding: 30px 10px 12px 12px; } }
+        @media (min-width: 540px) { .lr-cover-panel { width: 148px; padding: 30px 10px 12px 12px; } }
         @media (min-width: 768px) {
-          /* Desktop: auto-sized grid column */
           .lr-cover-panel {
             width: auto;
             padding: 14px 10px;
             min-height: 160px;
-            border-right: 1px solid #e0e4f0;
           }
         }
 
@@ -218,7 +194,7 @@ export default function LeadershipReviewWindow() {
           z-index: 10;
           white-space: nowrap;
         }
-        @media (min-width: 640px) { .lr-date-badge { font-size: 10px; padding: 3px 8px; top: 9px; left: 10px; } }
+        @media (min-width: 540px) { .lr-date-badge { font-size: 10px; padding: 3px 8px; top: 9px; left: 10px; } }
         @media (min-width: 768px) { .lr-date-badge { font-size: 11px; padding: 4px 10px; border-radius: 6px; top: 10px; left: 12px; } }
 
         /* ─── Cover image ─── */
@@ -232,52 +208,30 @@ export default function LeadershipReviewWindow() {
           box-shadow: 3px 3px 0 #b0b8d8, 5px 5px 0 #d0d5ea;
         }
         @media (min-width: 400px) { .lr-cover-image { max-width: 104px; } }
-        @media (min-width: 640px) { .lr-cover-image { max-width: 126px; } }
+        @media (min-width: 540px) { .lr-cover-image { max-width: 126px; } }
         @media (min-width: 768px) {
           .lr-cover-image { max-width: 170px; border-radius: 4px; box-shadow: 4px 4px 0 #b0b8d8, 8px 8px 0 #d0d5ea; }
         }
 
-        /* ─── Mobile meta pane (right of image) ─── */
-        .lr-meta-pane {
+        /* ─── Right pane: ONE pane for all screen sizes ─── */
+        .lr-right-pane {
           flex: 1;
           min-width: 0;
-          padding: 9px 10px 9px 10px;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          /* Mobile: natural flow — no space-between, content just stacks */
+          gap: 4px;
+          padding: 9px 10px 11px 10px;
         }
-        @media (min-width: 640px) { .lr-meta-pane { padding: 12px 14px; gap: 5px; } }
-        /* Hide on desktop — desktop uses lr-details-pane */
-        @media (min-width: 768px) { .lr-meta-pane { display: none; } }
-
-        /* ─── Desktop details pane ─── */
-        .lr-details-pane {
-          /* Hidden on mobile — desktop only */
-          display: none;
-        }
+        @media (min-width: 540px) { .lr-right-pane { padding: 12px 14px; gap: 5px; } }
         @media (min-width: 768px) {
-          .lr-details-pane {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 16px;
+          .lr-right-pane {
+            gap: 12px;
             padding: 20px 24px;
           }
         }
 
-        /* ─── Mobile bottom row: tags + buttons, full width ─── */
-        .lr-bottom-row {
-          display: flex;
-          flex-direction: column;
-          gap: 7px;
-          padding: 8px 12px 11px;
-          border-top: 1px solid #eaecf5;
-          background: white;
-        }
-        /* Hidden on desktop — desktop details pane has tags+buttons */
-        @media (min-width: 768px) { .lr-bottom-row { display: none; } }
-
-        /* ─── Shared text styles ─── */
+        /* ─── Text styles ─── */
         .lr-vol-meta {
           font-size: 8px;
           font-weight: 700;
@@ -287,27 +241,28 @@ export default function LeadershipReviewWindow() {
           opacity: 0.6;
           line-height: 1.2;
         }
-        @media (min-width: 640px) { .lr-vol-meta { font-size: 9px; } }
+        @media (min-width: 540px) { .lr-vol-meta { font-size: 9px; } }
         @media (min-width: 768px) { .lr-vol-meta { font-size: 11px; margin-bottom: 8px; } }
 
+        /* ─── Title: slightly bigger on both mobile and desktop ─── */
         .lr-issue-title {
           font-family: 'Playfair Display', serif;
-          font-size: 13px;
+          font-size: 15px;   /* was 13px */
           font-weight: 700;
           color: #111;
           line-height: 1.25;
           margin: 0;
         }
-        @media (min-width: 400px) { .lr-issue-title { font-size: 14px; } }
-        @media (min-width: 640px) { .lr-issue-title { font-size: 16px; } }
-        @media (min-width: 768px) { .lr-issue-title { font-size: 22px; line-height: 1.3; margin-bottom: 6px; } }
+        @media (min-width: 400px) { .lr-issue-title { font-size: 16px; } }
+        @media (min-width: 540px) { .lr-issue-title { font-size: 18px; } }
+        @media (min-width: 768px) { .lr-issue-title { font-size: 26px; line-height: 1.3; margin-bottom: 6px; } } /* was 22px */
 
         .lr-leader-line {
           font-size: 10px;
           color: #6b7280;
           line-height: 1.35;
         }
-        @media (min-width: 640px) { .lr-leader-line { font-size: 11px; } }
+        @media (min-width: 540px) { .lr-leader-line { font-size: 11px; } }
         @media (min-width: 768px) { .lr-leader-line { font-size: 14px; margin-bottom: 12px; } }
 
         .lr-summary {
@@ -322,7 +277,9 @@ export default function LeadershipReviewWindow() {
         @media (min-width: 768px) { .lr-summary { font-size: 14px; -webkit-line-clamp: 2; margin-bottom: 12px; } }
 
         /* ─── Tags ─── */
-        .lr-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .lr-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        @media (min-width: 768px) { .lr-tags { margin-top: 0; margin-bottom: 16px; } }
+
         .lr-tag {
           font-size: 9px;
           padding: 1px 7px;
@@ -341,9 +298,10 @@ export default function LeadershipReviewWindow() {
           flex-wrap: wrap;
           gap: 6px;
           align-items: center;
+          margin-top: 6px;
         }
+        @media (min-width: 768px) { .lr-buttons { margin-top: 0; } }
 
-        /* Small variant — mobile bottom row */
         .lr-btn-primary {
           display: inline-flex;
           align-items: center;
@@ -358,6 +316,8 @@ export default function LeadershipReviewWindow() {
           transition: opacity 0.15s;
           border: none;
           cursor: pointer;
+          white-space: nowrap;
+          line-height: 1;
         }
         .lr-btn-primary:hover { opacity: 0.9; }
         @media (min-width: 768px) { .lr-btn-primary { font-size: 14px; padding: 10px 20px; border-radius: 10px; } }
@@ -371,11 +331,13 @@ export default function LeadershipReviewWindow() {
           font-weight: 600;
           color: #cd171a;
           padding: 5px 12px;
-          border: 1px solid #cd171a;
+          border: 1.5px solid #cd171a;
           background: rgba(205,23,26,0.05);
           border-radius: 6px;
           cursor: pointer;
           transition: background 0.15s;
+          white-space: nowrap;
+          line-height: 1;
         }
         .lr-btn-secondary:hover { background: rgba(205,23,26,0.1); }
         .lr-btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -390,7 +352,7 @@ export default function LeadershipReviewWindow() {
           min-height: 36px;
         }
 
-        /* "Simon Designs" green label — hidden on mobile, shown on sm+ */
+        /* Simon Designs label: hidden on mobile, shown sm+ */
         .lr-footer-label { display: none; }
         @media (min-width: 640px) {
           .lr-footer-label {
@@ -418,6 +380,18 @@ export default function LeadershipReviewWindow() {
           flex: 1;
           display: flex;
           align-items: center;
+        }
+
+        /* Footer ticker text: same size as description (10px) on mobile */
+        .lr-footer-ticker-text {
+          color: white;
+          font-size: 10px;
+          font-weight: 600;
+          tracking: wide;
+          white-space: nowrap;
+        }
+        @media (min-width: 640px) {
+          .lr-footer-ticker-text { font-size: 12px; }
         }
 
         .lr-footer-cta {
@@ -493,17 +467,15 @@ export default function LeadershipReviewWindow() {
               </div>
             </div>
 
+            {/* Badge: "NEW" pill + ticker — height is fixed so ticker text aligns with "NEW" */}
             <div className="lr-badge badge-glow">
-              <div
-                className="flex items-center gap-1 px-2 sm:px-3 h-full flex-shrink-0"
-                style={{ background: '#ffffff', borderRadius: '999px 0 0 999px' }}
-              >
+              <div className="lr-badge-new-pill">
                 <span className="live-dot w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#cd171a' }} />
                 <span className="text-[9px] sm:text-xs font-black tracking-widest uppercase" style={{ color: '#cd171a' }}>
                   NEW
                 </span>
               </div>
-              <div className="overflow-hidden flex-1">
+              <div className="overflow-hidden flex-1 flex items-center h-full">
                 <div className="badge-ticker-track">
                   <span className="text-white text-[9px] sm:text-xs font-bold tracking-wide px-1 sm:px-2">{badgeRepeated}</span>
                   <span className="text-white text-[9px] sm:text-xs font-bold tracking-wide px-1 sm:px-2">{badgeRepeated}</span>
@@ -524,46 +496,41 @@ export default function LeadershipReviewWindow() {
           ) : issue ? (
             <div className="lr-issue-body">
 
-              {/*
-                lr-top-row:
-                  • Mobile  → flex row: [cover-panel | meta-pane]
-                  • Desktop → display:contents, so cover-panel and lr-details-pane
-                              each become independent grid cells
-              */}
-              <div className="lr-top-row">
+              {/* Cover panel */}
+              <div className="lr-cover-panel">
+                <span className="lr-date-badge">{formatDate(issue.publishedDate)}</span>
+                {issue.coverImage?.asset?.url ? (
+                  <img
+                    src={issue.coverImage.asset.url}
+                    alt={`Cover — ${issue.title}`}
+                    className="lr-cover-image"
+                  />
+                ) : (
+                  <div
+                    className="lr-cover-image"
+                    style={{
+                      aspectRatio: '3/4',
+                      background: 'linear-gradient(145deg, #283583, #3fa535 60%, #cd171a)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      textAlign: 'center',
+                      padding: '8px',
+                    }}
+                  >
+                    Vol. {issue.volume} · Issue {issue.issueNumber}
+                  </div>
+                )}
+              </div>
 
-                {/* Cover panel */}
-                <div className="lr-cover-panel">
-                  <span className="lr-date-badge">{formatDate(issue.publishedDate)}</span>
-                  {issue.coverImage?.asset?.url ? (
-                    <img
-                      src={issue.coverImage.asset.url}
-                      alt={`Cover — ${issue.title}`}
-                      className="lr-cover-image"
-                    />
-                  ) : (
-                    <div
-                      className="lr-cover-image"
-                      style={{
-                        aspectRatio: '3/4',
-                        background: 'linear-gradient(145deg, #283583, #3fa535 60%, #cd171a)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontSize: '10px',
-                        fontWeight: '600',
-                        textAlign: 'center',
-                        padding: '8px',
-                      }}
-                    >
-                      Vol. {issue.volume} · Issue {issue.issueNumber}
-                    </div>
-                  )}
-                </div>
+              {/* Right pane — single pane, no mobile/desktop split */}
+              <div className="lr-right-pane">
 
-                {/* Mobile meta pane — right of image, hidden on desktop */}
-                <div className="lr-meta-pane">
+                {/* Top content block */}
+                <div>
                   <p className="lr-vol-meta">
                     Vol. {issue.volume} · Issue {issue.issueNumber} · {formatDate(issue.publishedDate)}
                   </p>
@@ -584,35 +551,17 @@ export default function LeadershipReviewWindow() {
                   )}
                 </div>
 
-                {/* Desktop details pane — full right column, hidden on mobile */}
-                <div className="lr-details-pane">
-                  <div>
-                    <p className="lr-vol-meta">
-                      Vol. {issue.volume} · Issue {issue.issueNumber} · {formatDate(issue.publishedDate)}
-                    </p>
-                    <h3 className="lr-issue-title">{issue.title}</h3>
-                    {issue.featuredLeader && (
-                      <p className="lr-leader-line">
-                        Featuring{' '}
-                        <span className="font-bold" style={{ color: '#283583' }}>
-                          {issue.featuredLeader}
-                        </span>
-                        {issue.leaderTitle && (
-                          <span style={{ color: '#9ca3af' }}> · {issue.leaderTitle}</span>
-                        )}
-                      </p>
-                    )}
-                    {issue.summary && (
-                      <p className="lr-summary">{issue.summary}</p>
-                    )}
-                    {issue.tags && issue.tags.length > 0 && (
-                      <div className="lr-tags">
-                        {issue.tags.slice(0, 4).map((tag) => (
-                          <span key={tag} className="lr-tag">{tag}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {/* Bottom content block — tags + buttons
+                    Mobile:  flows naturally right after summary (no space-between)
+                    Desktop: pushed to bottom of pane via justify-content: space-between on parent */}
+                <div>
+                  {issue.tags && issue.tags.length > 0 && (
+                    <div className="lr-tags">
+                      {issue.tags.slice(0, 4).map((tag) => (
+                        <span key={tag} className="lr-tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
                   <div className="lr-buttons">
                     <Link
                       href={`/the-leadership-review/${issue.slug.current}`}
@@ -621,34 +570,34 @@ export default function LeadershipReviewWindow() {
                       Read Full Issue
                     </Link>
                     {issue.pdfFile?.asset?.url && (
-                      <DownloadButton size="md" />
+                      <button
+                        onClick={handleDownload}
+                        disabled={downloading}
+                        className="lr-btn-secondary"
+                      >
+                        {downloading ? (
+                          <>
+                            <div
+                              className="w-3 h-3 rounded-full border border-t-transparent animate-spin"
+                              style={{ borderColor: '#cd171a', borderTopColor: 'transparent' }}
+                            />
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                              <path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="#cd171a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            Download PDF
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>
 
-              </div>{/* end lr-top-row */}
-
-              {/* Mobile bottom row: tags + buttons (hidden on desktop) */}
-              <div className="lr-bottom-row">
-                {issue.tags && issue.tags.length > 0 && (
-                  <div className="lr-tags">
-                    {issue.tags.slice(0, 4).map((tag) => (
-                      <span key={tag} className="lr-tag">{tag}</span>
-                    ))}
-                  </div>
-                )}
-                <div className="lr-buttons">
-                  <Link
-                    href={`/the-leadership-review/${issue.slug.current}`}
-                    className="lr-btn-primary"
-                  >
-                    Read Full Issue
-                  </Link>
-                  {issue.pdfFile?.asset?.url && (
-                    <DownloadButton size="sm" />
-                  )}
-                </div>
               </div>
+              {/* end lr-right-pane */}
 
             </div>
           ) : (
@@ -660,24 +609,20 @@ export default function LeadershipReviewWindow() {
 
           {/* ── Footer ticker bar ── */}
           <div className="lr-footer-bar">
-
-            {/* "Simon Designs" label — sm+ only, hidden on mobile */}
+            {/* Simon Designs label — hidden on mobile */}
             <div className="lr-footer-label">
               <span className="live-dot w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#ffffff' }} />
               <span className="lr-footer-label-text">Simon Designs</span>
             </div>
-
             <div className="lr-footer-ticker-wrap">
               <div className="footer-ticker-track">
-                <span className="text-white text-xs font-semibold tracking-wide">{footerRepeated}</span>
-                <span className="text-white text-xs font-semibold tracking-wide">{footerRepeated}</span>
+                <span className="lr-footer-ticker-text">{footerRepeated}</span>
+                <span className="lr-footer-ticker-text">{footerRepeated}</span>
               </div>
             </div>
-
             <Link href="/the-leadership-review" className="lr-footer-cta">
               View All Issues →
             </Link>
-
           </div>
 
         </div>
