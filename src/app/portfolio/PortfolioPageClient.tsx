@@ -7,6 +7,7 @@ import UniversalHero from "@/components/UniversalHero";
 import PortfolioGrid from "@/components/PortfolioGrid";
 import PortfolioCTA from "@/components/PortfolioCTA";
 import SupportButton from "@/components/SupportButton";
+import LeadershipReviewWindow from "@/components/LeadershipReviewWindow";
 
 function PortfolioContent() {
   const { openModal } = useQuoteModal();
@@ -45,6 +46,7 @@ function PortfolioContent() {
       {/* ✅ Removed wrapping section+div — PortfolioGrid handles its own container */}
       <PortfolioGrid />
 
+      {/* Support button + divider */}
       <div className="bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-12 pb-8">
           <div className="pt-2 flex justify-center">
@@ -58,6 +60,9 @@ function PortfolioContent() {
           />
         </div>
       </div>
+
+      {/* Leadership Review editorial window — hidden page, not in nav */}
+      <LeadershipReviewWindow />
 
       <PortfolioCTA />
     </main>

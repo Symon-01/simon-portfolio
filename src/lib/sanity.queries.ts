@@ -1,11 +1,16 @@
+// FILE: src/lib/sanity.queries.ts
+
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
+import type {
+  LeadershipReviewIssue,
+  LeadershipReviewIssueSummary,
+} from '@/types/leadershipReview';
 
 // ============================================
 // SERVICE QUERIES
 // ============================================
 
-// Get services for homepage (only featured ones)
 export const homepageServicesQuery = `
   *[_type == "service" && displayOnHomepage == true] | order(order asc) {
     _id,
@@ -20,7 +25,6 @@ export const homepageServicesQuery = `
   }
 `
 
-// Get all services for services page
 export const allServicesQuery = `
   *[_type == "service"] | order(order asc) {
     _id,
@@ -36,7 +40,6 @@ export const allServicesQuery = `
   }
 `
 
-// Get single service by slug
 export const serviceBySlugQuery = `
   *[_type == "service" && slug.current == $slug][0] {
     _id,
@@ -55,11 +58,6 @@ export const serviceBySlugQuery = `
 // BANNER QUERIES
 // ============================================
 
-/**
- * Fetch banner by page location
- * @param location - The page location identifier (e.g., 'home-hero', 'about-cta')
- * @returns Banner data or null if not found
- */
 export async function getBannerByLocation(location: string): Promise<Banner | null> {
   try {
     const query = `*[_type == "banner" && pageLocation == $location][0]{
@@ -91,7 +89,6 @@ export async function getBannerByLocation(location: string): Promise<Banner | nu
     
     const banner = await client.fetch(query, { location });
     
-    // Sort images by order (ascending)
     if (banner?.images) {
       banner.images.sort((a: any, b: any) => a.order - b.order);
     }
@@ -103,10 +100,6 @@ export async function getBannerByLocation(location: string): Promise<Banner | nu
   }
 }
 
-/**
- * Fetch all banners (useful for admin/preview)
- * @returns Array of all banners
- */
 export async function getAllBanners(): Promise<Banner[]> {
   try {
     const query = `*[_type == "banner"] | order(pageLocation asc){
@@ -138,7 +131,6 @@ export async function getAllBanners(): Promise<Banner[]> {
     
     const banners = await client.fetch(query);
     
-    // Sort images within each banner
     banners.forEach((banner: Banner) => {
       if (banner.images) {
         banner.images.sort((a: any, b: any) => a.order - b.order);
@@ -152,11 +144,6 @@ export async function getAllBanners(): Promise<Banner[]> {
   }
 }
 
-/**
- * Check if a banner exists for a location
- * @param location - The page location identifier
- * @returns Boolean indicating if banner exists
- */
 export async function bannerExists(location: string): Promise<boolean> {
   try {
     const query = `count(*[_type == "banner" && pageLocation == $location])`;
@@ -168,7 +155,6 @@ export async function bannerExists(location: string): Promise<boolean> {
   }
 }
 
-// Banner query strings (if you prefer to use these with client.fetch directly)
 export const bannerByLocationQuery = `
   *[_type == "banner" && pageLocation == $location][0]{
     _id,
@@ -228,10 +214,9 @@ export const allBannersQuery = `
 `;
 
 // ============================================
-// ABOUT ME QUERIES (UPDATED)
+// ABOUT ME QUERIES
 // ============================================
 
-// Query to fetch About Me hero data with skills
 export const aboutMeQuery = `*[_type == "aboutMe"][0]{
   _id,
   heroTitle,
@@ -243,7 +228,6 @@ export const aboutMeQuery = `*[_type == "aboutMe"][0]{
   }
 }`;
 
-// Query to fetch all My Story sections (ordered)
 export const myStorySectionsQuery = `*[_type == "myStorySection"] | order(order asc) {
   _id,
   title,
@@ -258,7 +242,6 @@ export const myStorySectionsQuery = `*[_type == "myStorySection"] | order(order 
   }
 }`;
 
-// Combined query for the entire About Me page (UPDATED)
 export const aboutMePageQuery = `{
   "aboutMe": *[_type == "aboutMe"][0]{
     _id,
@@ -286,7 +269,7 @@ export const aboutMePageQuery = `{
 }`;
 
 // ============================================
-// SKILLS & EXPERTISE QUERY (UPDATED)
+// SKILLS & EXPERTISE QUERY
 // ============================================
 
 export const skillsExpertiseQuery = `*[_type == "skillsExpertise"][0]{
@@ -336,3 +319,117 @@ export const personalNoteQuery = `*[_type == "personalNote"][0]{
     text
   }
 }`;
+
+// ============================================
+// LEADERSHIP REVIEW QUERIES
+// ============================================
+
+// All issues — lightweight, for the grid listing page
+export const allLeadershipReviewIssuesQuery = `
+  *[_type == "leadershipReview"] | order(publishedDate desc) {
+    _id,
+    title,
+    slug,
+    issueNumber,
+    volume,
+    edition,
+    publishedDate,
+    coverImage {
+      asset -> { _id, url }
+    },
+    featuredLeader,
+    leaderTitle,
+    county,
+    summary,
+    tags,
+    isFeatured
+  }
+`;
+
+// Single issue by slug — full data including PDF and reviews
+export const leadershipReviewBySlugQuery = `
+  *[_type == "leadershipReview" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    issueNumber,
+    volume,
+    edition,
+    publishedDate,
+    coverImage {
+      asset -> { _id, url }
+    },
+    pdfFile {
+      asset -> { _id, url }
+    },
+    featuredLeader,
+    leaderTitle,
+    county,
+    constituency,
+    summary,
+    tags,
+    isFeatured,
+    reviews[] {
+      reviewerName,
+      location,
+      rating,
+      comment,
+      date
+    }
+  }
+`;
+
+// Featured issue only — used by the portfolio window
+export const featuredLeadershipReviewQuery = `
+  *[_type == "leadershipReview" && isFeatured == true][0] {
+    _id,
+    title,
+    slug,
+    issueNumber,
+    volume,
+    edition,
+    publishedDate,
+    coverImage {
+      asset -> { _id, url }
+    },
+    pdfFile {
+      asset -> { _id, url }
+    },
+    featuredLeader,
+    leaderTitle,
+    county,
+    summary,
+    tags
+  }
+`;
+
+// ── Async fetch functions ──────────────────────────────────────
+
+export async function getAllLeadershipReviewIssues(): Promise<LeadershipReviewIssueSummary[]> {
+  try {
+    return await client.fetch(allLeadershipReviewIssuesQuery);
+  } catch (error) {
+    console.error('Error fetching Leadership Review issues:', error);
+    return [];
+  }
+}
+
+export async function getLeadershipReviewBySlug(
+  slug: string
+): Promise<LeadershipReviewIssue | null> {
+  try {
+    return await client.fetch(leadershipReviewBySlugQuery, { slug });
+  } catch (error) {
+    console.error(`Error fetching Leadership Review issue "${slug}":`, error);
+    return null;
+  }
+}
+
+export async function getFeaturedLeadershipReview(): Promise<LeadershipReviewIssueSummary | null> {
+  try {
+    return await client.fetch(featuredLeadershipReviewQuery);
+  } catch (error) {
+    console.error('Error fetching featured Leadership Review issue:', error);
+    return null;
+  }
+}

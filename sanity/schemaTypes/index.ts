@@ -1,3 +1,5 @@
+// FILE: sanity/schemaTypes/index.ts
+
 import portfolio from './portfolio';
 import service from './service';
 import simonArts from './simonArts';
@@ -18,6 +20,7 @@ import designTools from './designTools';
 import servicesProcess from './servicesProcess';
 import servicesFeatures from './servicesFeatures';
 import contactInfo from './contactInfo';
+import leadershipReview from './leadershipReview';
 
 export const schemaTypes = [
   portfolio,
@@ -40,4 +43,5 @@ export const schemaTypes = [
   servicesProcess,
   servicesFeatures,
   contactInfo,
+  leadershipReview,
 ];
