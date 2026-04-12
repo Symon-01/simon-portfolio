@@ -83,9 +83,10 @@ function Masthead() {
           </div>
         </div>
 
-        {/* ── MOBILE title: flag stripes absolutely positioned so h1 = full width ── */}
+        {/* ── MOBILE title: flag stripes absolutely positioned ── */}
         <div className="sm:hidden relative flex items-center justify-center pb-2">
-          {/* Flag stripe left — absolutely positioned, doesn't affect h1 width */}
+
+          {/* Flag stripe left */}
           <div
             className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col overflow-hidden flex-shrink-0"
             style={{ height: '38px', width: '4px' }}
@@ -95,7 +96,7 @@ function Masthead() {
             <div className="flex-1" style={{ background: '#000000' }} />
           </div>
 
-          {/* h1 spans full container width — matches rule lines below exactly */}
+          {/* ✅ Font size 8vw */}
           <h1
             className="font-black leading-none select-none text-center w-full block"
             style={{
@@ -110,7 +111,7 @@ function Masthead() {
             <span style={{ color: '#cd171a' }}>Review</span>
           </h1>
 
-          {/* Flag stripe right — absolutely positioned */}
+          {/* Flag stripe right */}
           <div
             className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col overflow-hidden flex-shrink-0"
             style={{ height: '38px', width: '4px' }}
@@ -121,7 +122,7 @@ function Masthead() {
           </div>
         </div>
 
-        {/* Rule lines — full container width, matches h1 above on both desktop and mobile */}
+        {/* Rule lines */}
         <div className="flex flex-col gap-0.5 pb-1.5 sm:pb-2">
           <div className="h-1" style={{ background: '#283583' }} />
           <div className="h-0.5" style={{ background: '#cd171a' }} />
@@ -176,7 +177,8 @@ function MissionStrip() {
   ];
 
   return (
-    <div className="py-3 sm:py-4">
+    // ✅ bg-white added here to kill the black background on mobile
+    <div className="py-3 sm:py-4 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12">
 
         {/* Desktop: horizontal three-column grid */}
@@ -284,6 +286,7 @@ export default function LeadershipReviewPageClient() {
         <section className="py-10 bg-gray-50 min-h-screen">
           <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12">
 
+            {/* Section heading */}
             <div className="flex items-center gap-4 mb-8">
               <div
                 className="h-px flex-1"
@@ -301,6 +304,7 @@ export default function LeadershipReviewPageClient() {
               />
             </div>
 
+            {/* Grid or loading */}
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24 gap-4">
                 <div
@@ -313,8 +317,10 @@ export default function LeadershipReviewPageClient() {
               <AllIssuesGrid issues={issues} />
             )}
 
+            {/* CTA */}
             <CTAStrip />
 
+            {/* Support button + divider */}
             <div className="mt-12 flex justify-center">
               <SupportButton position="bottom" />
             </div>
