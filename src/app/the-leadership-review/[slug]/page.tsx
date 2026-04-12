@@ -40,7 +40,9 @@ async function triggerDownload(url: string, filename: string) {
   }
 }
 
-// ── PDF Viewer — Google Docs embed works on ALL devices ──────────────────────
+// ── PDF Viewer ────────────────────────────────────────────────────────────────
+// Desktop: direct iframe (original design, no black margins)
+// Mobile:  Google Docs viewer (renders correctly on phones)
 function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
   pdfUrl: string;
   title: string;
@@ -48,8 +50,20 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
   downloading: boolean;
 }) {
   const [loaded, setLoaded] = useState(false);
-  // Google Docs viewer renders PDFs on mobile and desktop equally
-  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Desktop: direct PDF iframe (original — no black margins)
+  // Mobile: Google Docs viewer (works on all phones)
+  const src = isMobile
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`
+    : `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`;
 
   return (
     <div className="w-full">
@@ -71,7 +85,8 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
           className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors disabled:opacity-60"
         >
           {downloading ? (
-            <div className="w-3 h-3 rounded-full border border-t-transparent animate-spin" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
+            <div className="w-3 h-3 rounded-full border border-t-transparent animate-spin"
+              style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
           ) : (
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -81,11 +96,8 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
         </button>
       </div>
 
-      {/* PDF embed — Google Docs viewer works on mobile + desktop */}
-      <div
-        className="relative w-full border border-gray-200 rounded-b-xl overflow-hidden"
-        style={{ height: '780px' }}
-      >
+      {/* PDF embed */}
+      <div className="relative w-full border border-gray-200 rounded-b-xl overflow-hidden" style={{ height: '780px' }}>
         {!loaded && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-50 z-10 gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
@@ -94,11 +106,11 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
           </div>
         )}
         <iframe
-          src={viewerUrl}
+          key={src}
+          src={src}
           className="w-full h-full"
           title={title}
           onLoad={() => setLoaded(true)}
-          allow="autoplay"
         />
       </div>
     </div>
@@ -259,6 +271,7 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
         </div>
       ) : (
         <div className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #283583' }}>
+          {/* Header */}
           <div className="px-5 py-3 flex items-center gap-3" style={{ background: '#283583' }}>
             <div className="flex flex-col h-6 w-1 rounded-sm overflow-hidden flex-shrink-0">
               <div className="flex-1" style={{ background: '#006600' }} />
@@ -272,14 +285,18 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
               <p className="text-white/60 text-xs">What did you think of &ldquo;{issueTitle}&rdquo;?</p>
             </div>
           </div>
+
+          {/* Form body — all text unified to text-sm */}
           <div className="bg-white p-5">
+
+            {/* Star rating */}
             <div className="mb-4">
-              <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: '#283583' }}>Your Rating</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Your Rating</p>
               <div className="flex gap-1">
                 {[1,2,3,4,5].map((s) => (
                   <button key={s} type="button" onClick={() => setFormData({ ...formData, stars: s })}
                     className="transition-transform hover:scale-110">
-                    <svg width="28" height="28" viewBox="0 0 16 16"
+                    <svg width="26" height="26" viewBox="0 0 16 16"
                       fill={s <= formData.stars ? '#EF6203' : 'none'}
                       stroke={s <= formData.stars ? '#EF6203' : '#d1d5db'} strokeWidth="1.2">
                       <path d="M8 1l1.9 4 4.4.6-3.2 3.1.8 4.4L8 11l-3.9 2.1.8-4.4L1.7 5.6l4.4-.6z" />
@@ -288,9 +305,11 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
                 ))}
               </div>
             </div>
+
+            {/* Name + Location */}
             <div className="grid sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-xs font-black uppercase tracking-widest mb-1 block" style={{ color: '#283583' }}>
+                <label className="text-sm font-semibold text-gray-700 mb-1 block">
                   Your Name <span style={{ color: '#cd171a' }}>*</span>
                 </label>
                 <input type="text" placeholder="e.g. James Mwangi"
@@ -301,7 +320,7 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
                   onBlur={(e) => e.target.style.borderColor = '#28358330'} />
               </div>
               <div>
-                <label className="text-xs font-black uppercase tracking-widest mb-1 block" style={{ color: '#283583' }}>Location</label>
+                <label className="text-sm font-semibold text-gray-700 mb-1 block">Location</label>
                 <input type="text" placeholder="e.g. Nairobi, Nyeri..."
                   value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   className="w-full text-sm px-3 py-2 rounded-lg border outline-none"
@@ -310,8 +329,10 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
                   onBlur={(e) => e.target.style.borderColor = '#28358330'} />
               </div>
             </div>
+
+            {/* Response textarea */}
             <div className="mb-4">
-              <label className="text-xs font-black uppercase tracking-widest mb-1 block" style={{ color: '#283583' }}>
+              <label className="text-sm font-semibold text-gray-700 mb-1 block">
                 Your Response <span style={{ color: '#cd171a' }}>*</span>
               </label>
               <textarea rows={4} placeholder="What did you think of this issue? Which story resonated most with you?"
@@ -321,19 +342,17 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
                 onFocus={(e) => e.target.style.borderColor = '#283583'}
                 onBlur={(e) => e.target.style.borderColor = '#28358330'} />
             </div>
-            {error && <p className="text-xs font-semibold mb-3" style={{ color: '#cd171a' }}>{error}</p>}
+
+            {error && <p className="text-sm font-semibold mb-3" style={{ color: '#cd171a' }}>{error}</p>}
+
+            {/* Submit — brand red, no icon */}
             <button onClick={handleSubmit}
               disabled={submitting || !formData.name.trim() || !formData.text.trim()}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-black transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ background: '#cd171a' }}>
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
-                    style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
-                  Submitting...
-                </>
-              ) : 'Submit Response'}
+              {submitting ? 'Submitting...' : 'Submit Response'}
             </button>
+
           </div>
         </div>
       )}
@@ -391,8 +410,6 @@ function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
 }
 
 // ── Info panel sidebar ─────────────────────────────────────────────────────────
-// Mobile: shown ABOVE viewer, WITHOUT download button (viewer toolbar has it)
-// Desktop: shown in right sidebar, WITH download button
 function IssueInfoPanel({ issue, showDownload, onDownload, downloading }: {
   issue: LeadershipReviewIssue;
   showDownload: boolean;
@@ -466,7 +483,7 @@ function IssueInfoPanel({ issue, showDownload, onDownload, downloading }: {
           </div>
         )}
 
-        {/* Download button — only shown on desktop sidebar */}
+        {/* Download — desktop sidebar only */}
         {showDownload && issue.pdfFile?.asset?.url && (
           <div style={{ borderTop: '1.5px solid #28358320' }} className="pt-3">
             <button onClick={onDownload} disabled={downloading}
@@ -545,8 +562,8 @@ export default function IssueDetailPage({ params }: { params: Promise<{ slug: st
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');`}</style>
       <main className="min-h-screen bg-gray-50">
         <IssueMasthead issue={issue} />
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16">
 
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16">
           <Link href="/the-leadership-review"
             className="inline-flex items-center text-sm font-bold gap-2 mb-6 transition-opacity hover:opacity-70"
             style={{ color: '#283583' }}>
@@ -557,17 +574,12 @@ export default function IssueDetailPage({ params }: { params: Promise<{ slug: st
 
             {/* ── Left column ── */}
             <div>
-              {/* Info panel — mobile only, NO download button */}
+              {/* Sidebar — mobile only, NO download button */}
               <div className="lg:hidden mb-5">
-                <IssueInfoPanel
-                  issue={issue}
-                  showDownload={false}
-                  onDownload={handleDownload}
-                  downloading={downloading}
-                />
+                <IssueInfoPanel issue={issue} showDownload={false} onDownload={handleDownload} downloading={downloading} />
               </div>
 
-              {/* PDF viewer — Google Docs embed, works on all devices */}
+              {/* PDF viewer */}
               {issue.pdfFile?.asset?.url ? (
                 <IssueViewer
                   pdfUrl={issue.pdfFile.asset.url}
@@ -581,7 +593,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ slug: st
                 </div>
               )}
 
-              {/* Share card — mobile only, shown below viewer */}
+              {/* Share card — mobile only */}
               <div className="lg:hidden mt-5">
                 <ShareAndSupportCard title={issue.title} />
               </div>
@@ -589,14 +601,9 @@ export default function IssueDetailPage({ params }: { params: Promise<{ slug: st
               <ReaderReviews reviews={issue.reviews || []} issueTitle={issue.title} issueSlug={slug} />
             </div>
 
-            {/* ── Right sidebar — desktop only, WITH download button ── */}
+            {/* ── Right sidebar — desktop only, WITH download ── */}
             <div className="hidden lg:flex flex-col gap-4 sticky top-6">
-              <IssueInfoPanel
-                issue={issue}
-                showDownload={true}
-                onDownload={handleDownload}
-                downloading={downloading}
-              />
+              <IssueInfoPanel issue={issue} showDownload={true} onDownload={handleDownload} downloading={downloading} />
               <ShareAndSupportCard title={issue.title} />
             </div>
 
