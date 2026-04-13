@@ -1,4 +1,3 @@
-// FILE: src/app/the-leadership-review/LeadershipReviewPageClient.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -15,10 +14,14 @@ function Masthead() {
     <div className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 sm:py-4">
 
-        {/* Top bar */}
-        <div className="flex items-center justify-between text-xs text-gray-400 pb-2 sm:pb-3 border-b border-gray-100 flex-wrap gap-1 sm:gap-2">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <span className="text-[10px] sm:text-xs">
+        {/* ── Top bar ── */}
+        <div
+          className="flex items-center justify-between pb-2 sm:pb-3 flex-wrap gap-1 sm:gap-2"
+          style={{ borderBottom: '3px solid #111', fontSize: 'clamp(7px, 2.8vw, 13px)', color: '#444' }}
+        >
+          {/* Left: bold blue date */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            <span style={{ color: '#283583', fontWeight: 700 }}>
               {new Date().toLocaleDateString('en-KE', {
                 weekday: 'long',
                 year: 'numeric',
@@ -26,203 +29,266 @@ function Masthead() {
                 day: 'numeric',
               })}
             </span>
-            <span className="hidden sm:inline">|</span>
-            <span className="hidden sm:inline">Free Digital Edition</span>
+            <span>|</span>
+            <span>Free Digital Edition</span>
           </div>
+          {/* Right: website hidden on mobile, social handle always visible */}
           <div className="flex items-center gap-1.5 sm:gap-3">
-            <span className="text-[10px] sm:text-xs">www.simondesigns.co.ke</span>
-            <span className="text-[10px] sm:text-xs">|</span>
-            <span className="text-[10px] sm:text-xs">@TheLeadershipReview</span>
+            <span className="hidden sm:inline">www.simondesigns.co.ke</span>
+            <span className="hidden sm:inline">|</span>
+            <span>@TheLeadershipReview</span>
           </div>
         </div>
 
-        {/* Tagline */}
+        {/* ── Tagline ── */}
         <p
-          className="text-center font-bold tracking-widest uppercase pt-2 sm:pt-3 pb-1.5 sm:pb-2"
+          className="text-center font-bold tracking-widest uppercase pt-2 sm:pt-3 pb-1"
           style={{
             color: '#283583',
-            fontSize: 'clamp(7px, 1.8vw, 11px)',
+            fontSize: 'clamp(9px, 1.5vw, 13px)',
             letterSpacing: '0.08em',
           }}
         >
           Your Number One Newspaper for Celebrating Exemplary Leadership
         </p>
 
-        {/* ── DESKTOP title: flag stripes in flex row ── */}
-        <div className="hidden sm:flex items-center justify-center pb-3">
-          <div
-            className="flex flex-col overflow-hidden mr-4 flex-shrink-0"
-            style={{ height: '80px', width: '6px' }}
-          >
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
-
-          <h1
-            className="font-black leading-none select-none text-center"
+        {/* ── Title block ── */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            paddingBottom: '0px',
+            marginTop: '-2px',
+          }}
+        >
+          {/* "The" */}
+          <span
             style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: 'clamp(48px, 7vw, 72px)',
-              whiteSpace: 'nowrap',
+              color: '#000000',
+              fontWeight: 900,
+              fontSize: 'clamp(14px, 2.6vw, 30px)',
+              lineHeight: 1,
+              display: 'block',
+              marginBottom: '-0.02em',
+              paddingLeft: '0.08em',
             }}
           >
-            <span style={{ color: '#000000' }}>The</span>{' '}
-            <span style={{ color: '#283583' }}>L</span>
-            <span style={{ color: '#3fa535' }}>eadership</span>{' '}
-            <span style={{ color: '#cd171a' }}>Review</span>
-          </h1>
+            The
+          </span>
 
-          <div
-            className="flex flex-col overflow-hidden ml-4 flex-shrink-0"
-            style={{ height: '80px', width: '6px' }}
-          >
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
-        </div>
-
-        {/* ── MOBILE title: flag stripes absolutely positioned ── */}
-        <div className="sm:hidden relative flex items-center justify-center pb-2">
-
-          {/* Flag stripe left */}
-          <div
-            className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col overflow-hidden flex-shrink-0"
-            style={{ height: '38px', width: '4px' }}
-          >
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
-
-          {/* ✅ Font size 8vw */}
-          <h1
-            className="font-black leading-none select-none text-center w-full block"
+          {/* "Leadership Review" */}
+          <span
             style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: '8vw',
+              fontWeight: 900,
+              fontStyle: 'normal',
+              lineHeight: 0.88,
               whiteSpace: 'nowrap',
+              fontSize: 'clamp(32px, 10.5vw, 120px)',
+              display: 'block',
+              marginTop: '-0.02em',
+              marginBottom: '4px',
+              letterSpacing: '-0.01em',
             }}
           >
-            <span style={{ color: '#000000' }}>The</span>{' '}
             <span style={{ color: '#283583' }}>L</span>
-            <span style={{ color: '#3fa535' }}>eadership</span>{' '}
+            <span style={{ color: '#3fa535' }}>eadership</span>
+            {' '}
             <span style={{ color: '#cd171a' }}>Review</span>
-          </h1>
-
-          {/* Flag stripe right */}
-          <div
-            className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col overflow-hidden flex-shrink-0"
-            style={{ height: '38px', width: '4px' }}
-          >
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
+          </span>
         </div>
 
-        {/* Rule lines */}
-        <div className="flex flex-col gap-0.5 pb-1.5 sm:pb-2">
-          <div className="h-1" style={{ background: '#283583' }} />
-          <div className="h-0.5" style={{ background: '#cd171a' }} />
+        {/* ── Stroke rules ── */}
+
+        {/* Blue rule below title */}
+        <div style={{ height: '4px', background: '#283583', marginTop: 'clamp(4px, 2vw, 18px)' }} />
+
+        {/* Blue double-line */}
+        <div style={{ marginTop: '2px', marginBottom: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ height: '3px', background: '#283583' }} />
+          <div style={{ height: '1px', background: '#283583', opacity: 0.45 }} />
         </div>
 
-        {/* Sub-bar */}
-        <div className="flex items-center justify-between pt-1.5 sm:pt-2 flex-wrap gap-1 sm:gap-2">
-          <p className="text-[10px] sm:text-xs text-gray-400">
-            Published by{' '}
-            <Link
-              href="/portfolio"
-              className="font-semibold hover:underline"
-              style={{ color: '#283583' }}
-            >
-              Simon Designs
-            </Link>
-            {' '}· Othaya, Nyeri County, Kenya
-          </p>
-          <Link
-            href="/portfolio"
-            className="text-[10px] sm:text-xs font-semibold flex items-center gap-1 hover:gap-2 transition-all"
-            style={{ color: '#EF6203' }}
-          >
-            ← Back to Portfolio
-          </Link>
-        </div>
+        {/* ── Gap before cards ── */}
+        <div style={{ height: '6px' }} />
 
-      </div>
-    </div>
-  );
-}
+        {/* ── Three independent cards ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
 
-// ── Mission strip ────────────────────────────────────────────────────────────
-
-function MissionStrip() {
-  const items = [
-    {
-      emoji: '🏆',
-      label: 'Proven Impact',
-      desc: 'Leaders with measurable, documented results on the ground',
-    },
-    {
-      emoji: '🌍',
-      label: 'Across Kenya',
-      desc: 'Exemplary performers at every level of public service',
-    },
-    {
-      emoji: '📰',
-      label: 'Their Story, Told Right',
-      desc: 'In-depth profiles that go beyond politics to celebrate real service',
-    },
-  ];
-
-  return (
-    // ✅ bg-white added here to kill the black background on mobile
-    <div className="py-3 sm:py-4 bg-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12">
-
-        {/* Desktop: horizontal three-column grid */}
-        <div
-          className="hidden sm:grid sm:grid-cols-3 gap-0 text-center text-white overflow-hidden"
-          style={{ background: '#283583', borderRadius: '12px' }}
-        >
-          {items.map(({ emoji, label, desc }, i, arr) => (
+          {/* Card 1 — Red */}
+          <div style={{ display: 'flex', overflow: 'hidden', border: '1px solid #ddd' }}>
             <div
-              key={label}
-              className="flex flex-col items-center gap-1 py-5 px-4"
               style={{
-                borderRight: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none',
+                background: '#cd171a',
+                padding: 'clamp(5px, 0.8vw, 10px) clamp(6px, 0.9vw, 10px)',
+                width: '50%',
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
               }}
             >
-              <span className="text-2xl">{emoji}</span>
-              <p className="text-xs font-bold tracking-wide uppercase opacity-90">{label}</p>
-              <p className="text-xs opacity-60 max-w-[180px]">{desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile: compact horizontal strip — emoji + short label only */}
-        <div
-          className="sm:hidden flex items-stretch overflow-hidden"
-          style={{ background: '#283583', borderRadius: '10px' }}
-        >
-          {items.map(({ emoji, label }, i, arr) => (
-            <div
-              key={label}
-              className="flex flex-col items-center justify-center gap-1 py-3 flex-1 px-1"
-              style={{
-                borderRight: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none',
-              }}
-            >
-              <span style={{ fontSize: '16px' }}>{emoji}</span>
               <p
-                className="font-bold text-white text-center leading-tight"
-                style={{ fontSize: '8px', letterSpacing: '0.04em', opacity: 0.95 }}
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontWeight: 700,
+                  color: '#fff',
+                  fontSize: 'clamp(8px, 1.1vw, 14px)',
+                  lineHeight: 1.25,
+                  margin: '0 0 4px 0',
+                }}
               >
-                {label.toUpperCase()}
+                Proven Impact
+              </p>
+              <p
+                style={{
+                  color: '#fff',
+                  fontSize: 'clamp(7px, 0.85vw, 11px)',
+                  lineHeight: 1.4,
+                  opacity: 0.9,
+                  margin: 0,
+                }}
+              >
+                Leaders with measurable, documented results on the ground
               </p>
             </div>
-          ))}
+            <div style={{ flex: 1, overflow: 'hidden', minHeight: 'clamp(60px, 7.5vw, 90px)' }}>
+              <img
+                src="Image 1.jpeg"
+                alt="Proven Impact"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+          </div>
+
+          {/* Card 2 — Green */}
+          <div style={{ display: 'flex', overflow: 'hidden', border: '1px solid #ddd' }}>
+            <div
+              style={{
+                background: '#3a7d3a',
+                padding: 'clamp(5px, 0.8vw, 10px) clamp(6px, 0.9vw, 10px)',
+                width: '50%',
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontWeight: 700,
+                  color: '#fff',
+                  fontSize: 'clamp(8px, 1.1vw, 14px)',
+                  lineHeight: 1.25,
+                  margin: '0 0 4px 0',
+                }}
+              >
+                Across Kenya
+              </p>
+              <p
+                style={{
+                  color: '#fff',
+                  fontSize: 'clamp(7px, 0.85vw, 11px)',
+                  lineHeight: 1.4,
+                  opacity: 0.9,
+                  margin: 0,
+                }}
+              >
+                Exemplary performers at every level of public service
+              </p>
+            </div>
+            <div style={{ flex: 1, overflow: 'hidden', minHeight: 'clamp(60px, 7.5vw, 90px)' }}>
+              <img
+                src="Image 2.jpg"
+                alt="Across Kenya"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+          </div>
+
+          {/* Card 3 — Blue */}
+          <div style={{ display: 'flex', overflow: 'hidden', border: '1px solid #ddd' }}>
+            <div
+              style={{
+                background: '#283583',
+                padding: 'clamp(5px, 0.8vw, 10px) clamp(6px, 0.9vw, 10px)',
+                width: '50%',
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontWeight: 700,
+                  color: '#fff',
+                  fontSize: 'clamp(8px, 1.1vw, 14px)',
+                  lineHeight: 1.25,
+                  margin: '0 0 4px 0',
+                }}
+              >
+                Their Story, Told Right
+              </p>
+              <p
+                style={{
+                  color: '#fff',
+                  fontSize: 'clamp(7px, 0.85vw, 11px)',
+                  lineHeight: 1.4,
+                  opacity: 0.9,
+                  margin: 0,
+                }}
+              >
+                In-depth profiles that go beyond politics to celebrate real service
+              </p>
+            </div>
+            <div style={{ flex: 1, overflow: 'hidden', minHeight: 'clamp(60px, 7.5vw, 90px)' }}>
+              <img
+                src="Image 3.jpeg"
+                alt="Their Story, Told Right"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── Gap between cards and red rule ── */}
+        <div style={{ height: '6px' }} />
+
+        {/* ── Red rule ── */}
+        <div style={{ height: '6px', background: '#cd171a', marginBottom: '10px' }} />
+
+        {/* ── Sub-bar ── */}
+        <div
+          className="flex items-start justify-between flex-wrap gap-1 sm:gap-2"
+          style={{ fontSize: 'clamp(12px, 1.5vw, 15px)' }}
+        >
+          {/* Left: stacked publisher info + back link */}
+          <div className="flex flex-col gap-1">
+            {/* UPDATED: italicized, location removed */}
+            <p style={{ color: '#666', margin: 0, fontStyle: 'italic' }}>
+              Published by{' '}
+              <Link
+                href="/portfolio"
+                className="font-semibold hover:underline"
+                style={{ color: '#283583' }}
+              >
+                Simon Designs
+              </Link>
+            </p>
+            <Link
+              href="/portfolio"
+              className="font-semibold flex items-center gap-1 hover:gap-2 transition-all"
+              style={{ color: '#EF6203', fontSize: 'clamp(13px, 1.6vw, 16px)' }}
+            >
+              ← Back to Portfolio
+            </Link>
+          </div>
         </div>
 
       </div>
@@ -281,7 +347,6 @@ export default function LeadershipReviewPageClient() {
 
       <main>
         <Masthead />
-        <MissionStrip />
 
         <section className="py-10 bg-gray-50 min-h-screen">
           <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12">
