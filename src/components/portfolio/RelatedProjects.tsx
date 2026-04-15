@@ -9,24 +9,15 @@ interface RelatedProjectsProps {
   projects: RelatedProject[];
 }
 
-// ✅ Handles both old format (plain image) and new format (object with asset URL string)
+// ✅ FIXED: now reads image.url (matches GROQ output) instead of image.asset
 function getImageUrl(image: any): string | null {
   if (!image) return null;
 
-  // New format — asset is a direct URL string from GROQ projection
-  if (typeof image.asset === 'string') {
-    return image.asset;
-  }
+  // New format — GROQ projects the URL directly as "url"
+  if (typeof image.url === 'string') return image.url;
 
-  // New format — asset is an object but not yet resolved
-  if (image.asset && image._type === 'projectImage') {
-    return urlFor(image.asset).width(600).height(600).url();
-  }
-
-  // Old format — plain image object with _type: 'image'
-  if (image._type === 'image' && image.asset?._ref) {
-    return urlFor(image).width(600).height(600).url();
-  }
+  // Fallback for any old-format images that still have an asset reference
+  if (image.asset?._ref) return urlFor(image).width(600).height(600).url();
 
   return null;
 }
@@ -48,7 +39,7 @@ export default function RelatedProjects({ projects }: RelatedProjectsProps) {
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {projects.map((relatedProject) => {
 
-          // ✅ Find cover image first, fall back to first image
+          // Find cover image first, fall back to first image
           const coverImage = relatedProject.images?.find((img: any) => img.isCover)
             || relatedProject.images?.[0];
           const imageUrl = getImageUrl(coverImage);

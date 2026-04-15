@@ -4,7 +4,7 @@
 import { useState } from 'react';
 
 interface GalleryImage {
-  asset: string; // now a direct URL string
+  url: string; // ✅ FIXED: was "asset", now "url" to match GROQ query output
   isCover?: boolean;
   alt?: string;
 }
@@ -49,8 +49,8 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
     }
   };
 
-  // ✅ Get URL directly from the new structure
-  const getImageUrl = (image: GalleryImage) => image.asset;
+  // ✅ FIXED: was image.asset, now image.url to match the interface above
+  const getImageUrl = (image: GalleryImage) => image.url;
 
   return (
     <>
@@ -81,7 +81,7 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
                   loading="lazy"
                 />
 
-                {/* ✅ Cover badge */}
+                {/* Cover badge */}
                 {image.isCover && (
                   <span className="absolute top-2 left-2 bg-[#048F02] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md">
                     ⭐ Cover

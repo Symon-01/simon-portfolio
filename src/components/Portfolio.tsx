@@ -49,24 +49,22 @@ export default function Portfolio() {
 
   useEffect(() => {
     const fetchFeaturedProjects = async () => {
-      console.log('🔍 Starting to fetch featured projects...');
-      
-      // UPDATED QUERY: Removed status and isDeleted filters
       const query = `*[_type == "portfolio" && featured == true] | order(_createdAt desc)[0...4] {
         _id,
         title,
         slug,
         category,
         description,
-        "coverImageUrl": coalesce(images[isCover == true][0].asset->url, images[0].asset->url),
+        "coverImageUrl": coalesce(
+          images[_type == "projectImage" && isCover == true][0].asset.asset->url,
+          images[_type == "projectImage"][0].asset.asset->url,
+          images[_type == "image"][0].asset->url
+        ),
         featured
       }`;
-      
-      console.log('📝 Query:', query);
-      
+
       try {
         const data = await client.fetch(query, {}, { cache: 'no-store' });
-        console.log('✅ Fetched data:', data);
         setFeaturedProjects(data);
       } catch (error) {
         console.error('❌ Error fetching featured projects:', error);

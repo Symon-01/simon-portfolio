@@ -30,7 +30,11 @@ export default function PortfolioGrid() {
         slug,
         category,
         description,
-        "coverImageUrl": coalesce(images[isCover == true][0].asset->url, images[0].asset->url),
+        "coverImageUrl": coalesce(
+          images[_type == "projectImage" && isCover == true][0].asset.asset->url,
+          images[_type == "projectImage"][0].asset.asset->url,
+          images[_type == "image"][0].asset->url
+        ),
         tags,
         featured
       }`;

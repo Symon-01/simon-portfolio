@@ -35,12 +35,24 @@ export default function ProjectDetailClient({
         description,
         client,
         projectDate,
-        // ✅ Updated: fetch images with new structure (asset + isCover + alt)
+
+        // ✅ FIXED: "isCover" is now consistent everywhere (was "isCoverImage" in some places)
         "images": images[]{
-          "asset": asset.asset->url,
-          isCover,
-          alt
+          "_type": _type,
+          "url": select(
+            _type == "projectImage" => asset.asset->url,
+            asset->url
+          ),
+          "isCover": select(
+            _type == "projectImage" => isCoverImage,
+            false
+          ),
+          "alt": select(
+            _type == "projectImage" => alt,
+            ""
+          )
         },
+
         tags,
         featured,
         projectUrl,
@@ -67,6 +79,7 @@ export default function ProjectDetailClient({
           stepTitle,
           stepDescription
         },
+
         downloadableFiles[]{
           "asset": asset->{
             url
@@ -74,6 +87,8 @@ export default function ProjectDetailClient({
           fileTitle,
           fileDescription
         },
+
+        // ✅ FIXED: same "isCover" fix applied to related projects images too
         relatedProjects[]->{
           _id,
           title,
@@ -82,9 +97,19 @@ export default function ProjectDetailClient({
           featured,
           description,
           "images": images[]{
-            "asset": asset.asset->url,
-            isCover,
-            alt
+            "_type": _type,
+            "url": select(
+              _type == "projectImage" => asset.asset->url,
+              asset->url
+            ),
+            "isCover": select(
+              _type == "projectImage" => isCoverImage,
+              false
+            ),
+            "alt": select(
+              _type == "projectImage" => alt,
+              ""
+            )
           }
         }
       }`;
