@@ -16,12 +16,6 @@ const writeClient = createClient({
   token: process.env.NEXT_PUBLIC_SANITY_WRITE_TOKEN,
 });
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-KE', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
-}
-
 async function triggerDownload(url: string, filename: string) {
   try {
     const response = await fetch(url);
@@ -102,12 +96,17 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
         </button>
       </div>
 
+      {/*
+        White background on the scroll container removes the dark/black bars
+        that appear between PDF pages when the browser renders the iframe.
+      */}
       <div
         className="w-full border border-gray-200 rounded-b-xl relative"
         style={{
           height: frameHeight,
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
+          background: '#ffffff',
         }}
       >
         {!loaded && (
@@ -131,6 +130,7 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
             height: '100%',
             border: 'none',
             touchAction: 'pan-y',
+            background: '#ffffff',
           }}
         />
       </div>
@@ -172,26 +172,31 @@ function ShareAndSupportCard({ title }: { title: string }) {
         <p className="text-white text-xs font-black tracking-widest uppercase">Share this issue</p>
       </div>
       <div className="bg-white p-4">
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => handleShare('whatsapp')} className="bg-[#25D366] hover:bg-[#20BD5A] text-white p-2 rounded-lg transition-colors" title="WhatsApp">
+        {/*
+          Icons: centered on both mobile and desktop.
+          flex-nowrap + overflow-x-auto = single scrollable row that never wraps.
+          justify-center keeps them centred when they fit.
+        */}
+        <div className="flex items-center justify-center gap-2 flex-nowrap overflow-x-auto pb-1">
+          <button onClick={() => handleShare('whatsapp')} className="flex-shrink-0 bg-[#25D366] hover:bg-[#20BD5A] text-white p-2 rounded-lg transition-colors" title="WhatsApp">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>
           </button>
-          <button onClick={() => handleShare('facebook')} className="bg-[#1877F2] hover:bg-[#0C63D4] text-white p-2 rounded-lg transition-colors" title="Facebook">
+          <button onClick={() => handleShare('facebook')} className="flex-shrink-0 bg-[#1877F2] hover:bg-[#0C63D4] text-white p-2 rounded-lg transition-colors" title="Facebook">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
           </button>
-          <button onClick={() => handleShare('twitter')} className="bg-black hover:bg-gray-800 text-white p-2 rounded-lg transition-colors" title="X">
+          <button onClick={() => handleShare('twitter')} className="flex-shrink-0 bg-black hover:bg-gray-800 text-white p-2 rounded-lg transition-colors" title="X">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           </button>
-          <button onClick={() => handleShare('linkedin')} className="bg-[#0A66C2] hover:bg-[#004182] text-white p-2 rounded-lg transition-colors" title="LinkedIn">
+          <button onClick={() => handleShare('linkedin')} className="flex-shrink-0 bg-[#0A66C2] hover:bg-[#004182] text-white p-2 rounded-lg transition-colors" title="LinkedIn">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
           </button>
-          <button onClick={handleCopyLink} className="bg-gradient-to-tr from-[#FEDA75] via-[#FA7E1E] to-[#D62976] hover:opacity-90 text-white p-2 rounded-lg" title="Instagram">
+          <button onClick={handleCopyLink} className="flex-shrink-0 bg-gradient-to-tr from-[#FEDA75] via-[#FA7E1E] to-[#D62976] hover:opacity-90 text-white p-2 rounded-lg" title="Instagram">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
           </button>
-          <button onClick={handleCopyLink} className="bg-black hover:bg-gray-800 text-white p-2 rounded-lg transition-colors" title="TikTok">
+          <button onClick={handleCopyLink} className="flex-shrink-0 bg-black hover:bg-gray-800 text-white p-2 rounded-lg transition-colors" title="TikTok">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" /></svg>
           </button>
-          <button onClick={handleCopyLink} className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors" title="Copy link">
+          <button onClick={handleCopyLink} className="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors" title="Copy link">
             {copied ? (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             ) : (
@@ -199,7 +204,7 @@ function ShareAndSupportCard({ title }: { title: string }) {
             )}
           </button>
         </div>
-        {copied && <p className="text-xs font-bold mt-2" style={{ color: '#3fa535' }}>✓ Link copied!</p>}
+        {copied && <p className="text-xs font-bold mt-2 text-center" style={{ color: '#3fa535' }}>✓ Link copied!</p>}
         <div className="mt-4 pt-4 border-t border-gray-100">
           <SupportButton position="top" />
         </div>
@@ -379,29 +384,25 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
   );
 }
 
-// ── Issue masthead — matches the main listing page masthead exactly ────────────
+// ── Issue masthead ─────────────────────────────────────────────────────────────
 
 function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
   return (
     <div className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 sm:py-4">
 
-        {/* ── Top bar: date + Free Digital Edition | website + Vol·Issue ── */}
+        {/* ── Top bar: NO date — edition | Free Digital Edition | Vol·No ── */}
         <div
           className="flex items-center justify-between pb-2 sm:pb-3"
           style={{ borderBottom: '3px solid #111', fontSize: 'clamp(7px, 2.8vw, 13px)', color: '#444' }}
         >
-          {/* Left: date + pipe + Free Digital Edition — one line, no wrap */}
+          {/* Left: edition + pipe + Free Digital Edition */}
           <div className="flex items-center gap-1.5 sm:gap-4 flex-nowrap min-w-0">
-            <span style={{ color: '#283583', fontWeight: 700, whiteSpace: 'nowrap' }}>
-              {formatDate(issue.publishedDate)}
-            </span>
-            <span style={{ flexShrink: 0 }}>|</span>
             <span style={{ whiteSpace: 'nowrap' }}>{issue.edition || 'Special Edition'}</span>
             <span style={{ flexShrink: 0 }}>|</span>
             <span style={{ whiteSpace: 'nowrap' }}>Free Digital Edition</span>
           </div>
-          {/* Right: website hidden on mobile, Vol·Issue always visible */}
+          {/* Right: website hidden on mobile, Vol·No always visible */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 ml-2">
             <span className="hidden sm:inline" style={{ whiteSpace: 'nowrap' }}>www.simondesigns.co.ke</span>
             <span className="hidden sm:inline">|</span>
@@ -421,7 +422,7 @@ function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
           Your Number One Newspaper for Celebrating Exemplary Leadership
         </p>
 
-        {/* ── Title block: "The" small, then huge "Leadership Review" ── */}
+        {/* ── Title block ── */}
         <div
           style={{
             display: 'flex',
@@ -431,7 +432,6 @@ function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
             marginTop: '-2px',
           }}
         >
-          {/* "The" */}
           <span
             style={{
               fontFamily: "'Playfair Display', serif",
@@ -446,8 +446,6 @@ function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
           >
             The
           </span>
-
-          {/* "Leadership Review" */}
           <span
             style={{
               fontFamily: "'Playfair Display', serif",
@@ -470,20 +468,15 @@ function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
         </div>
 
         {/* ── Stroke rules ── */}
-
-        {/* Blue rule below title */}
         <div style={{ height: '4px', background: '#283583', marginTop: 'clamp(4px, 2vw, 18px)' }} />
-
-        {/* Blue double-line */}
         <div style={{ marginTop: '2px', marginBottom: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <div style={{ height: '3px', background: '#283583' }} />
           <div style={{ height: '1px', background: '#283583', opacity: 0.45 }} />
         </div>
 
-        {/* ── Gap before issue title strip ── */}
         <div style={{ height: '6px' }} />
 
-        {/* ── Issue identity strip: edition badge + issue title ── */}
+        {/* ── Issue identity strip ── */}
         <div
           style={{
             display: 'flex',
@@ -520,13 +513,10 @@ function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
           </span>
         </div>
 
-        {/* ── Gap between strip and red rule ── */}
         <div style={{ height: '4px' }} />
-
-        {/* ── Red rule ── */}
         <div style={{ height: '6px', background: '#cd171a', marginBottom: '10px' }} />
 
-        {/* ── Sub-bar: back link ── */}
+        {/* ── Sub-bar ── */}
         <div
           className="flex items-start justify-between flex-wrap gap-1 sm:gap-2"
           style={{ fontSize: 'clamp(12px, 1.5vw, 15px)' }}
