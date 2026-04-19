@@ -18,6 +18,9 @@ export async function generateMetadata(
   }
 
   const ogImage = issue.coverImage?.asset?.url;
+  // Use the full slug URL — this is what Facebook/WhatsApp will scrape.
+  // NOT the homepage. This was the root cause of the old image showing.
+  const pageUrl = `https://simondesigns.co.ke/the-leadership-review/${slug}`;
 
   return {
     title: `${issue.title} | The Leadership Review`,
@@ -25,25 +28,25 @@ export async function generateMetadata(
     openGraph: {
       title: issue.title,
       description: issue.summary || `Vol. ${issue.volume} · Issue ${issue.issueNumber} of The Leadership Review.`,
-      url: `https://simondesigns.co.ke/the-leadership-review/${slug}`,
+      url: pageUrl,
       siteName: 'Simon Designs',
-      images: ogImage
-        ? [
-            {
-              url: ogImage,
-              width: 1200,
-              height: 630,
-              alt: `Cover of ${issue.title}`,
-            },
-          ]
-        : [],
       type: 'article',
+      ...(ogImage && {
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: `Cover of ${issue.title}`,
+          },
+        ],
+      }),
     },
     twitter: {
       card: 'summary_large_image',
       title: issue.title,
       description: issue.summary || '',
-      images: ogImage ? [ogImage] : [],
+      ...(ogImage && { images: [ogImage] }),
     },
   };
 }
