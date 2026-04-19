@@ -19,9 +19,9 @@ function Masthead() {
           className="flex items-center justify-between pb-2 sm:pb-3"
           style={{ borderBottom: '3px solid #111', fontSize: 'clamp(7px, 2.8vw, 13px)', color: '#444' }}
         >
-          {/* Left: date hidden on mobile, visible on desktop */}
-          <div className="flex items-center flex-nowrap whitespace-nowrap gap-1 sm:gap-4">
-            <span className="hidden sm:inline" style={{ color: '#283583', fontWeight: 700 }}>
+          {/* Left: date + pipe + Free Digital Edition — all on one line, no wrap */}
+          <div className="flex items-center gap-1.5 sm:gap-4 flex-nowrap min-w-0">
+            <span style={{ color: '#283583', fontWeight: 700, whiteSpace: 'nowrap' }}>
               {new Date().toLocaleDateString('en-KE', {
                 weekday: 'long',
                 year: 'numeric',
@@ -29,15 +29,14 @@ function Masthead() {
                 day: 'numeric',
               })}
             </span>
-            <span className="hidden sm:inline">|</span>
-            <span style={{ color: '#283583', fontWeight: 700 }}>Free Digital Edition</span>
+            <span style={{ flexShrink: 0 }}>|</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Free Digital Edition</span>
           </div>
-
-          {/* Right: website hidden on mobile, handle always visible */}
-          <div className="flex items-center flex-nowrap whitespace-nowrap gap-1 sm:gap-3">
-            <span className="hidden sm:inline">www.simondesigns.co.ke</span>
+          {/* Right: website hidden on mobile, social handle always visible */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 ml-2">
+            <span className="hidden sm:inline" style={{ whiteSpace: 'nowrap' }}>www.simondesigns.co.ke</span>
             <span className="hidden sm:inline">|</span>
-            <span>@TheLeadershipReview</span>
+            <span style={{ whiteSpace: 'nowrap' }}>@TheLeadershipReview</span>
           </div>
         </div>
 
@@ -269,6 +268,7 @@ function Masthead() {
           className="flex items-start justify-between flex-wrap gap-1 sm:gap-2"
           style={{ fontSize: 'clamp(12px, 1.5vw, 15px)' }}
         >
+          {/* Left: stacked publisher info + back link */}
           <div className="flex flex-col gap-1">
             <p style={{ color: '#666', margin: 0, fontStyle: 'italic' }}>
               Published by{' '}
