@@ -1,4 +1,9 @@
 // FILE: src/lib/sanity.queries.ts
+//
+// Change from previous version:
+//   - leadershipReviewBySlugQuery now filters reviews to only include
+//     status == 'approved' AND isHidden != true, so offensive/pending reviews
+//     never reach the frontend.
 
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
@@ -346,7 +351,9 @@ export const allLeadershipReviewIssuesQuery = `
   }
 `;
 
-// Single issue by slug — full data including PDF and reviews
+// Single issue by slug — full data including PDF.
+// *** IMPORTANT: reviews are filtered so ONLY approved, non-hidden ones come through. ***
+// Pending, rejected, and hidden reviews stay in Sanity but never reach the website.
 export const leadershipReviewBySlugQuery = `
   *[_type == "leadershipReview" && slug.current == $slug][0] {
     _id,
@@ -369,7 +376,7 @@ export const leadershipReviewBySlugQuery = `
     summary,
     tags,
     isFeatured,
-    reviews[] {
+    "reviews": reviews[status == "approved" && isHidden != true] {
       reviewerName,
       location,
       rating,

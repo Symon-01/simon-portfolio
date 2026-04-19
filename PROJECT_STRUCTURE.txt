@@ -22,6 +22,9 @@ simon-designs/
 │   ├── hero2.png
 │   ├── hero3.png
 │   ├── hero5.png
+│   ├── Image 1.jpeg
+│   ├── Image 2.jpg
+│   ├── Image 3.jpeg
 │   ├── logo.jpg
 │   ├── logo.png
 │   ├── marketing.jpg
@@ -60,6 +63,7 @@ simon-designs/
 │   │   ├── creativePhilosophy.ts
 │   │   ├── designTools.ts
 │   │   ├── index.ts
+│   │   ├── leadershipReview.ts
 │   │   ├── missionVision.ts
 │   │   ├── myStorySection.ts
 │   │   ├── personalNote.ts
@@ -112,8 +116,13 @@ simon-designs/
 │   │   ├── sitemap.ts
 │   │   ├── test-banners
 │   │   │   └── page.tsx
-│   │   └── test-sanity
-│   │       └── page.tsx
+│   │   ├── test-sanity
+│   │   │   └── page.tsx
+│   │   └── the-leadership-review
+│   │       ├── LeadershipReviewPageClient.tsx
+│   │       ├── page.tsx
+│   │       └── [slug]
+│   │           └── page.tsx
 │   ├── components
 │   │   ├── about-me.tsx
 │   │   ├── About.tsx
@@ -137,6 +146,11 @@ simon-designs/
 │   │   ├── Header.tsx
 │   │   ├── Hero.tsx
 │   │   ├── IntaSendProvider.tsx
+│   │   ├── leadershipReview
+│   │   │   ├── AllIssuesGrid.tsx
+│   │   │   ├── IssueViewer.tsx
+│   │   │   └── ReaderReviews.tsx
+│   │   ├── LeadershipReviewWindow.tsx
 │   │   ├── LoadingBar.tsx
 │   │   ├── MissionVision.tsx
 │   │   ├── MyStory.tsx
@@ -194,6 +208,7 @@ simon-designs/
 │   │   └── sanity.types.ts
 │   └── types
 │       ├── banner.ts
+│       ├── leadershipReview.ts
 │       ├── portfolio.ts
 │       ├── sanity.queries.ts
 │       └── simonArts.ts
