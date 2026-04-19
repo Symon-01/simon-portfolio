@@ -23,16 +23,11 @@ export const metadata: Metadata = {
       "We bring ideas to life visually: branding, marketing materials, UI/UX, print & Simon Arts.",
     url: "https://simondesigns.co.ke",
     siteName: "Simon Designs",
-    images: [
-      {
-        url: "https://simondesigns.co.ke/preview.png",
-        width: 1200,
-        height: 630,
-        alt: "Simon Designs Preview Image",
-      },
-    ],
     locale: "en_US",
     type: "website",
+    // No default image here — each page sets its own OG image.
+    // This prevents the old preview.png from overriding per-page images
+    // like the Leadership Review cover from Sanity.
   },
 
   twitter: {
@@ -40,7 +35,7 @@ export const metadata: Metadata = {
     title: "Simon Designs – Graphic Design & Pencil Art",
     description:
       "We bring ideas to life visually: branding, marketing materials, UI/UX, print & Simon Arts.",
-    images: ["https://simondesigns.co.ke/preview.png"],
+    // No default image here either — per-page metadata takes over.
   },
 };
 
@@ -49,7 +44,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Schema markup for Google - helps show your logo in search results
   const schemaMarkup = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -63,7 +57,6 @@ export default function RootLayout({
       "addressLocality": "Kenya"
     },
     "sameAs": [
-      // Add your social media links here when you have them
       // "https://www.facebook.com/simondesigns",
       // "https://www.instagram.com/simondesigns",
       // "https://twitter.com/simondesigns"
@@ -73,7 +66,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Schema.org markup for Google logo */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -82,14 +74,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} overflow-x-hidden`}>
-        {/* Quote Modal Provider - Makes quote modal available globally */}
         <QuoteModalProvider>
-          {/* IntaSend Global Provider - Loads payment system once for entire site */}
           <IntaSendProvider />
-          
-          {/* Progress Bar - Shows at top during page navigation */}
           <LoadingBar />
-          
           <Header />
           {children}
           <Footer />
