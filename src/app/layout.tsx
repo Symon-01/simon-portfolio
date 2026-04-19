@@ -13,6 +13,11 @@ import { QuoteModalProvider } from "@/contexts/QuoteModalContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  // metadataBase is critical — it tells Next.js the root domain for all OG
+  // image URLs. Without it, absolute Sanity CDN URLs can still get ignored
+  // and Facebook follows og:url back to the homepage instead.
+  metadataBase: new URL("https://simondesigns.co.ke"),
+
   title: "Simon Designs – Graphic Design & Pencil Art",
   description:
     "We bring ideas to life visually: branding, marketing materials, UI/UX, print & Simon Arts.",
@@ -25,9 +30,8 @@ export const metadata: Metadata = {
     siteName: "Simon Designs",
     locale: "en_US",
     type: "website",
-    // No default image here — each page sets its own OG image.
-    // This prevents the old preview.png from overriding per-page images
-    // like the Leadership Review cover from Sanity.
+    // No default image — each page sets its own via generateMetadata.
+    // This prevents preview.png from overriding Leadership Review covers.
   },
 
   twitter: {
@@ -35,7 +39,7 @@ export const metadata: Metadata = {
     title: "Simon Designs – Graphic Design & Pencil Art",
     description:
       "We bring ideas to life visually: branding, marketing materials, UI/UX, print & Simon Arts.",
-    // No default image here either — per-page metadata takes over.
+    // No default image — per-page metadata takes over.
   },
 };
 
