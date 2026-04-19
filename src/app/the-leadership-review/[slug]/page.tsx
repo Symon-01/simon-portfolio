@@ -1,4 +1,4 @@
-// FILE: src/app/the-leadership-review/[slug]/page.tsx
+// FILE: src/app/the-leadership-review/[slug]/IssueDetailClient.tsx
 'use client';
 
 import { use, useEffect, useRef, useState } from 'react';
@@ -26,15 +26,13 @@ async function triggerDownload(url: string, filename: string) {
 
 // ── Mobile PDF Canvas Renderer ────────────────────────────────────────────────
 // Uses PDF.js loaded from CDN script to render each page as a canvas element.
-// This works on any phone regardless of PDF file size.
+// Pages appear immediately as they render — no loading overlay shown.
 
 function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
   pdfUrl: string; title: string; onDownload: () => void; downloading: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<'loading' | 'rendering' | 'done' | 'error'>('loading');
-  const [pageCount, setPageCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [error, setError] = useState(false);
   const renderedRef = useRef(false);
 
   useEffect(() => {
@@ -50,16 +48,13 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
         pdfjsLib.GlobalWorkerOptions.workerSrc =
           'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        setStatus('rendering');
         const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
         const total = pdf.numPages;
-        setPageCount(total);
 
         const container = containerRef.current;
         if (!container) return;
 
         for (let i = 1; i <= total; i++) {
-          setCurrentPage(i);
           const page = await pdf.getPage(i);
           const viewport = page.getViewport({ scale: window.innerWidth < 400 ? 1.2 : 1.5 });
 
@@ -74,14 +69,12 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
           await page.render({ canvasContext: ctx, viewport }).promise;
           container.appendChild(canvas);
         }
-
-        setStatus('done');
       } catch (err) {
         console.error('PDF render error:', err);
-        setStatus('error');
+        setError(true);
       }
     };
-    script.onerror = () => setStatus('error');
+    script.onerror = () => setError(true);
     document.head.appendChild(script);
   }, [pdfUrl]);
 
@@ -106,24 +99,8 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
         </button>
       </div>
 
-      {/* Status overlay while loading */}
-      {status !== 'done' && status !== 'error' && (
-        <div className="w-full border border-gray-200 rounded-b-xl bg-stone-50 flex flex-col items-center justify-center gap-3 py-16">
-          <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#283583', borderTopColor: 'transparent' }} />
-          <p className="text-sm text-gray-500 font-medium">
-            {status === 'loading' ? 'Loading viewer...' : `Rendering page ${currentPage} of ${pageCount}...`}
-          </p>
-          {status === 'rendering' && pageCount > 0 && (
-            <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-300"
-                style={{ background: '#283583', width: `${(currentPage / pageCount) * 100}%` }} />
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Error fallback */}
-      {status === 'error' && (
+      {error && (
         <div className="w-full border border-gray-200 rounded-b-xl bg-white flex flex-col items-center justify-center gap-4 py-12 px-6 text-center">
           <p className="text-sm text-gray-500">Could not render the PDF. Please open it directly.</p>
           <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
@@ -134,12 +111,14 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
         </div>
       )}
 
-      {/* Canvas container — pages render here */}
-      <div
-        ref={containerRef}
-        className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
-        style={{ display: status === 'error' ? 'none' : 'block', maxHeight: '85vh' }}
-      />
+      {/* Canvas container — pages render here immediately as they finish */}
+      {!error && (
+        <div
+          ref={containerRef}
+          className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
+          style={{ maxHeight: '85vh' }}
+        />
+      )}
     </div>
   );
 }
@@ -587,9 +566,9 @@ function IssueInfoPanel({ issue, showDownload, onDownload, downloading, hideCove
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main client component ─────────────────────────────────────────────────────
 
-export default function IssueDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function IssueDetailClient({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [issue, setIssue] = useState<LeadershipReviewIssue | null>(null);
   const [loading, setLoading] = useState(true);
