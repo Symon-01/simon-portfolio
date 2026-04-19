@@ -40,10 +40,6 @@ async function triggerDownload(url: string, filename: string) {
 }
 
 // ── PDF Viewer ────────────────────────────────────────────────────────────────
-// Desktop: direct iframe (original — no black margins, scrollbar on right)
-// Mobile:  Google Docs viewer (renders correctly on phones)
-// Scroll hang fix: wrapper uses overflow-y: auto so the outer page scrolls
-// naturally; the iframe itself fills its container without stealing touch events
 
 function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
   pdfUrl: string;
@@ -61,18 +57,14 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Desktop: direct PDF — preserves original look with no black margins
-  // Mobile: Google Docs viewer — renders PDF properly on all phone browsers
   const src = isMobile
     ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`
     : `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`;
 
-  // Mobile gets a taller frame so the newspaper page fills the screen nicely
   const frameHeight = isMobile ? '600px' : '780px';
 
   return (
     <div className="w-full">
-
       {/* Toolbar */}
       <div
         className="flex items-center justify-between px-4 py-3 rounded-t-xl"
@@ -110,20 +102,12 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
         </button>
       </div>
 
-      {/*
-        PDF embed container.
-        KEY scroll-hang fix:
-        - overflow-y: auto  → page scroll can happen around the iframe
-        - The iframe has scrolling="yes" so its own scroll works independently
-        - On mobile the Google Docs viewer renders as HTML, so native scroll
-          works fine inside it without stealing touch events from the page
-      */}
       <div
         className="w-full border border-gray-200 rounded-b-xl relative"
         style={{
           height: frameHeight,
           overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch', // smooth momentum scroll on iOS
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {!loaded && (
@@ -146,13 +130,10 @@ function IssueViewer({ pdfUrl, title, onDownload, downloading }: {
             width: '100%',
             height: '100%',
             border: 'none',
-            // Prevent iframe from stealing touch scroll events on mobile
             touchAction: 'pan-y',
           }}
         />
       </div>
-      {/* "Open Full Issue in Browser" button intentionally removed —
-          the viewer above already shows the full newspaper inline */}
     </div>
   );
 }
@@ -398,54 +379,179 @@ function ReaderReviews({ reviews, issueTitle, issueSlug }: {
   );
 }
 
-// ── Issue masthead ─────────────────────────────────────────────────────────────
+// ── Issue masthead — matches the main listing page masthead exactly ────────────
 
 function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
   return (
-    <div className="bg-white border-b border-gray-100 mb-6 sm:mb-8">
+    <div className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 sm:py-4">
-        <div className="flex items-center justify-between text-gray-400 pb-2 sm:pb-3 border-b border-gray-100 flex-wrap gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="hidden sm:inline text-xs">{formatDate(issue.publishedDate)}</span>
-            <span className="sm:hidden text-[10px]">
-              {new Date(issue.publishedDate).toLocaleDateString('en-KE', { month: 'short', day: 'numeric', year: 'numeric' })}
+
+        {/* ── Top bar: date + Free Digital Edition | website + Vol·Issue ── */}
+        <div
+          className="flex items-center justify-between pb-2 sm:pb-3"
+          style={{ borderBottom: '3px solid #111', fontSize: 'clamp(7px, 2.8vw, 13px)', color: '#444' }}
+        >
+          {/* Left: date + pipe + Free Digital Edition — one line, no wrap */}
+          <div className="flex items-center gap-1.5 sm:gap-4 flex-nowrap min-w-0">
+            <span style={{ color: '#283583', fontWeight: 700, whiteSpace: 'nowrap' }}>
+              {formatDate(issue.publishedDate)}
             </span>
-            <span className="text-xs">|</span>
-            <span className="text-xs">{issue.edition || 'Special Edition'}</span>
-            <span className="text-xs">|</span>
-            <span className="text-xs">Free Digital Edition</span>
+            <span style={{ flexShrink: 0 }}>|</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{issue.edition || 'Special Edition'}</span>
+            <span style={{ flexShrink: 0 }}>|</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Free Digital Edition</span>
           </div>
-          <span className="text-[10px] sm:text-xs">Vol. {issue.volume} · No. {issue.issueNumber}</span>
+          {/* Right: website hidden on mobile, Vol·Issue always visible */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 ml-2">
+            <span className="hidden sm:inline" style={{ whiteSpace: 'nowrap' }}>www.simondesigns.co.ke</span>
+            <span className="hidden sm:inline">|</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Vol. {issue.volume} · No. {issue.issueNumber}</span>
+          </div>
         </div>
-        <p className="text-center font-bold tracking-widest uppercase pt-2 sm:pt-3 pb-1.5 sm:pb-2"
-          style={{ color: '#283583', fontSize: 'clamp(7px, 1.8vw, 11px)', letterSpacing: '0.08em' }}>
+
+        {/* ── Tagline ── */}
+        <p
+          className="text-center font-bold tracking-widest uppercase pt-2 sm:pt-3 pb-1"
+          style={{
+            color: '#283583',
+            fontSize: 'clamp(9px, 1.5vw, 13px)',
+            letterSpacing: '0.08em',
+          }}
+        >
           Your Number One Newspaper for Celebrating Exemplary Leadership
         </p>
-        <div className="flex items-center justify-center pb-2 sm:pb-3" style={{ gap: '0.5rem' }}>
-          <div className="flex flex-col overflow-hidden flex-shrink-0"
-            style={{ height: 'clamp(28px, 5vw, 48px)', width: '4px' }}>
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
-          <h1 className="font-black leading-none select-none text-center"
-            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(20px, 5.5vw, 52px)', whiteSpace: 'nowrap' }}>
-            <span style={{ color: '#000000' }}>The</span>{' '}
+
+        {/* ── Title block: "The" small, then huge "Leadership Review" ── */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            paddingBottom: '0px',
+            marginTop: '-2px',
+          }}
+        >
+          {/* "The" */}
+          <span
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              color: '#000000',
+              fontWeight: 900,
+              fontSize: 'clamp(14px, 2.6vw, 30px)',
+              lineHeight: 1,
+              display: 'block',
+              marginBottom: '-0.02em',
+              paddingLeft: '0.08em',
+            }}
+          >
+            The
+          </span>
+
+          {/* "Leadership Review" */}
+          <span
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 900,
+              fontStyle: 'normal',
+              lineHeight: 0.88,
+              whiteSpace: 'nowrap',
+              fontSize: 'clamp(32px, 10.5vw, 120px)',
+              display: 'block',
+              marginTop: '-0.02em',
+              marginBottom: '4px',
+              letterSpacing: '-0.01em',
+            }}
+          >
             <span style={{ color: '#283583' }}>L</span>
-            <span style={{ color: '#3fa535' }}>eadership</span>{' '}
+            <span style={{ color: '#3fa535' }}>eadership</span>
+            {' '}
             <span style={{ color: '#cd171a' }}>Review</span>
-          </h1>
-          <div className="flex flex-col overflow-hidden flex-shrink-0"
-            style={{ height: 'clamp(28px, 5vw, 48px)', width: '4px' }}>
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
+          </span>
+        </div>
+
+        {/* ── Stroke rules ── */}
+
+        {/* Blue rule below title */}
+        <div style={{ height: '4px', background: '#283583', marginTop: 'clamp(4px, 2vw, 18px)' }} />
+
+        {/* Blue double-line */}
+        <div style={{ marginTop: '2px', marginBottom: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ height: '3px', background: '#283583' }} />
+          <div style={{ height: '1px', background: '#283583', opacity: 0.45 }} />
+        </div>
+
+        {/* ── Gap before issue title strip ── */}
+        <div style={{ height: '6px' }} />
+
+        {/* ── Issue identity strip: edition badge + issue title ── */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: 'clamp(6px, 1vw, 10px) clamp(8px, 1.2vw, 14px)',
+            background: 'linear-gradient(135deg, #283583 0%, #1a2460 100%)',
+          }}
+        >
+          <span
+            style={{
+              background: '#EF6203',
+              color: '#fff',
+              fontWeight: 900,
+              fontSize: 'clamp(8px, 1vw, 12px)',
+              padding: '2px 8px',
+              borderRadius: '3px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {issue.edition || 'Special Edition'}
+          </span>
+          <span
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 900,
+              color: '#ffffff',
+              fontSize: 'clamp(11px, 1.8vw, 20px)',
+              lineHeight: 1.2,
+            }}
+          >
+            {issue.title}
+          </span>
+        </div>
+
+        {/* ── Gap between strip and red rule ── */}
+        <div style={{ height: '4px' }} />
+
+        {/* ── Red rule ── */}
+        <div style={{ height: '6px', background: '#cd171a', marginBottom: '10px' }} />
+
+        {/* ── Sub-bar: back link ── */}
+        <div
+          className="flex items-start justify-between flex-wrap gap-1 sm:gap-2"
+          style={{ fontSize: 'clamp(12px, 1.5vw, 15px)' }}
+        >
+          <div className="flex flex-col gap-1">
+            <p style={{ color: '#666', margin: 0, fontStyle: 'italic' }}>
+              Published by{' '}
+              <Link
+                href="/portfolio"
+                className="font-semibold hover:underline"
+                style={{ color: '#283583' }}
+              >
+                Simon Designs
+              </Link>
+            </p>
+            <Link
+              href="/the-leadership-review"
+              className="font-semibold flex items-center gap-1 hover:gap-2 transition-all"
+              style={{ color: '#EF6203', fontSize: 'clamp(13px, 1.6vw, 16px)' }}
+            >
+              ← Back to All Issues
+            </Link>
           </div>
         </div>
-        <div className="flex flex-col gap-0.5 pb-2 sm:pb-3">
-          <div className="h-1" style={{ background: '#283583' }} />
-          <div className="h-0.5" style={{ background: '#cd171a' }} />
-        </div>
+
       </div>
     </div>
   );
@@ -615,14 +721,10 @@ export default function IssueDetailPage({ params }: { params: Promise<{ slug: st
     <>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');`}</style>
       <main className="min-h-screen bg-gray-50">
+
         <IssueMasthead issue={issue} />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16">
-          <Link href="/the-leadership-review"
-            className="inline-flex items-center text-sm font-bold gap-2 mb-5 sm:mb-6 transition-opacity hover:opacity-70"
-            style={{ color: '#283583' }}>
-            ← Back to All Issues
-          </Link>
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16 pt-6">
 
           {/* ── Desktop layout ── */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
@@ -646,11 +748,9 @@ export default function IssueDetailPage({ params }: { params: Promise<{ slug: st
 
           {/* ── Mobile layout ── */}
           <div className="lg:hidden flex flex-col gap-4">
-            {/* Info panel — no cover image to save space */}
             <IssueInfoPanel issue={issue} showDownload={false} onDownload={handleDownload}
               downloading={downloading} hideCover={true} />
 
-            {/* PDF viewer — full width, scrollable inside */}
             {issue.pdfFile?.asset?.url ? (
               <IssueViewer pdfUrl={issue.pdfFile.asset.url} title={issue.title}
                 onDownload={handleDownload} downloading={downloading} />
