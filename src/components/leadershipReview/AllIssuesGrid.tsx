@@ -54,6 +54,27 @@ export default function AllIssuesGrid({ issues }: AllIssuesGridProps) {
           transform: translateY(-6px);
           box-shadow: 0 20px 60px rgba(0,0,0,0.16), 0 4px 12px rgba(0,0,0,0.08) !important;
         }
+
+        .cover-image-box {
+          position: relative;
+          width: 100%;
+          padding-bottom: 52.36%; /* 1.91:1 ratio — Facebook/WhatsApp OG standard */
+          overflow: hidden;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .cover-image-box > * {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+        }
+        .cover-image-box .latest-badge {
+          width: fit-content;
+          height: fit-content;
+          inset: unset;
+          top: 10px;
+          right: 10px;
+        }
       `}</style>
 
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
@@ -76,13 +97,13 @@ export default function AllIssuesGrid({ issues }: AllIssuesGridProps) {
                 }}
               >
 
-                {/* Cover image */}
-                <div className="relative aspect-square overflow-hidden border-b border-gray-200">
+                {/* Cover image — 1.91:1 landscape (Facebook/WhatsApp OG standard) */}
+                <div className="cover-image-box">
 
                   {issue.isFeatured && (
                     <span
-                      className="absolute top-2 right-2 md:top-3 md:right-3 z-10 text-white text-[8px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full shadow-md tracking-wide uppercase"
-                      style={{ background: '#EF6203' }}
+                      className="latest-badge z-10 text-white text-[8px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-full shadow-md tracking-wide uppercase"
+                      style={{ background: '#EF6203', position: 'absolute', display: 'inline-block' }}
                     >
                       ★ Latest
                     </span>
