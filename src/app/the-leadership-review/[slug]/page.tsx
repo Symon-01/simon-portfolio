@@ -17,9 +17,10 @@ export async function generateMetadata(
     };
   }
 
-  const ogImage = issue.coverImage?.asset?.url;
-  // Use the full slug URL — this is what Facebook/WhatsApp will scrape.
-  // NOT the homepage. This was the root cause of the old image showing.
+  // ogImage = dedicated sharing image (1200x628px landscape)
+  // Falls back to coverImage if no separate OG image has been uploaded yet
+  const ogImage = issue.ogImage?.asset?.url || issue.coverImage?.asset?.url;
+
   const pageUrl = `https://simondesigns.co.ke/the-leadership-review/${slug}`;
 
   return {
@@ -36,7 +37,7 @@ export async function generateMetadata(
           {
             url: ogImage,
             width: 1200,
-            height: 630,
+            height: 628,
             alt: `Cover of ${issue.title}`,
           },
         ],

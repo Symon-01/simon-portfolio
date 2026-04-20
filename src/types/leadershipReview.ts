@@ -23,6 +23,12 @@ export interface LeadershipReviewIssue {
     };
     hotspot?: object;
   };
+  ogImage?: {
+    asset?: {
+      _id: string;
+      url: string;
+    };
+  };
   pdfFile: {
     asset: {
       _id: string;
@@ -50,6 +56,12 @@ export interface LeadershipReviewIssueSummary {
   publishedDate: string;
   coverImage: {
     asset: {
+      _id: string;
+      url: string;
+    };
+  };
+  ogImage?: {
+    asset?: {
       _id: string;
       url: string;
     };

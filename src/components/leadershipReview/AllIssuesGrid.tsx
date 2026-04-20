@@ -58,7 +58,7 @@ export default function AllIssuesGrid({ issues }: AllIssuesGridProps) {
         .cover-image-box {
           position: relative;
           width: 100%;
-          padding-bottom: 52.36%; /* 1.91:1 ratio — Facebook/WhatsApp OG standard */
+          padding-bottom: 120%; /* Slightly reduced portrait — crops evenly from bottom */
           overflow: hidden;
           border-bottom: 1px solid #e5e7eb;
         }
@@ -74,6 +74,9 @@ export default function AllIssuesGrid({ issues }: AllIssuesGridProps) {
           inset: unset;
           top: 10px;
           right: 10px;
+        }
+        .cover-image-box img {
+          object-position: top; /* Anchor to top — crops from the bottom consistently */
         }
       `}</style>
 
@@ -97,7 +100,7 @@ export default function AllIssuesGrid({ issues }: AllIssuesGridProps) {
                 }}
               >
 
-                {/* Cover image — 1.91:1 landscape (Facebook/WhatsApp OG standard) */}
+                {/* Cover image — uniform portrait, anchored top, crops from bottom */}
                 <div className="cover-image-box">
 
                   {issue.isFeatured && (

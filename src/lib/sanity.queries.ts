@@ -4,6 +4,7 @@
 //   - leadershipReviewBySlugQuery now filters reviews to only include
 //     status == 'approved' AND isHidden != true, so offensive/pending reviews
 //     never reach the frontend.
+//   - ogImage field added to all leadershipReview queries for social sharing
 
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
@@ -342,6 +343,9 @@ export const allLeadershipReviewIssuesQuery = `
     coverImage {
       asset -> { _id, url }
     },
+    ogImage {
+      asset -> { _id, url }
+    },
     featuredLeader,
     leaderTitle,
     county,
@@ -364,6 +368,9 @@ export const leadershipReviewBySlugQuery = `
     edition,
     publishedDate,
     coverImage {
+      asset -> { _id, url }
+    },
+    ogImage {
       asset -> { _id, url }
     },
     pdfFile {
@@ -397,6 +404,9 @@ export const featuredLeadershipReviewQuery = `
     edition,
     publishedDate,
     coverImage {
+      asset -> { _id, url }
+    },
+    ogImage {
       asset -> { _id, url }
     },
     pdfFile {

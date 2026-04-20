@@ -1,4 +1,10 @@
 // FILE: sanity/schemaTypes/leadershipReview.ts
+//
+// Changes from the previous version:
+//   - Added `status` field on each review: 'pending' | 'approved' | 'rejected'
+//   - Added `isHidden` boolean on each review so Simon can hide without deleting
+//   - These two fields give full moderation control from the Sanity Studio
+//   - Added `ogImage` field for a separate social sharing image (1200 × 628px)
 
 import { defineField, defineType } from 'sanity'
 
@@ -51,9 +57,16 @@ export default defineType({
       name: 'coverImage',
       title: 'Cover Image',
       type: 'image',
-      description: 'Upload a screenshot/photo of the front page',
+      description: 'Upload a screenshot/photo of the front page — shown on the website cards',
       options: { hotspot: true },
       validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'ogImage',
+      title: 'Social Share Image (WhatsApp / Facebook)',
+      type: 'image',
+      description: 'Upload a landscape image at exactly 1200 × 628px — this is what appears when someone shares the issue link on WhatsApp, Facebook, Twitter, etc. If left empty, the Cover Image will be used instead.',
+      options: { hotspot: true },
     }),
     defineField({
       name: 'pdfFile',
@@ -119,47 +132,110 @@ export default defineType({
       description: 'Only one issue should be featured at a time — this shows in the portfolio window',
       initialValue: false,
     }),
+
+    // ── Reader Reviews (with moderation) ──────────────────────────────────────
     defineField({
       name: 'reviews',
       title: 'Reader Reviews',
       type: 'array',
+      description: 'Reviews submitted by readers. Use Status and Hidden to moderate each one.',
       of: [
         {
           type: 'object',
           name: 'review',
           fields: [
-            defineField({ name: 'reviewerName', title: 'Reviewer Name', type: 'string' }),
-            defineField({ name: 'location', title: 'Location', type: 'string', description: 'e.g. "Nairobi"' }),
+            defineField({
+              name: 'reviewerName',
+              title: 'Reviewer Name',
+              type: 'string',
+            }),
+            defineField({
+              name: 'location',
+              title: 'Location',
+              type: 'string',
+              description: 'e.g. "Nairobi"',
+            }),
             defineField({
               name: 'rating',
               title: 'Rating (1–5)',
               type: 'number',
               validation: Rule => Rule.min(1).max(5),
             }),
-            defineField({ name: 'comment', title: 'Comment', type: 'text', rows: 3 }),
-            defineField({ name: 'date', title: 'Date Submitted', type: 'date' }),
+            defineField({
+              name: 'comment',
+              title: 'Comment',
+              type: 'text',
+              rows: 3,
+            }),
+            defineField({
+              name: 'date',
+              title: 'Date Submitted',
+              type: 'date',
+            }),
+
+            // ── MODERATION FIELDS ──────────────────────────────────────────
+            defineField({
+              name: 'status',
+              title: 'Moderation Status',
+              type: 'string',
+              description:
+                'Pending = not yet reviewed by Simon. Approved = shows publicly. Rejected = will not show.',
+              options: {
+                list: [
+                  { title: '⏳ Pending (default — not shown yet)', value: 'pending' },
+                  { title: '✅ Approved (shows on the website)', value: 'approved' },
+                  { title: '❌ Rejected (hidden, won\'t show)', value: 'rejected' },
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'pending',
+            }),
+            defineField({
+              name: 'isHidden',
+              title: 'Hide this review?',
+              type: 'boolean',
+              description:
+                'Toggle ON to hide an already-approved review without deleting it. Useful if a review becomes problematic later.',
+              initialValue: false,
+            }),
           ],
+          // Preview in the Sanity Studio array list shows name + moderation status
           preview: {
-            select: { title: 'reviewerName', subtitle: 'comment' },
+            select: {
+              title: 'reviewerName',
+              subtitle: 'status',
+              description: 'comment',
+            },
+            prepare({ title, subtitle, description }: { title: string; subtitle: string; description: string }) {
+              const statusEmoji =
+                subtitle === 'approved' ? '✅' :
+                subtitle === 'rejected' ? '❌' : '⏳';
+              return {
+                title: title ?? 'Anonymous',
+                subtitle: `${statusEmoji} ${subtitle ?? 'pending'} — ${description?.slice(0, 60) ?? ''}…`,
+              };
+            },
           },
         },
       ],
     }),
   ],
+
   preview: {
     select: {
       title: 'title',
       subtitle: 'featuredLeader',
       media: 'coverImage',
     },
-    prepare({ title, subtitle, media }) {
+    prepare({ title, subtitle, media }: { title: string; subtitle: string; media: any }) {
       return {
         title: title ?? 'Untitled Issue',
         subtitle: subtitle ? `Featured: ${subtitle}` : 'No leader specified',
         media,
-      }
+      };
     },
   },
+
   orderings: [
     {
       title: 'Newest First',
