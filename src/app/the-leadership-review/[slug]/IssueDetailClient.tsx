@@ -25,8 +25,6 @@ async function triggerDownload(url: string, filename: string) {
 }
 
 // ── Mobile PDF Canvas Renderer ────────────────────────────────────────────────
-// Uses PDF.js loaded from CDN script to render each page as a canvas element.
-// Pages appear immediately as they render — no loading overlay shown.
 
 function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
   pdfUrl: string; title: string; onDownload: () => void; downloading: boolean;
@@ -39,7 +37,6 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
     if (renderedRef.current) return;
     renderedRef.current = true;
 
-    // Load PDF.js from CDN
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
     script.onload = async () => {
@@ -80,7 +77,6 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
 
   return (
     <div className="w-full">
-      {/* Header bar */}
       <div className="flex items-center justify-between px-4 py-3 rounded-t-xl" style={{ background: '#283583' }}>
         <div className="flex items-center gap-2 min-w-0 flex-1 mr-3">
           <div className="flex flex-col h-7 w-1 rounded-sm overflow-hidden flex-shrink-0">
@@ -99,7 +95,6 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
         </button>
       </div>
 
-      {/* Error fallback */}
       {error && (
         <div className="w-full border border-gray-200 rounded-b-xl bg-white flex flex-col items-center justify-center gap-4 py-12 px-6 text-center">
           <p className="text-sm text-gray-500">Could not render the PDF. Please open it directly.</p>
@@ -111,7 +106,6 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
         </div>
       )}
 
-      {/* Canvas container — pages render here immediately as they finish */}
       {!error && (
         <div
           ref={containerRef}
@@ -168,18 +162,39 @@ function DesktopPdfViewer({ pdfUrl, title, onDownload, downloading }: {
 }
 
 // ── Share + Support card ──────────────────────────────────────────────────────
+// KEY FIX: We append ?v=<unix-timestamp> to every social share URL.
+// WhatsApp (and other platforms) cache OG previews keyed by the exact URL.
+// A unique ?v= param forces their scraper to treat it as a new URL and
+// re-fetch the latest og:image / og:description set by page.tsx on the server.
+// The clipboard "Copy Link" still uses the clean canonical URL.
 
 function ShareAndSupportCard({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
 
+  /** Canonical URL — no bust param. Used for clipboard copy. */
+  const getCanonicalUrl = () =>
+    window.location.origin + window.location.pathname;
+
+  /**
+   * Cache-busted URL for social sharing.
+   * Appending ?v=<unix-seconds> makes WhatsApp/Facebook treat this as a
+   * brand-new URL and re-scrape the OG tags, always picking up the current
+   * cover image and description from Sanity instead of a stale cached preview.
+   */
+  const getBustableUrl = () => {
+    const v = Math.floor(Date.now() / 1000);
+    return `${getCanonicalUrl()}?v=${v}`;
+  };
+
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(getCanonicalUrl());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = (platform: string) => {
-    const url = encodeURIComponent(window.location.href);
+    const bustableUrl = getBustableUrl();
+    const url = encodeURIComponent(bustableUrl);
     const text = encodeURIComponent(`Read this issue of The Leadership Review: ${title}`);
     const shareUrls: Record<string, string> = {
       whatsapp: `https://wa.me/?text=${text}%20${url}`,
@@ -646,4 +661,3 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
     </>
   );
 }
-
