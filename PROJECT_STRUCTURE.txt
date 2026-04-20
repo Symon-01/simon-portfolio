@@ -88,8 +88,11 @@ simon-designs/
 │   │   ├── about-me
 │   │   │   └── page.tsx
 │   │   ├── api
-│   │   │   └── contact
-│   │   │       └── route.ts
+│   │   │   ├── contact
+│   │   │   │   └── route.ts
+│   │   │   └── leadership-review
+│   │   │       └── reviews
+│   │   │           └── route.ts
 │   │   ├── contact
 │   │   │   └── page.tsx
 │   │   ├── globals.css
@@ -122,6 +125,7 @@ simon-designs/
 │   │       ├── LeadershipReviewPageClient.tsx
 │   │       ├── page.tsx
 │   │       └── [slug]
+│   │           ├── IssueDetailClient.tsx
 │   │           └── page.tsx
 │   ├── components
 │   │   ├── about-me.tsx
