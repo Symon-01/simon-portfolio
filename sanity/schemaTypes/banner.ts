@@ -32,6 +32,7 @@ export default {
           { title: 'Simon Arts - CTA', value: 'simon-arts-cta' },
           { title: 'Contact - Hero', value: 'contact-hero' },
           { title: 'Contact - CTA', value: 'contact-cta' },
+          { title: 'Leadership Review - Masthead', value: 'leadership-review' },
         ],
         layout: 'dropdown'
       },

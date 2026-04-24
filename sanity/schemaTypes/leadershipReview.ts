@@ -1,10 +1,8 @@
 // FILE: sanity/schemaTypes/leadershipReview.ts
 //
-// Changes from the previous version:
-//   - Added `status` field on each review: 'pending' | 'approved' | 'rejected'
-//   - Added `isHidden` boolean on each review so Simon can hide without deleting
-//   - These two fields give full moderation control from the Sanity Studio
-//   - Added `ogImage` field for a separate social sharing image (1200 × 628px)
+// Changes from previous version:
+//   - Added `mastheadBackground` image field — displayed behind the newspaper
+//     masthead on the issue detail page. Optional; masthead looks normal without it.
 
 import { defineField, defineType } from 'sanity'
 
@@ -60,6 +58,13 @@ export default defineType({
       description: 'Upload a screenshot/photo of the front page — shown on the website cards',
       options: { hotspot: true },
       validation: Rule => Rule.required(),
+    }),
+    defineField({
+      name: 'mastheadBackground',
+      title: 'Masthead Background Image',
+      type: 'image',
+      description: 'Optional. Upload an image to display behind the newspaper masthead on the issue detail page. A white overlay is applied automatically so all text stays readable. Works best with landscape photos or textured backgrounds.',
+      options: { hotspot: true },
     }),
     defineField({
       name: 'ogImage',
@@ -172,8 +177,6 @@ export default defineType({
               title: 'Date Submitted',
               type: 'date',
             }),
-
-            // ── MODERATION FIELDS ──────────────────────────────────────────
             defineField({
               name: 'status',
               title: 'Moderation Status',
@@ -195,11 +198,10 @@ export default defineType({
               title: 'Hide this review?',
               type: 'boolean',
               description:
-                'Toggle ON to hide an already-approved review without deleting it. Useful if a review becomes problematic later.',
+                'Toggle ON to hide an already-approved review without deleting it.',
               initialValue: false,
             }),
           ],
-          // Preview in the Sanity Studio array list shows name + moderation status
           preview: {
             select: {
               title: 'reviewerName',

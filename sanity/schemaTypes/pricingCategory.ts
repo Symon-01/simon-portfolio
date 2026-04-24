@@ -25,6 +25,26 @@ export default {
       description: 'Choose from: palette, megaphone, layout, bookopen, package',
       validation: (Rule: any) => Rule.required(),
     },
+    // ─── CATEGORY IMAGE ───────────────────────────────────────────────────────
+    {
+      name: 'categoryImage',
+      title: 'Category Card Image',
+      type: 'image',
+      description:
+        'Image displayed at the top of this category card on the pricing page. Upload a sample of your best work for this category.',
+      options: {
+        hotspot: true,
+      },
+      fields: [
+        {
+          name: 'alt',
+          title: 'Alt Text',
+          type: 'string',
+          description: 'Describe the image for accessibility (e.g. "Sample logo design work")',
+        },
+      ],
+    },
+    // ─────────────────────────────────────────────────────────────────────────
     {
       name: 'order',
       title: 'Display Order',
@@ -37,6 +57,7 @@ export default {
     select: {
       title: 'name',
       subtitle: 'description',
+      media: 'categoryImage',
     },
   },
 }

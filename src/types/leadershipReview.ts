@@ -23,6 +23,13 @@ export interface LeadershipReviewIssue {
     };
     hotspot?: object;
   };
+  // Optional background image shown behind the masthead on the detail page
+  mastheadBackground?: {
+    asset?: {
+      _id: string;
+      url: string;
+    };
+  };
   ogImage?: {
     asset?: {
       _id: string;

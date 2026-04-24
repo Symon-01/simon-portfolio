@@ -36,9 +36,25 @@ export default {
       name: 'priceLabel',
       title: 'Price Display Label',
       type: 'string',
-      description: 'How to display the price. e.g., "KES 3,000 - 6,000" or "From KES 5,000"',
+      description: 'How to display the current/discounted price. e.g., "KES 3,000 - 6,000" or "From KES 5,000"',
       validation: (Rule: any) => Rule.required(),
     },
+    // ─── DISCOUNT FIELDS ──────────────────────────────────────────────────────
+    {
+      name: 'originalPriceLabel',
+      title: 'Original Price Label (before discount)',
+      type: 'string',
+      description:
+        'Optional. The old/full price shown struck-through next to the current price. e.g. "KES 8,000". Leave blank if no discount.',
+    },
+    {
+      name: 'discountLabel',
+      title: 'Discount Badge Text',
+      type: 'string',
+      description:
+        'Optional. Short text on the orange badge. e.g. "-20%" or "SAVE 30%" or "LIMITED OFFER". Leave blank if no discount.',
+    },
+    // ─────────────────────────────────────────────────────────────────────────
     {
       name: 'order',
       title: 'Display Order',
@@ -51,11 +67,12 @@ export default {
     select: {
       title: 'name',
       category: 'category.name',
+      discount: 'discountLabel',
     },
     prepare(selection: any) {
-      const { title, category } = selection
+      const { title, category, discount } = selection
       return {
-        title: title,
+        title: discount ? `${title}  •  ${discount}` : title,
         subtitle: category ? `Category: ${category}` : 'No category selected',
       }
     },

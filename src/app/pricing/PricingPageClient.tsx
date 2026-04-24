@@ -15,6 +15,10 @@ interface PricingCategory {
   icon: string;
   description: string;
   order: number;
+  categoryImage?: {
+    asset: { _ref?: string; url?: string };
+    alt?: string;
+  };
 }
 
 interface PricingService {
@@ -27,6 +31,8 @@ interface PricingService {
   description?: string;
   price: number;
   priceLabel: string;
+  originalPriceLabel?: string;
+  discountLabel?: string;
   order: number;
 }
 
@@ -47,22 +53,19 @@ function PricingContent() {
   const [categories, setCategories] = useState<CategoryWithServices[]>([]);
   const [settings, setSettings] = useState<PricingSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const { openModal } = useQuoteModal();
 
   useEffect(() => {
     const checkAndOpenModal = () => {
       if (window.location.hash === '#quote') {
-        console.log('🎯 Opening quote modal from hash');
         openModal();
         window.history.replaceState(null, '', '/pricing');
       }
     };
-
     checkAndOpenModal();
     const timer = setTimeout(checkAndOpenModal, 100);
     window.addEventListener('hashchange', checkAndOpenModal);
-
     return () => {
       clearTimeout(timer);
       window.removeEventListener('hashchange', checkAndOpenModal);
@@ -72,14 +75,23 @@ function PricingContent() {
   useEffect(() => {
     async function fetchPricingData() {
       try {
+        // ── Categories — now includes categoryImage ──────────────────────────
         const categoriesQuery = `*[_type == "pricingCategory"] | order(order asc) {
           _id,
           name,
           icon,
           description,
-          order
+          order,
+          categoryImage {
+            asset-> {
+              _ref,
+              url
+            },
+            alt
+          }
         }`;
 
+        // ── Services — includes discount fields, no image ────────────────────
         const servicesQuery = `*[_type == "pricingService"] | order(order asc) {
           _id,
           name,
@@ -90,6 +102,8 @@ function PricingContent() {
           description,
           price,
           priceLabel,
+          originalPriceLabel,
+          discountLabel,
           order
         }`;
 
@@ -108,12 +122,14 @@ function PricingContent() {
           client.fetch(settingsQuery),
         ]);
 
-        const categoriesWithServices = categoriesData.map((cat: PricingCategory) => ({
-          ...cat,
-          services: servicesData.filter(
-            (service: PricingService) => service.category?._id === cat._id
-          ),
-        }));
+        const categoriesWithServices: CategoryWithServices[] = categoriesData.map(
+          (cat: PricingCategory) => ({
+            ...cat,
+            services: servicesData.filter(
+              (service: PricingService) => service.category?._id === cat._id
+            ),
+          })
+        );
 
         setCategories(categoriesWithServices);
         setSettings(settingsData);
@@ -130,18 +146,18 @@ function PricingContent() {
   if (loading) {
     return (
       <main>
-        <UniversalHero 
-          location="pricing-hero" 
+        <UniversalHero
+          location="pricing-hero"
           scrollingBannerItems={[
             '💰 Transparent Pricing',
             '✨ No Hidden Fees',
             '📦 Flexible Packages',
-            '✅ Quality Guaranteed'
-          ]} 
+            '✅ Quality Guaranteed',
+          ]}
         />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4" />
             <p className="text-gray-600">Loading pricing information...</p>
           </div>
         </div>
@@ -151,14 +167,14 @@ function PricingContent() {
 
   return (
     <main>
-      <UniversalHero 
-        location="pricing-hero" 
+      <UniversalHero
+        location="pricing-hero"
         scrollingBannerItems={[
           '💰 Transparent Pricing',
           '✨ No Hidden Fees',
           '📦 Flexible Packages',
-          '✅ Quality Guaranteed'
-        ]} 
+          '✅ Quality Guaranteed',
+        ]}
       />
       <PricingGuide categories={categories} settings={settings} />
       <GetQuotePricing
@@ -173,13 +189,15 @@ function PricingContent() {
 
 export default function PricingPageClient() {
   return (
-    <Suspense fallback={
-      <main>
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Loading...</p>
-        </div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main>
+          <div className="min-h-screen flex items-center justify-center">
+            <p>Loading...</p>
+          </div>
+        </main>
+      }
+    >
       <PricingContent />
     </Suspense>
   );

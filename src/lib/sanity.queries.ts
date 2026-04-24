@@ -1,10 +1,8 @@
 // FILE: src/lib/sanity.queries.ts
 //
-// Change from previous version:
-//   - leadershipReviewBySlugQuery now filters reviews to only include
-//     status == 'approved' AND isHidden != true, so offensive/pending reviews
-//     never reach the frontend.
-//   - ogImage field added to all leadershipReview queries for social sharing
+// Changes from previous version:
+//   - leadershipReviewBySlugQuery now includes `mastheadBackground` field
+//     so the masthead background image is available on the issue detail page.
 
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
@@ -355,9 +353,8 @@ export const allLeadershipReviewIssuesQuery = `
   }
 `;
 
-// Single issue by slug — full data including PDF.
+// Single issue by slug — full data including PDF and masthead background.
 // *** IMPORTANT: reviews are filtered so ONLY approved, non-hidden ones come through. ***
-// Pending, rejected, and hidden reviews stay in Sanity but never reach the website.
 export const leadershipReviewBySlugQuery = `
   *[_type == "leadershipReview" && slug.current == $slug][0] {
     _id,
@@ -368,6 +365,9 @@ export const leadershipReviewBySlugQuery = `
     edition,
     publishedDate,
     coverImage {
+      asset -> { _id, url }
+    },
+    mastheadBackground {
       asset -> { _id, url }
     },
     ogImage {
