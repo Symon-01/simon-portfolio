@@ -21,7 +21,7 @@ function Masthead({ bgImageUrl }: { bgImageUrl?: string }) {
         >
           {/* White overlay — keeps all existing newspaper text fully readable.
               Adjust the opacity class (bg-white/70, bg-white/85, etc.) to taste. */}
-          <div className="absolute inset-0 bg-white/82" />
+          <div className="absolute inset-0 bg-white/93" />
         </div>
       )}
 
