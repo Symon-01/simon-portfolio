@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.8",
+    "@portabletext/react": "^6.0.3",
     "@sanity/client": "^7.12.0",
     "@sanity/image-url": "^1.2.0",
     "intasend-inlinejs-sdk": "^4.0.7",

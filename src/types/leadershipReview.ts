@@ -42,6 +42,10 @@ export interface LeadershipReviewIssue {
       url: string;
     };
   };
+  // The full article written in Sanity Studio as Portable Text.
+  // This is the "Read Online" web version — Google can index this content.
+  // It is optional: if not yet written for an issue, only the PDF view is shown.
+  articleContent?: any[];
   featuredLeader: string;
   leaderTitle: string;
   county: string;

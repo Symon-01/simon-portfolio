@@ -1,8 +1,4 @@
 // FILE: sanity/schemaTypes/leadershipReview.ts
-//
-// Changes from previous version:
-//   - Added `mastheadBackground` image field — displayed behind the newspaper
-//     masthead on the issue detail page. Optional; masthead looks normal without it.
 
 import { defineField, defineType } from 'sanity'
 
@@ -63,14 +59,16 @@ export default defineType({
       name: 'mastheadBackground',
       title: 'Masthead Background Image',
       type: 'image',
-      description: 'Optional. Upload an image to display behind the newspaper masthead on the issue detail page. A white overlay is applied automatically so all text stays readable. Works best with landscape photos or textured backgrounds.',
+      description:
+        'Optional. Upload an image to display behind the newspaper masthead on the issue detail page.',
       options: { hotspot: true },
     }),
     defineField({
       name: 'ogImage',
       title: 'Social Share Image (WhatsApp / Facebook)',
       type: 'image',
-      description: 'Upload a landscape image at exactly 1200 × 628px — this is what appears when someone shares the issue link on WhatsApp, Facebook, Twitter, etc. If left empty, the Cover Image will be used instead.',
+      description:
+        'Upload a landscape image at exactly 1200 × 628px — this is what appears when someone shares the issue link on WhatsApp, Facebook, etc.',
       options: { hotspot: true },
     }),
     defineField({
@@ -81,6 +79,75 @@ export default defineType({
       options: { accept: '.pdf' },
       validation: Rule => Rule.required(),
     }),
+
+    // ── NEW: Web / Online Article Content ────────────────────────────────────
+    // This is the text version of the issue that Google can read and index.
+    // The PDF viewer above is for the designed layout — this is for SEO + accessibility.
+    //
+    // HOW TO USE IN SANITY STUDIO:
+    //   • H2  → Each major standalone article title  (e.g. "Built on Hard Work...")
+    //   • H3  → Sub-article title nested inside an H2 (e.g. "The Student Who Refused...")
+    //   • H4  → Red section headings within an article (e.g. "The Lawyer: Standing with the Powerless")
+    //   • H5  → Italic subtitle / deck line under H2 or H3
+    //   • Normal → Regular paragraph text
+    //   • Pull Quote → Highlighted reader quote or key quote
+    //   • Article Image → Drop an image anywhere — set caption + position (Full, Left, Right)
+    defineField({
+      name: 'articleContent',
+      title: 'Article Content (Web / Online Version)',
+      type: 'array',
+      description:
+        'Write the full issue here as text. This is what Google indexes. Use the styles dropdown: H2 = major article, H3 = sub-article, H4 = red section heading, H5 = italic subtitle, Normal = paragraph. Drop images anywhere using the + button.',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            { title: 'Normal (Paragraph)', value: 'normal' },
+            { title: 'H2 — Major Article Title', value: 'h2' },
+            { title: 'H3 — Sub-Article Title', value: 'h3' },
+            { title: 'H4 — Section Heading (Red on website)', value: 'h4' },
+            { title: 'H5 — Subtitle / Deck (Italic)', value: 'h5' },
+            { title: 'Pull Quote', value: 'blockquote' },
+          ],
+          marks: {
+            decorators: [
+              { title: 'Bold', value: 'strong' },
+              { title: 'Italic', value: 'em' },
+            ],
+          },
+        },
+        // Inline image block — drop anywhere in the article
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: 'caption',
+              title: 'Caption (optional)',
+              type: 'string',
+              description: 'Short description shown below the image on the website',
+            }),
+            defineField({
+              name: 'position',
+              title: 'Image Position',
+              type: 'string',
+              description: 'Full Width fills the column. Left / Right floats the image beside text.',
+              options: {
+                list: [
+                  { title: 'Full Width', value: 'full' },
+                  { title: 'Float Left (text wraps right)', value: 'left' },
+                  { title: 'Float Right (text wraps left)', value: 'right' },
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'full',
+            }),
+          ],
+        },
+      ],
+    }),
+    // ── End of articleContent ─────────────────────────────────────────────────
+
     defineField({
       name: 'featuredLeader',
       title: 'Featured Leader',
@@ -134,7 +201,8 @@ export default defineType({
       name: 'isFeatured',
       title: 'Feature as Latest Issue?',
       type: 'boolean',
-      description: 'Only one issue should be featured at a time — this shows in the portfolio window',
+      description:
+        'Only one issue should be featured at a time — this shows in the portfolio window',
       initialValue: false,
     }),
 
@@ -187,7 +255,7 @@ export default defineType({
                 list: [
                   { title: '⏳ Pending (default — not shown yet)', value: 'pending' },
                   { title: '✅ Approved (shows on the website)', value: 'approved' },
-                  { title: '❌ Rejected (hidden, won\'t show)', value: 'rejected' },
+                  { title: "❌ Rejected (hidden, won't show)", value: 'rejected' },
                 ],
                 layout: 'radio',
               },
@@ -208,14 +276,21 @@ export default defineType({
               subtitle: 'status',
               description: 'comment',
             },
-            prepare({ title, subtitle, description }: { title: string; subtitle: string; description: string }) {
+            prepare({
+              title,
+              subtitle,
+              description,
+            }: {
+              title: string
+              subtitle: string
+              description: string
+            }) {
               const statusEmoji =
-                subtitle === 'approved' ? '✅' :
-                subtitle === 'rejected' ? '❌' : '⏳';
+                subtitle === 'approved' ? '✅' : subtitle === 'rejected' ? '❌' : '⏳'
               return {
                 title: title ?? 'Anonymous',
                 subtitle: `${statusEmoji} ${subtitle ?? 'pending'} — ${description?.slice(0, 60) ?? ''}…`,
-              };
+              }
             },
           },
         },
@@ -229,12 +304,20 @@ export default defineType({
       subtitle: 'featuredLeader',
       media: 'coverImage',
     },
-    prepare({ title, subtitle, media }: { title: string; subtitle: string; media: any }) {
+    prepare({
+      title,
+      subtitle,
+      media,
+    }: {
+      title: string
+      subtitle: string
+      media: any
+    }) {
       return {
         title: title ?? 'Untitled Issue',
         subtitle: subtitle ? `Featured: ${subtitle}` : 'No leader specified',
         media,
-      };
+      }
     },
   },
 

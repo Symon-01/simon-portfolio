@@ -3,10 +3,12 @@
 
 import { use, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { PortableText } from '@portabletext/react';
 import { getLeadershipReviewBySlug } from '@/lib/sanity.queries';
 import type { LeadershipReviewIssue } from '@/types/leadershipReview';
 import SupportButton from '@/components/SupportButton';
 import IssueMasthead from '@/components/leadershipReview/IssueMasthead';
+import { urlFor } from '@/lib/sanity.image';
 
 async function triggerDownload(url: string, filename: string) {
   try {
@@ -25,14 +27,224 @@ async function triggerDownload(url: string, filename: string) {
   }
 }
 
+// ── Portable Text renderers ───────────────────────────────────────────────────
+// Maps each Sanity block style to the correct HTML tag + styling.
+// H4 is red to match the newspaper design.
+const portableTextComponents = {
+  block: {
+    normal: ({ children }: any) => (
+      <p className="mb-5 text-gray-700 leading-relaxed text-base">{children}</p>
+    ),
+    h2: ({ children }: any) => (
+      <h2
+        className="text-2xl md:text-3xl font-bold text-gray-900 mt-12 mb-3 pb-2 border-b-2"
+        style={{ fontFamily: "'Playfair Display', serif", borderColor: '#283583' }}
+      >
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: any) => (
+      <h3
+        className="text-xl md:text-2xl font-bold text-gray-800 mt-10 mb-2"
+        style={{ fontFamily: "'Playfair Display', serif" }}
+      >
+        {children}
+      </h3>
+    ),
+    // Red section headings — matching the newspaper style
+    h4: ({ children }: any) => (
+      <h4
+        className="text-base font-bold uppercase tracking-wide mt-7 mb-2"
+        style={{ color: '#BB0000' }}
+      >
+        {children}
+      </h4>
+    ),
+    // Italic subtitle / deck line under H2 or H3
+    h5: ({ children }: any) => (
+      <h5 className="text-base italic text-gray-500 mb-4 font-medium leading-snug">{children}</h5>
+    ),
+    blockquote: ({ children }: any) => (
+      <blockquote
+        className="border-l-4 pl-5 my-8 italic text-gray-600 text-lg leading-relaxed"
+        style={{ borderColor: '#283583' }}
+      >
+        {children}
+      </blockquote>
+    ),
+  },
+  types: {
+    image: ({ value }: any) => {
+      if (!value?.asset) return null;
+      const position = value.position || 'full';
+      return (
+        <figure
+          className={`my-6 ${
+            position === 'left'
+              ? 'float-left mr-6 mb-2 w-full sm:w-1/2'
+              : position === 'right'
+              ? 'float-right ml-6 mb-2 w-full sm:w-1/2'
+              : 'w-full clear-both'
+          }`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={urlFor(value).width(900).url()}
+            alt={value.caption || ''}
+            className="w-full rounded-lg object-cover"
+          />
+          {value.caption && (
+            <figcaption className="text-xs text-gray-400 mt-2 text-center italic">
+              {value.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    },
+  },
+  marks: {
+    strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
+    em: ({ children }: any) => <em className="italic">{children}</em>,
+  },
+};
+
+// ── Shared Online Article View ────────────────────────────────────────────────
+// Used by both Desktop and Mobile viewers when "Read Online" is active.
+
+function OnlineArticleView({ articleContent }: { articleContent: any[] }) {
+  return (
+    <div
+      className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
+      style={{ height: '780px' }}
+    >
+      {/* Scroll hint bar */}
+      <div
+        className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 text-xs text-white/80 border-b border-white/10"
+        style={{ background: '#283583' }}
+      >
+        <span>Scroll to read the full issue</span>
+        <span className="opacity-60">↕</span>
+      </div>
+      {/* Article body */}
+      <div className="max-w-2xl mx-auto px-5 sm:px-8 py-8 overflow-hidden">
+        <PortableText value={articleContent} components={portableTextComponents} />
+        <div className="clear-both" />
+      </div>
+    </div>
+  );
+}
+
+// ── Shared Viewer Toolbar ─────────────────────────────────────────────────────
+// The blue top bar used in both desktop and mobile viewers.
+// Shows the toggle only when an online version exists.
+
+function ViewerToolbar({
+  title,
+  viewMode,
+  setViewMode,
+  hasOnlineVersion,
+  onDownload,
+  downloading,
+}: {
+  title: string;
+  viewMode: 'pdf' | 'online';
+  setViewMode: (mode: 'pdf' | 'online') => void;
+  hasOnlineVersion: boolean;
+  onDownload: () => void;
+  downloading: boolean;
+}) {
+  return (
+    <div
+      className="flex items-center justify-between px-4 py-3 rounded-t-xl flex-wrap gap-2"
+      style={{ background: '#283583' }}
+    >
+      {/* Left: Kenyan flag stripe + title */}
+      <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+        <div className="flex flex-col h-7 w-1 rounded-sm overflow-hidden flex-shrink-0">
+          <div className="flex-1" style={{ background: '#006600' }} />
+          <div className="flex-1" style={{ background: '#BB0000' }} />
+          <div className="flex-1" style={{ background: '#000000' }} />
+        </div>
+        <span
+          className="text-white font-bold text-sm truncate"
+          style={{ fontFamily: "'Playfair Display', serif" }}
+        >
+          {title}
+        </span>
+      </div>
+
+      {/* Right: toggle + download */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Read Online / View PDF toggle — only shown when online version exists */}
+        {hasOnlineVersion && (
+          <div className="flex items-center rounded-lg overflow-hidden border border-white/40">
+            <button
+              onClick={() => setViewMode('online')}
+              className={`text-xs font-semibold px-3 py-1.5 transition-colors whitespace-nowrap ${
+                viewMode === 'online'
+                  ? 'bg-white text-[#283583]'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              Read Online
+            </button>
+            <div className="w-px h-5 bg-white/30" />
+            <button
+              onClick={() => setViewMode('pdf')}
+              className={`text-xs font-semibold px-3 py-1.5 transition-colors whitespace-nowrap ${
+                viewMode === 'pdf'
+                  ? 'bg-white text-[#283583]'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              View PDF
+            </button>
+          </div>
+        )}
+
+        {/* Download button — always visible */}
+        <button
+          onClick={onDownload}
+          disabled={downloading}
+          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors disabled:opacity-60 whitespace-nowrap"
+        >
+          {downloading ? (
+            <div
+              className="w-3 h-3 rounded-full border border-t-transparent animate-spin"
+              style={{ borderColor: '#fff', borderTopColor: 'transparent' }}
+            />
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {downloading ? 'Saving...' : 'Download PDF'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Mobile PDF Canvas Renderer ────────────────────────────────────────────────
 
-function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
-  pdfUrl: string; title: string; onDownload: () => void; downloading: boolean;
+function MobilePdfViewer({
+  pdfUrl,
+  title,
+  onDownload,
+  downloading,
+  articleContent,
+}: {
+  pdfUrl: string;
+  title: string;
+  onDownload: () => void;
+  downloading: boolean;
+  articleContent?: any[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
   const renderedRef = useRef(false);
+  const [viewMode, setViewMode] = useState<'pdf' | 'online'>('pdf');
+  const hasOnlineVersion = Array.isArray(articleContent) && articleContent.length > 0;
 
   useEffect(() => {
     if (renderedRef.current) return;
@@ -48,21 +260,18 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
 
         const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
         const total = pdf.numPages;
-
         const container = containerRef.current;
         if (!container) return;
 
         for (let i = 1; i <= total; i++) {
           const page = await pdf.getPage(i);
           const viewport = page.getViewport({ scale: window.innerWidth < 400 ? 1.2 : 1.5 });
-
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           canvas.style.width = '100%';
           canvas.style.display = 'block';
           canvas.style.borderBottom = '1px solid #e5e7eb';
-
           const ctx = canvas.getContext('2d')!;
           await page.render({ canvasContext: ctx, viewport }).promise;
           container.appendChild(canvas);
@@ -78,41 +287,45 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between px-4 py-3 rounded-t-xl" style={{ background: '#283583' }}>
-        <div className="flex items-center gap-2 min-w-0 flex-1 mr-3">
-          <div className="flex flex-col h-7 w-1 rounded-sm overflow-hidden flex-shrink-0">
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
-          <span className="text-white font-bold text-sm truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{title}</span>
-        </div>
-        <button onClick={onDownload} disabled={downloading}
-          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors disabled:opacity-60 whitespace-nowrap">
-          {downloading
-            ? <div className="w-3 h-3 rounded-full border border-t-transparent animate-spin" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
-            : <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-          {downloading ? 'Saving...' : 'Download PDF'}
-        </button>
-      </div>
+      <ViewerToolbar
+        title={title}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        hasOnlineVersion={hasOnlineVersion}
+        onDownload={onDownload}
+        downloading={downloading}
+      />
 
-      {error && (
-        <div className="w-full border border-gray-200 rounded-b-xl bg-white flex flex-col items-center justify-center gap-4 py-12 px-6 text-center">
-          <p className="text-sm text-gray-500">Could not render the PDF. Please open it directly.</p>
-          <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 py-2.5 px-6 rounded-xl text-white text-sm font-black"
-            style={{ background: '#283583' }}>
-            Open PDF
-          </a>
-        </div>
+      {/* Online view */}
+      {viewMode === 'online' && hasOnlineVersion && (
+        <OnlineArticleView articleContent={articleContent!} />
       )}
 
-      {!error && (
-        <div
-          ref={containerRef}
-          className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
-          style={{ maxHeight: '85vh' }}
-        />
+      {/* PDF canvas view */}
+      {viewMode === 'pdf' && (
+        <>
+          {error && (
+            <div className="w-full border border-gray-200 rounded-b-xl bg-white flex flex-col items-center justify-center gap-4 py-12 px-6 text-center">
+              <p className="text-sm text-gray-500">Could not render the PDF. Please open it directly.</p>
+              <a
+                href={pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 py-2.5 px-6 rounded-xl text-white text-sm font-black"
+                style={{ background: '#283583' }}
+              >
+                Open PDF
+              </a>
+            </div>
+          )}
+          {!error && (
+            <div
+              ref={containerRef}
+              className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
+              style={{ maxHeight: '85vh' }}
+            />
+          )}
+        </>
       )}
     </div>
   );
@@ -120,44 +333,62 @@ function MobilePdfViewer({ pdfUrl, title, onDownload, downloading }: {
 
 // ── Desktop PDF Viewer ────────────────────────────────────────────────────────
 
-function DesktopPdfViewer({ pdfUrl, title, onDownload, downloading }: {
-  pdfUrl: string; title: string; onDownload: () => void; downloading: boolean;
+function DesktopPdfViewer({
+  pdfUrl,
+  title,
+  onDownload,
+  downloading,
+  articleContent,
+}: {
+  pdfUrl: string;
+  title: string;
+  onDownload: () => void;
+  downloading: boolean;
+  articleContent?: any[];
 }) {
   const [loaded, setLoaded] = useState(false);
+  const [viewMode, setViewMode] = useState<'pdf' | 'online'>('pdf');
+  const hasOnlineVersion = Array.isArray(articleContent) && articleContent.length > 0;
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between px-4 py-3 rounded-t-xl" style={{ background: '#283583' }}>
-        <div className="flex items-center gap-2 min-w-0 flex-1 mr-3">
-          <div className="flex flex-col h-7 w-1 rounded-sm overflow-hidden flex-shrink-0">
-            <div className="flex-1" style={{ background: '#006600' }} />
-            <div className="flex-1" style={{ background: '#BB0000' }} />
-            <div className="flex-1" style={{ background: '#000000' }} />
-          </div>
-          <span className="text-white font-bold text-sm truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{title}</span>
+      <ViewerToolbar
+        title={title}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        hasOnlineVersion={hasOnlineVersion}
+        onDownload={onDownload}
+        downloading={downloading}
+      />
+
+      {/* Online view */}
+      {viewMode === 'online' && hasOnlineVersion && (
+        <OnlineArticleView articleContent={articleContent!} />
+      )}
+
+      {/* PDF iframe view */}
+      {viewMode === 'pdf' && (
+        <div
+          className="w-full border border-gray-200 rounded-b-xl relative"
+          style={{ height: '780px', background: '#ffffff' }}
+        >
+          {!loaded && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-50 z-10 gap-3">
+              <div
+                className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+                style={{ borderColor: '#283583', borderTopColor: 'transparent' }}
+              />
+              <p className="text-sm text-gray-400">Loading newspaper...</p>
+            </div>
+          )}
+          <iframe
+            src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+            title={title}
+            onLoad={() => setLoaded(true)}
+            style={{ display: 'block', width: '100%', height: '100%', border: 'none', background: '#ffffff' }}
+          />
         </div>
-        <button onClick={onDownload} disabled={downloading}
-          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-colors disabled:opacity-60 whitespace-nowrap">
-          {downloading
-            ? <div className="w-3 h-3 rounded-full border border-t-transparent animate-spin" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
-            : <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-          {downloading ? 'Saving...' : 'Download PDF'}
-        </button>
-      </div>
-      <div className="w-full border border-gray-200 rounded-b-xl relative" style={{ height: '780px', background: '#ffffff' }}>
-        {!loaded && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-50 z-10 gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#283583', borderTopColor: 'transparent' }} />
-            <p className="text-sm text-gray-400">Loading newspaper...</p>
-          </div>
-        )}
-        <iframe
-          src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
-          title={title}
-          onLoad={() => setLoaded(true)}
-          style={{ display: 'block', width: '100%', height: '100%', border: 'none', background: '#ffffff' }}
-        />
-      </div>
+      )}
     </div>
   );
 }
@@ -465,10 +696,22 @@ function IssueInfoPanel({ issue, showDownload, onDownload, downloading, hideCove
             {issue.county && <p className="text-xs text-gray-400 mt-0.5">{issue.constituency ? `${issue.constituency}, ` : ''}{issue.county}</p>}
           </div>
         )}
-        {issue.summary && <div className="pt-3" style={{ borderTop: '1.5px solid #cd171a20' }}><p className="text-xs leading-relaxed text-gray-500">{issue.summary}</p></div>}
+        {issue.summary && (
+          <div className="pt-3" style={{ borderTop: '1.5px solid #cd171a20' }}>
+            <p className="text-xs leading-relaxed text-gray-500">{issue.summary}</p>
+          </div>
+        )}
         {issue.tags && issue.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-3" style={{ borderTop: '1.5px solid #28358320' }}>
-            {issue.tags.map((tag, i) => { const c = ['#283583','#3fa535','#cd171a'][i%3]; return <span key={tag} className="text-xs px-2.5 py-0.5 font-bold rounded-full" style={{ background:`${c}12`, color:c, border:`1.5px solid ${c}40` }}>{tag}</span>; })}
+            {issue.tags.map((tag, i) => {
+              const c = ['#283583', '#3fa535', '#cd171a'][i % 3];
+              return (
+                <span key={tag} className="text-xs px-2.5 py-0.5 font-bold rounded-full"
+                  style={{ background: `${c}12`, color: c, border: `1.5px solid ${c}40` }}>
+                  {tag}
+                </span>
+              );
+            })}
           </div>
         )}
         {showDownload && issue.pdfFile?.asset?.url && (
@@ -477,12 +720,17 @@ function IssueInfoPanel({ issue, showDownload, onDownload, downloading, hideCove
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-black hover:opacity-90 disabled:opacity-60"
               style={{ background: '#283583' }}>
               {downloading
-                ? <><div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor:'#fff', borderTopColor:'transparent' }} />Downloading...</>
+                ? <><div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />Downloading...</>
                 : <><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 8l3 3 3-3M3 13h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>Download PDF</>}
             </button>
           </div>
         )}
-        <p className="text-xs text-center font-medium text-gray-500">Published by <Link href="/portfolio" className="font-black hover:underline" style={{ color: '#EF6203' }}>Simon Designs</Link></p>
+        <p className="text-xs text-center font-medium text-gray-500">
+          Published by{' '}
+          <Link href="/portfolio" className="font-black hover:underline" style={{ color: '#EF6203' }}>
+            Simon Designs
+          </Link>
+        </p>
       </div>
     </div>
   );
@@ -503,13 +751,17 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
   const handleDownload = async () => {
     if (!issue?.pdfFile?.asset?.url) return;
     setDownloading(true);
-    await triggerDownload(issue.pdfFile.asset.url, `The-Leadership-Review-Vol${issue.volume}-Issue${issue.issueNumber}.pdf`);
+    await triggerDownload(
+      issue.pdfFile.asset.url,
+      `The-Leadership-Review-Vol${issue.volume}-Issue${issue.issueNumber}.pdf`
+    );
     setDownloading(false);
   };
 
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50">
-      <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#283583', borderTopColor: 'transparent' }} />
+      <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+        style={{ borderColor: '#283583', borderTopColor: 'transparent' }} />
       <p className="text-sm text-gray-400">Loading issue...</p>
     </div>
   );
@@ -519,12 +771,20 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
       <div className="text-center px-6">
         <h1 className="text-2xl font-black text-gray-900 mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>Issue Not Found</h1>
         <p className="text-sm text-gray-500 mb-6">We couldn&apos;t find the issue you&apos;re looking for.</p>
-        <Link href="/the-leadership-review" className="inline-flex items-center text-sm font-bold gap-2" style={{ color: '#283583' }}>← Back to All Issues</Link>
+        <Link href="/the-leadership-review" className="inline-flex items-center text-sm font-bold gap-2" style={{ color: '#283583' }}>
+          ← Back to All Issues
+        </Link>
       </div>
     </div>
   );
 
-  const reviewsSection = <ReaderReviews reviews={issue.reviews || []} issueTitle={issue.title} issueId={issue._id} />;
+  const reviewsSection = (
+    <ReaderReviews
+      reviews={issue.reviews || []}
+      issueTitle={issue.title}
+      issueId={issue._id}
+    />
+  );
 
   return (
     <>
@@ -533,12 +793,22 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
         <IssueMasthead issue={issue} />
         <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16 pt-6">
 
-          {/* Desktop layout */}
+          {/* ── Desktop layout ── */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
             <div>
-              {issue.pdfFile?.asset?.url
-                ? <DesktopPdfViewer pdfUrl={issue.pdfFile.asset.url} title={issue.title} onDownload={handleDownload} downloading={downloading} />
-                : <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-24"><p className="text-sm text-gray-400 italic">PDF not yet available for this issue.</p></div>}
+              {issue.pdfFile?.asset?.url ? (
+                <DesktopPdfViewer
+                  pdfUrl={issue.pdfFile.asset.url}
+                  title={issue.title}
+                  onDownload={handleDownload}
+                  downloading={downloading}
+                  articleContent={issue.articleContent}
+                />
+              ) : (
+                <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-24">
+                  <p className="text-sm text-gray-400 italic">PDF not yet available for this issue.</p>
+                </div>
+              )}
               {reviewsSection}
             </div>
             <div className="flex flex-col gap-4 sticky top-6">
@@ -547,19 +817,31 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
-          {/* Mobile layout */}
+          {/* ── Mobile layout ── */}
           <div className="lg:hidden flex flex-col gap-4">
             <IssueInfoPanel issue={issue} showDownload={false} onDownload={handleDownload} downloading={downloading} hideCover={true} />
-            {issue.pdfFile?.asset?.url
-              ? <MobilePdfViewer pdfUrl={issue.pdfFile.asset.url} title={issue.title} onDownload={handleDownload} downloading={downloading} />
-              : <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-16"><p className="text-sm text-gray-400 italic">PDF not yet available.</p></div>}
+            {issue.pdfFile?.asset?.url ? (
+              <MobilePdfViewer
+                pdfUrl={issue.pdfFile.asset.url}
+                title={issue.title}
+                onDownload={handleDownload}
+                downloading={downloading}
+                articleContent={issue.articleContent}
+              />
+            ) : (
+              <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-16">
+                <p className="text-sm text-gray-400 italic">PDF not yet available.</p>
+              </div>
+            )}
             <ShareAndSupportCard title={issue.title} />
             {reviewsSection}
           </div>
 
           <div className="mt-10 h-0.5" style={{ background: 'linear-gradient(to right, transparent, #EF6203, transparent)' }} />
           <div className="mt-6 text-center">
-            <Link href="/the-leadership-review" className="inline-flex items-center text-sm font-bold gap-2 hover:opacity-70 transition-opacity" style={{ color: '#283583' }}>
+            <Link href="/the-leadership-review"
+              className="inline-flex items-center text-sm font-bold gap-2 hover:opacity-70 transition-opacity"
+              style={{ color: '#283583' }}>
               ← View All Issues
             </Link>
           </div>

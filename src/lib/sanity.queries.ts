@@ -1,8 +1,8 @@
 // FILE: src/lib/sanity.queries.ts
 //
 // Changes from previous version:
-//   - leadershipReviewBySlugQuery now includes `mastheadBackground` field
-//     so the masthead background image is available on the issue detail page.
+//   - leadershipReviewBySlugQuery now includes `articleContent` — the Portable
+//     Text field used for the "Read Online" web version. Google can index this.
 
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
@@ -353,7 +353,8 @@ export const allLeadershipReviewIssuesQuery = `
   }
 `;
 
-// Single issue by slug — full data including PDF and masthead background.
+// Single issue by slug — full data including PDF, masthead background,
+// and the new articleContent (Portable Text) for the "Read Online" view.
 // *** IMPORTANT: reviews are filtered so ONLY approved, non-hidden ones come through. ***
 export const leadershipReviewBySlugQuery = `
   *[_type == "leadershipReview" && slug.current == $slug][0] {
@@ -383,6 +384,18 @@ export const leadershipReviewBySlugQuery = `
     summary,
     tags,
     isFeatured,
+
+    // ── NEW: full article content for the "Read Online" web version ──────────
+    // Includes all Portable Text blocks + inline images with their asset URLs.
+    // Google can read and index everything inside this field.
+    "articleContent": articleContent[] {
+      ...,
+      _type == "image" => {
+        ...,
+        "asset": asset -> { _id, url }
+      }
+    },
+
     "reviews": reviews[status == "approved" && isHidden != true] {
       reviewerName,
       location,
