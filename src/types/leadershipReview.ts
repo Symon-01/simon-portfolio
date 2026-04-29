@@ -8,6 +8,21 @@ export interface LRReview {
   date: string;
 }
 
+// Lightweight related issue — used for the "Also Read" sidebar card
+export interface LRRelatedIssue {
+  title: string;
+  slug: { current: string };
+  coverImage: {
+    asset: {
+      _id: string;
+      url: string;
+    };
+  };
+  featuredLeader: string;
+  edition: string;
+  summary: string;
+}
+
 export interface LeadershipReviewIssue {
   _id: string;
   title: string;
@@ -23,7 +38,6 @@ export interface LeadershipReviewIssue {
     };
     hotspot?: object;
   };
-  // Optional background image shown behind the masthead on the detail page
   mastheadBackground?: {
     asset?: {
       _id: string;
@@ -42,10 +56,14 @@ export interface LeadershipReviewIssue {
       url: string;
     };
   };
-  // The full article written in Sanity Studio as Portable Text.
-  // This is the "Read Online" web version — Google can index this content.
-  // It is optional: if not yet written for an issue, only the PDF view is shown.
+  // Accent colour chosen in Sanity for the intro card and pull quotes.
+  // Values: 'blue' | 'red' | 'green'. Defaults to 'blue' if not set.
+  introCardColor?: 'blue' | 'red' | 'green';
+  // Full article written in Sanity Studio as Portable Text — the "Read Online" version.
+  // Optional: if absent, only the PDF view is shown and no toggle appears.
   articleContent?: any[];
+  // Optional issue recommended to readers in the sidebar "Also Read" card.
+  relatedIssue?: LRRelatedIssue;
   featuredLeader: string;
   leaderTitle: string;
   county: string;
