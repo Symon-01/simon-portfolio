@@ -1,8 +1,4 @@
 // FILE: src/lib/sanity.queries.ts
-//
-// Changes from previous version:
-//   - leadershipReviewBySlugQuery now includes `articleContent` — the Portable
-//     Text field used for the "Read Online" web version. Google can index this.
 
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
@@ -90,13 +86,10 @@ export async function getBannerByLocation(location: string): Promise<Banner | nu
       },
       notes
     }`;
-    
     const banner = await client.fetch(query, { location });
-    
     if (banner?.images) {
       banner.images.sort((a: any, b: any) => a.order - b.order);
     }
-    
     return banner;
   } catch (error) {
     console.error(`Error fetching banner for location "${location}":`, error);
@@ -132,15 +125,12 @@ export async function getAllBanners(): Promise<Banner[]> {
       },
       notes
     }`;
-    
     const banners = await client.fetch(query);
-    
     banners.forEach((banner: Banner) => {
       if (banner.images) {
         banner.images.sort((a: any, b: any) => a.order - b.order);
       }
     });
-    
     return banners;
   } catch (error) {
     console.error('Error fetching all banners:', error);
@@ -353,9 +343,8 @@ export const allLeadershipReviewIssuesQuery = `
   }
 `;
 
-// Single issue by slug — full data including PDF, masthead background,
-// and the new articleContent (Portable Text) for the "Read Online" view.
-// *** IMPORTANT: reviews are filtered so ONLY approved, non-hidden ones come through. ***
+// Single issue by slug — full data.
+// *** reviews filtered: ONLY approved, non-hidden ones come through ***
 export const leadershipReviewBySlugQuery = `
   *[_type == "leadershipReview" && slug.current == $slug][0] {
     _id,
@@ -384,10 +373,7 @@ export const leadershipReviewBySlugQuery = `
     summary,
     tags,
     isFeatured,
-
-    // ── NEW: full article content for the "Read Online" web version ──────────
-    // Includes all Portable Text blocks + inline images with their asset URLs.
-    // Google can read and index everything inside this field.
+    introCardColor,
     "articleContent": articleContent[] {
       ...,
       _type == "image" => {
@@ -395,9 +381,18 @@ export const leadershipReviewBySlugQuery = `
         "asset": asset -> { _id, url }
       }
     },
-
+    "relatedIssue": relatedIssue -> {
+      title,
+      slug,
+      coverImage { asset -> { _id, url } },
+      featuredLeader,
+      edition,
+      summary
+    },
+    responsePrompt,
     "reviews": reviews[status == "approved" && isHidden != true] {
       reviewerName,
+      affiliation,
       location,
       rating,
       comment,
@@ -433,7 +428,7 @@ export const featuredLeadershipReviewQuery = `
   }
 `;
 
-// ── Async fetch functions ──────────────────────────────────────
+// ── Async fetch functions ─────────────────────────────────────────────────────
 
 export async function getAllLeadershipReviewIssues(): Promise<LeadershipReviewIssueSummary[]> {
   try {
@@ -448,7 +443,14 @@ export async function getLeadershipReviewBySlug(
   slug: string
 ): Promise<LeadershipReviewIssue | null> {
   try {
-    return await client.fetch(leadershipReviewBySlugQuery, { slug });
+    // next: { revalidate: 0 } forces Next.js to always fetch fresh data
+    // and never serve a cached response — critical for dynamic fields like
+    // relatedIssue that are added after the initial page render was cached.
+    return await client.fetch(
+      leadershipReviewBySlugQuery,
+      { slug },
+      { next: { revalidate: 0 } }
+    );
   } catch (error) {
     console.error(`Error fetching Leadership Review issue "${slug}":`, error);
     return null;
