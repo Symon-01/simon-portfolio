@@ -12,12 +12,14 @@ export default function MobilePdfViewer({
   onDownload,
   downloading,
   articleContent,
+  introCardColor,
 }: {
   pdfUrl: string;
   title: string;
   onDownload: () => void;
   downloading: boolean;
   articleContent?: any[];
+  introCardColor?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
@@ -77,7 +79,7 @@ export default function MobilePdfViewer({
 
       {/* Online view */}
       {viewMode === 'online' && hasOnlineVersion && (
-        <OnlineArticleView articleContent={articleContent!} />
+        <OnlineArticleView articleContent={articleContent!} introCardColor={introCardColor} />
       )}
 
       {/* PDF canvas view */}

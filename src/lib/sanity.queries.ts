@@ -386,8 +386,13 @@ export const leadershipReviewBySlugQuery = `
       slug,
       coverImage { asset -> { _id, url } },
       featuredLeader,
+      leaderTitle,
       edition,
-      summary
+      summary,
+      volume,
+      issueNumber,
+      publishedDate,
+      tags
     },
     responsePrompt,
     "reviews": reviews[status == "approved" && isHidden != true] {

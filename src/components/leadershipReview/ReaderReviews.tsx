@@ -6,10 +6,11 @@ import { useState } from 'react';
 
 export type Review = {
   reviewerName: string;
-  affiliation?: string;   // NEW: Title / Affiliation e.g. "Economist", "MP Kiambu"
+  affiliation?: string;   // Title / Affiliation e.g. "Economist", "MP Kiambu"
   location?: string;
   rating: number;
   comment: string;
+  date?: string;          // ISO date string e.g. "2026-05-03"
 };
 
 // ── Star display (read-only) ──────────────────────────────────────────────────
@@ -132,6 +133,16 @@ function ReviewCard({
                     <circle cx="8" cy="6" r="1.5" stroke="#9ca3af" strokeWidth="1.2" />
                   </svg>
                   {r.location}
+                </span>
+              )}
+              {r.date && (
+                <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                  <svg width="9" height="9" viewBox="0 0 16 16" fill="none">
+                    <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" stroke="#9ca3af" strokeWidth="1.3" />
+                    <path d="M1.5 6h13" stroke="#9ca3af" strokeWidth="1.3" />
+                    <path d="M5 1.5v2M11 1.5v2" stroke="#9ca3af" strokeWidth="1.3" strokeLinecap="round" />
+                  </svg>
+                  {new Date(r.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               )}
             </div>
@@ -308,6 +319,7 @@ export default function ReaderReviews({
       location:     formData.location.trim(),
       rating:       formData.rating,
       comment:      formData.comment.trim(),
+      date:         new Date().toISOString().split('T')[0],
     };
     setReviews((prev) => {
       const updated = [...prev, newReview];
@@ -458,9 +470,7 @@ export default function ReaderReviews({
                 )}
                 {submitting ? 'Posting…' : 'Submit Response'}
               </button>
-              <p className="text-xs text-gray-400 hidden sm:block">
-                Reviews are moderated before publishing
-              </p>
+
             </div>
           </div>
         </div>

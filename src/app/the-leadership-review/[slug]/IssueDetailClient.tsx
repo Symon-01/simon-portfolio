@@ -121,6 +121,7 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
                   onDownload={handleDownload}
                   downloading={downloading}
                   articleContent={issue.articleContent}
+                  introCardColor={issue.introCardColor}
                 />
               ) : (
                 <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-24">
@@ -155,7 +156,7 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
               showDownload={false}
               onDownload={handleDownload}
               downloading={downloading}
-              hideCover={true}
+              hideCover={false}
             />
             {issue.pdfFile?.asset?.url ? (
               <MobilePdfViewer
@@ -164,6 +165,7 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
                 onDownload={handleDownload}
                 downloading={downloading}
                 articleContent={issue.articleContent}
+                introCardColor={issue.introCardColor}
               />
             ) : (
               <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-16">

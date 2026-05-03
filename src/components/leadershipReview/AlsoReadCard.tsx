@@ -4,9 +4,14 @@ import Link from 'next/link';
 import type { LRRelatedIssue } from '@/types/leadershipReview';
 
 // ── Also Read Card ────────────────────────────────────────────────────────────
-// Matches the AllIssuesGrid card design exactly.
-// Shown in the sidebar below ShareAndSupportCard when relatedIssue is set
-// in Sanity Studio on the current issue.
+// Matches the AllIssuesGrid card design exactly, including vol/date and tags.
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-KE', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
 
 export default function AlsoReadCard({ issue }: { issue: LRRelatedIssue }) {
   const href = `/the-leadership-review/${issue.slug.current}`;
@@ -35,23 +40,24 @@ export default function AlsoReadCard({ issue }: { issue: LRRelatedIssue }) {
         }
       `}</style>
 
-      {/* Header bar — same style as all other sidebar cards */}
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #e5e7eb', boxShadow: '0 10px 40px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07)' }}>
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{ border: '1px solid #e5e7eb', boxShadow: '0 10px 40px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07)' }}
+      >
+        {/* Header bar */}
         <div className="px-4 py-2.5 flex items-center gap-2" style={{ background: '#283583' }}>
           <div className="flex flex-col h-5 w-1 rounded-sm overflow-hidden flex-shrink-0">
             <div className="flex-1" style={{ background: '#006600' }} />
             <div className="flex-1" style={{ background: '#BB0000' }} />
             <div className="flex-1" style={{ background: '#000000' }} />
           </div>
-          <p className="text-white text-xs font-black tracking-widest uppercase">Also Read</p>
+          <p className="text-white text-xs font-black tracking-widest uppercase">You can also Read</p>
         </div>
 
         <Link href={href} className="group block">
-          <div
-            className="also-read-card bg-white flex flex-col"
-            style={{ boxShadow: 'none' }}
-          >
-            {/* Cover image — identical to AllIssuesGrid */}
+          <div className="also-read-card bg-white flex flex-col">
+
+            {/* Cover image */}
             <div className="also-read-cover">
               {issue.coverImage?.asset?.url ? (
                 <img
@@ -68,7 +74,7 @@ export default function AlsoReadCard({ issue }: { issue: LRRelatedIssue }) {
                 </div>
               )}
 
-              {/* Edition badge — same as grid card */}
+              {/* Edition badge */}
               {issue.edition && (
                 <span
                   className="text-white text-[10px] font-black px-2.5 py-1 rounded shadow-md tracking-wide"
@@ -88,10 +94,22 @@ export default function AlsoReadCard({ issue }: { issue: LRRelatedIssue }) {
               )}
             </div>
 
-            {/* Card content — matches AllIssuesGrid p-5 */}
+            {/* Card content */}
             <div className="p-4 flex flex-col">
 
-              {/* Title — red, Playfair, same as grid */}
+              {/* Vol / No / Date line — matches grid exactly */}
+              {(issue.volume || issue.issueNumber || issue.publishedDate) && (
+                <div
+                  className="text-[10px] font-black uppercase tracking-widest mb-2"
+                  style={{ color: '#283583' }}
+                >
+                  {issue.volume && `Vol. ${issue.volume}`}
+                  {issue.issueNumber && ` · No. ${issue.issueNumber}`}
+                  {issue.publishedDate && ` · ${formatDate(issue.publishedDate)}`}
+                </div>
+              )}
+
+              {/* Title — red, Playfair */}
               <h3
                 className="text-sm font-black leading-tight mb-2 line-clamp-2"
                 style={{ fontFamily: "'Playfair Display', serif", color: '#cd171a' }}
@@ -99,21 +117,43 @@ export default function AlsoReadCard({ issue }: { issue: LRRelatedIssue }) {
                 {issue.title}
               </h3>
 
-              {/* Featured leader — same as grid */}
+              {/* Featured leader */}
               {issue.featuredLeader && (
                 <p className="text-xs text-gray-600 mb-1 leading-relaxed">
                   Featuring{' '}
                   <span className="font-bold" style={{ color: '#283583' }}>
                     {issue.featuredLeader}
                   </span>
+                  {issue.leaderTitle && (
+                    <span className="text-gray-400 text-[10px]"> · {issue.leaderTitle}</span>
+                  )}
                 </p>
               )}
 
-              {/* Summary — same as grid */}
+              {/* Summary */}
               {issue.summary && (
                 <p className="text-xs text-gray-500 line-clamp-3 mb-3 leading-relaxed">
                   {issue.summary}
                 </p>
+              )}
+
+              {/* Tags — matches grid exactly */}
+              {issue.tags && issue.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {issue.tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] px-2.5 py-0.5 font-bold rounded-full"
+                      style={{
+                        background: '#3fa53518',
+                        color: '#3fa535',
+                        border: '1.5px solid #3fa53550',
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               )}
 
               {/* Full-bleed footer button — identical to AllIssuesGrid */}
@@ -124,9 +164,7 @@ export default function AlsoReadCard({ issue }: { issue: LRRelatedIssue }) {
                 <span>Read This Issue</span>
                 <svg
                   className="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="white"
-                  viewBox="0 0 24 24"
+                  fill="none" stroke="white" viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

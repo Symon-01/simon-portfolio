@@ -12,12 +12,14 @@ export default function DesktopPdfViewer({
   onDownload,
   downloading,
   articleContent,
+  introCardColor,
 }: {
   pdfUrl: string;
   title: string;
   onDownload: () => void;
   downloading: boolean;
   articleContent?: any[];
+  introCardColor?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [viewMode, setViewMode] = useState<'pdf' | 'online'>('pdf');
@@ -36,7 +38,7 @@ export default function DesktopPdfViewer({
 
       {/* Online view */}
       {viewMode === 'online' && hasOnlineVersion && (
-        <OnlineArticleView articleContent={articleContent!} />
+        <OnlineArticleView articleContent={articleContent!} introCardColor={introCardColor} />
       )}
 
       {/* PDF iframe view */}
