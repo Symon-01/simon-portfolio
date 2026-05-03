@@ -2,6 +2,7 @@
 
 export interface LRReview {
   reviewerName: string;
+  affiliation?: string;  // NEW: Title / Affiliation e.g. "Economist", "MP Kiambu"
   location: string;
   rating: number;
   comment: string;
@@ -64,6 +65,9 @@ export interface LeadershipReviewIssue {
   articleContent?: any[];
   // Optional issue recommended to readers in the sidebar "Also Read" card.
   relatedIssue?: LRRelatedIssue;
+  // NEW: Custom prompt shown inside the response textarea — editable per issue in Sanity.
+  // Falls back to a default string in the component if not set.
+  responsePrompt?: string;
   featuredLeader: string;
   leaderTitle: string;
   county: string;

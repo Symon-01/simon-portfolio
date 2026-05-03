@@ -14,7 +14,7 @@ const sanity = createClient({
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { issueId, issueTitle, reviewerName, location, rating, comment } = body;
+    const { issueId, issueTitle, reviewerName, affiliation, location, rating, comment } = body;
 
     // ── Validate ─────────────────────────────────────────────────────────────
     if (!issueId || !reviewerName || !comment) {
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       _key: `review_${Date.now()}`,
       _type: 'review',
       reviewerName: reviewerName.trim(),
+      affiliation: affiliation?.trim() || '',  // NEW
       location: location?.trim() || '',
       rating: parsedRating,
       comment: comment.trim(),
@@ -56,10 +57,16 @@ export async function POST(request: Request) {
       .insert('after', 'reviews[-1]', [newReview])
       .commit({ autoGenerateArrayKeys: false });
 
-    // ── Email notification to Simon (optional) ────────────────────────────────
+    // ── Email notification to Simon ───────────────────────────────────────────
     // Requires RESEND_API_KEY and SIMON_EMAIL in your .env.local
     if (process.env.RESEND_API_KEY && process.env.SIMON_EMAIL) {
       const stars = '★'.repeat(parsedRating) + '☆'.repeat(5 - parsedRating);
+      const affiliationRow = affiliation?.trim()
+        ? `<tr><td style="color: #6b7280; vertical-align: top; padding-bottom: 8px;">Affiliation</td><td style="font-weight:600; color:#EF6203;">${affiliation.trim()}</td></tr>`
+        : '';
+      const locationRow = location?.trim()
+        ? `<tr><td style="color: #6b7280; vertical-align: top; padding-bottom: 8px;">Location</td><td>${location.trim()}</td></tr>`
+        : '';
 
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -85,7 +92,8 @@ export async function POST(request: Request) {
                   <td style="color: #6b7280; width: 110px; vertical-align: top; padding-bottom: 8px;">Name</td>
                   <td style="font-weight: 600;">${reviewerName}</td>
                 </tr>
-                ${location ? `<tr><td style="color: #6b7280; vertical-align: top; padding-bottom: 8px;">Location</td><td>${location}</td></tr>` : ''}
+                ${affiliationRow}
+                ${locationRow}
                 <tr>
                   <td style="color: #6b7280; vertical-align: top; padding-bottom: 8px;">Rating</td>
                   <td style="color: #EF6203; font-size: 16px;">${stars} (${parsedRating}/5)</td>

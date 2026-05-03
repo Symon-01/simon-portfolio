@@ -59,16 +59,14 @@ export default defineType({
       name: 'mastheadBackground',
       title: 'Masthead Background Image',
       type: 'image',
-      description:
-        'Optional. Upload an image to display behind the newspaper masthead on the issue detail page.',
+      description: 'Optional. Upload an image to display behind the newspaper masthead on the issue detail page.',
       options: { hotspot: true },
     }),
     defineField({
       name: 'ogImage',
       title: 'Social Share Image (WhatsApp / Facebook)',
       type: 'image',
-      description:
-        'Upload a landscape image at exactly 1200 × 628px — this is what appears when someone shares the issue link on WhatsApp, Facebook, etc.',
+      description: 'Upload a landscape image at exactly 1200 × 628px.',
       options: { hotspot: true },
     }),
     defineField({
@@ -80,24 +78,29 @@ export default defineType({
       validation: Rule => Rule.required(),
     }),
 
-    // ── NEW: Web / Online Article Content ────────────────────────────────────
-    // This is the text version of the issue that Google can read and index.
-    // The PDF viewer above is for the designed layout — this is for SEO + accessibility.
-    //
-    // HOW TO USE IN SANITY STUDIO:
-    //   • H2  → Each major standalone article title  (e.g. "Built on Hard Work...")
-    //   • H3  → Sub-article title nested inside an H2 (e.g. "The Student Who Refused...")
-    //   • H4  → Red section headings within an article (e.g. "The Lawyer: Standing with the Powerless")
-    //   • H5  → Italic subtitle / deck line under H2 or H3
-    //   • Normal → Regular paragraph text
-    //   • Pull Quote → Highlighted reader quote or key quote
-    //   • Article Image → Drop an image anywhere — set caption + position (Full, Left, Right)
+    // ── Online Article Settings ───────────────────────────────────────────────
+    defineField({
+      name: 'introCardColor',
+      title: 'Intro Card & Quote Colour',
+      type: 'string',
+      description:
+        'Choose the accent colour for the intro paragraph highlight card and all pull quotes in the online view. You can change this per issue.',
+      options: {
+        list: [
+          { title: '🔵 Blue', value: 'blue' },
+          { title: '🔴 Red', value: 'red' },
+          { title: '🟢 Green', value: 'green' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'blue',
+    }),
     defineField({
       name: 'articleContent',
       title: 'Article Content (Web / Online Version)',
       type: 'array',
       description:
-        'Write the full issue here as text. This is what Google indexes. Use the styles dropdown: H2 = major article, H3 = sub-article, H4 = red section heading, H5 = italic subtitle, Normal = paragraph. Drop images anywhere using the + button.',
+        'Write the full issue here as text. This is what Google indexes. Styles: H2 = major article title, H3 = sub-article, H4 = red section heading, H5 = italic subtitle/deck, Normal = paragraph, Pull Quote = highlighted quote. Drop images anywhere with the + button.',
       of: [
         {
           type: 'block',
@@ -116,7 +119,6 @@ export default defineType({
             ],
           },
         },
-        // Inline image block — drop anywhere in the article
         {
           type: 'image',
           options: { hotspot: true },
@@ -131,7 +133,6 @@ export default defineType({
               name: 'position',
               title: 'Image Position',
               type: 'string',
-              description: 'Full Width fills the column. Left / Right floats the image beside text.',
               options: {
                 list: [
                   { title: 'Full Width', value: 'full' },
@@ -146,7 +147,29 @@ export default defineType({
         },
       ],
     }),
-    // ── End of articleContent ─────────────────────────────────────────────────
+
+    // ── Also Read — Sidebar Recommendation ───────────────────────────────────
+    defineField({
+      name: 'relatedIssue',
+      title: 'Also Read — Recommended Issue',
+      type: 'reference',
+      to: [{ type: 'leadershipReview' }],
+      description:
+        'Pick another issue to recommend to readers in the sidebar below the Share card. Leave blank to hide this section.',
+    }),
+
+    // ── Reader Response Prompt ────────────────────────────────────────────────
+    // NEW: Editable per issue. Shown as the placeholder inside the response
+    // textarea so you can tailor the question to each article's topic.
+    defineField({
+      name: 'responsePrompt',
+      title: 'Reader Response Prompt',
+      type: 'string',
+      description:
+        'The question shown inside the response text box. Change this per issue to ask readers something specific about the story. e.g. "What does double-degree leadership mean for Kenyan politics?"',
+      placeholder: 'e.g. What did you think of this issue? Which story resonated most with you?',
+    }),
+    // ─────────────────────────────────────────────────────────────────────────
 
     defineField({
       name: 'featuredLeader',
@@ -201,12 +224,11 @@ export default defineType({
       name: 'isFeatured',
       title: 'Feature as Latest Issue?',
       type: 'boolean',
-      description:
-        'Only one issue should be featured at a time — this shows in the portfolio window',
+      description: 'Only one issue should be featured at a time — this shows in the portfolio window',
       initialValue: false,
     }),
 
-    // ── Reader Reviews (with moderation) ──────────────────────────────────────
+    // ── Reader Reviews ────────────────────────────────────────────────────────
     defineField({
       name: 'reviews',
       title: 'Reader Reviews',
@@ -217,40 +239,23 @@ export default defineType({
           type: 'object',
           name: 'review',
           fields: [
+            defineField({ name: 'reviewerName', title: 'Reviewer Name', type: 'string' }),
+            // NEW: Title / Affiliation field
             defineField({
-              name: 'reviewerName',
-              title: 'Reviewer Name',
+              name: 'affiliation',
+              title: 'Title / Affiliation',
               type: 'string',
+              description: 'Optional. e.g. "Economist", "MP Kiambu", "Prof. UoN", "Business Owner"',
             }),
-            defineField({
-              name: 'location',
-              title: 'Location',
-              type: 'string',
-              description: 'e.g. "Nairobi"',
-            }),
-            defineField({
-              name: 'rating',
-              title: 'Rating (1–5)',
-              type: 'number',
-              validation: Rule => Rule.min(1).max(5),
-            }),
-            defineField({
-              name: 'comment',
-              title: 'Comment',
-              type: 'text',
-              rows: 3,
-            }),
-            defineField({
-              name: 'date',
-              title: 'Date Submitted',
-              type: 'date',
-            }),
+            defineField({ name: 'location', title: 'Location', type: 'string', description: 'e.g. "Nairobi"' }),
+            defineField({ name: 'rating', title: 'Rating (1–5)', type: 'number', validation: Rule => Rule.min(1).max(5) }),
+            defineField({ name: 'comment', title: 'Comment', type: 'text', rows: 3 }),
+            defineField({ name: 'date', title: 'Date Submitted', type: 'date' }),
             defineField({
               name: 'status',
               title: 'Moderation Status',
               type: 'string',
-              description:
-                'Pending = not yet reviewed by Simon. Approved = shows publicly. Rejected = will not show.',
+              description: 'Pending = not yet reviewed. Approved = shows publicly. Rejected = hidden.',
               options: {
                 list: [
                   { title: '⏳ Pending (default — not shown yet)', value: 'pending' },
@@ -261,36 +266,24 @@ export default defineType({
               },
               initialValue: 'pending',
             }),
-            defineField({
-              name: 'isHidden',
-              title: 'Hide this review?',
-              type: 'boolean',
-              description:
-                'Toggle ON to hide an already-approved review without deleting it.',
-              initialValue: false,
-            }),
+            defineField({ name: 'isHidden', title: 'Hide this review?', type: 'boolean', initialValue: false }),
           ],
           preview: {
             select: {
               title: 'reviewerName',
               subtitle: 'status',
               description: 'comment',
+              affiliation: 'affiliation',
             },
-            prepare({
-              title,
-              subtitle,
-              description,
-            }: {
-              title: string
-              subtitle: string
-              description: string
+            prepare({ title, subtitle, description, affiliation }: {
+              title: string; subtitle: string; description: string; affiliation?: string;
             }) {
-              const statusEmoji =
-                subtitle === 'approved' ? '✅' : subtitle === 'rejected' ? '❌' : '⏳'
+              const e = subtitle === 'approved' ? '✅' : subtitle === 'rejected' ? '❌' : '⏳';
+              const nameLabel = affiliation ? `${title} · ${affiliation}` : title;
               return {
-                title: title ?? 'Anonymous',
-                subtitle: `${statusEmoji} ${subtitle ?? 'pending'} — ${description?.slice(0, 60) ?? ''}…`,
-              }
+                title: nameLabel ?? 'Anonymous',
+                subtitle: `${e} ${subtitle ?? 'pending'} — ${description?.slice(0, 60) ?? ''}…`,
+              };
             },
           },
         },
@@ -299,33 +292,17 @@ export default defineType({
   ],
 
   preview: {
-    select: {
-      title: 'title',
-      subtitle: 'featuredLeader',
-      media: 'coverImage',
-    },
-    prepare({
-      title,
-      subtitle,
-      media,
-    }: {
-      title: string
-      subtitle: string
-      media: any
-    }) {
+    select: { title: 'title', subtitle: 'featuredLeader', media: 'coverImage' },
+    prepare({ title, subtitle, media }: { title: string; subtitle: string; media: any }) {
       return {
         title: title ?? 'Untitled Issue',
         subtitle: subtitle ? `Featured: ${subtitle}` : 'No leader specified',
         media,
-      }
+      };
     },
   },
 
   orderings: [
-    {
-      title: 'Newest First',
-      name: 'publishedDateDesc',
-      by: [{ field: 'publishedDate', direction: 'desc' }],
-    },
+    { title: 'Newest First', name: 'publishedDateDesc', by: [{ field: 'publishedDate', direction: 'desc' }] },
   ],
 })
