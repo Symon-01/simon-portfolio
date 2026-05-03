@@ -173,10 +173,10 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
               </div>
             )}
             <ShareAndSupportCard title={issue.title} />
+            {reviewsSection}
             {issue.relatedIssue && (
               <AlsoReadCard issue={issue.relatedIssue} />
             )}
-            {reviewsSection}
           </div>
 
           <div

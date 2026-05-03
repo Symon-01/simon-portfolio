@@ -11,12 +11,13 @@ const sanity = createClient({
   token: process.env.SANITY_API_TOKEN,
 });
 
+// ── POST — submit a new review ────────────────────────────────────────────────
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { issueId, issueTitle, reviewerName, affiliation, location, rating, comment } = body;
 
-    // ── Validate ─────────────────────────────────────────────────────────────
     if (!issueId || !reviewerName || !comment) {
       return NextResponse.json(
         { error: 'Missing required fields: issueId, reviewerName, and comment are required.' },
@@ -32,23 +33,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── Save to Sanity ────────────────────────────────────────────────────────
-    // status: 'approved' so the review appears on the website immediately.
-    // If someone posts something offensive, go to Sanity Studio → find the
-    // issue → scroll to Reader Reviews → toggle "Hide this review" ON,
-    // or delete the review entry entirely.
-
     const newReview = {
       _key: `review_${Date.now()}`,
       _type: 'review',
       reviewerName: reviewerName.trim(),
-      affiliation: affiliation?.trim() || '',  // NEW
+      affiliation: affiliation?.trim() || '',
       location: location?.trim() || '',
       rating: parsedRating,
       comment: comment.trim(),
       date: new Date().toISOString().split('T')[0],
-      status: 'approved',   // ← live immediately
+      status: 'approved',
       isHidden: false,
+      replies: [],
     };
 
     await sanity
@@ -57,8 +53,7 @@ export async function POST(request: Request) {
       .insert('after', 'reviews[-1]', [newReview])
       .commit({ autoGenerateArrayKeys: false });
 
-    // ── Email notification to Simon ───────────────────────────────────────────
-    // Requires RESEND_API_KEY and SIMON_EMAIL in your .env.local
+    // ── Email notification ────────────────────────────────────────────────────
     if (process.env.RESEND_API_KEY && process.env.SIMON_EMAIL) {
       const stars = '★'.repeat(parsedRating) + '☆'.repeat(5 - parsedRating);
       const affiliationRow = affiliation?.trim()
@@ -123,6 +118,48 @@ export async function POST(request: Request) {
     console.error('[Leadership Review] Review submission error:', error?.message || error);
     return NextResponse.json(
       { error: 'Something went wrong while saving your review. Please try again.' },
+      { status: 500 }
+    );
+  }
+}
+
+// ── PATCH — append a reply to an existing review ──────────────────────────────
+// Body: { issueId, reviewKey, replyText }
+// Finds the review by _key and appends to its replies[] array in Sanity.
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { issueId, reviewKey, replyText } = body;
+
+    if (!issueId || !reviewKey || !replyText?.trim()) {
+      return NextResponse.json(
+        { error: 'Missing required fields: issueId, reviewKey, and replyText.' },
+        { status: 400 }
+      );
+    }
+
+    const newReply = {
+      _key: `reply_${Date.now()}`,
+      text: replyText.trim(),
+      date: new Date().toISOString().split('T')[0],
+    };
+
+    // Use Sanity's array path notation to append to the specific review's replies
+    await sanity
+      .patch(issueId)
+      .setIfMissing({ [`reviews[_key=="${reviewKey}"].replies`]: [] })
+      .insert('after', `reviews[_key=="${reviewKey}"].replies[-1]`, [newReply])
+      .commit({ autoGenerateArrayKeys: false });
+
+    return NextResponse.json(
+      { success: true, reply: newReply },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error('[Leadership Review] Reply submission error:', error?.message || error);
+    return NextResponse.json(
+      { error: 'Something went wrong while saving your reply. Please try again.' },
       { status: 500 }
     );
   }

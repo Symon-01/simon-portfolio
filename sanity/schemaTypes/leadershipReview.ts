@@ -267,6 +267,25 @@ export default defineType({
               initialValue: 'pending',
             }),
             defineField({ name: 'isHidden', title: 'Hide this review?', type: 'boolean', initialValue: false }),
+            defineField({
+              name: 'replies',
+              title: 'Replies',
+              type: 'array',
+              description: 'Replies posted on this review. Managed automatically.',
+              of: [{
+                type: 'object',
+                fields: [
+                  defineField({ name: 'text', title: 'Reply Text', type: 'text', rows: 2 }),
+                  defineField({ name: 'date', title: 'Date', type: 'date' }),
+                ],
+                preview: {
+                  select: { title: 'text', subtitle: 'date' },
+                  prepare({ title, subtitle }: { title: string; subtitle: string }) {
+                    return { title: title?.slice(0, 60) ?? 'Reply', subtitle };
+                  },
+                },
+              }],
+            }),
           ],
           preview: {
             select: {

@@ -5,12 +5,14 @@ import { useState } from 'react';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type Review = {
+  _key?: string;
   reviewerName: string;
-  affiliation?: string;   // Title / Affiliation e.g. "Economist", "MP Kiambu"
+  affiliation?: string;
   location?: string;
   rating: number;
   comment: string;
-  date?: string;          // ISO date string e.g. "2026-05-03"
+  date?: string;
+  replies?: { _key: string; text: string; date: string }[];
 };
 
 // ── Star display (read-only) ──────────────────────────────────────────────────
@@ -48,25 +50,28 @@ function Avatar({ name }: { name: string }) {
 
 // ── Single review card (with likes, replies, share) ───────────────────────────
 
-type LocalReply = { text: string };
+type PersistedReply = { _key: string; text: string; date: string };
 
 function ReviewCard({
   r,
   index,
   isNewest,
+  issueId,
 }: {
   r: Review;
   index: number;
   isNewest: boolean;
+  issueId: string;
 }) {
   const [liked,       setLiked]       = useState(false);
   const [likeCount,   setLikeCount]   = useState(0);
   const [showReply,   setShowReply]   = useState(false);
   const [replyText,   setReplyText]   = useState('');
-  const [replies,     setReplies]     = useState<LocalReply[]>([]);
+  // Initialise from Sanity data — persists across refreshes
+  const [replies,     setReplies]     = useState<PersistedReply[]>(r.replies || []);
+  const [replyPosting, setReplyPosting] = useState(false);
   const [shareDone,   setShareDone]   = useState(false);
 
-  // Accent stripe cycles through brand colours per card
   const stripeGradients = [
     'linear-gradient(to right, #283583, #EF6203)',
     'linear-gradient(to right, #cd171a, #283583)',
@@ -79,11 +84,33 @@ function ReviewCard({
     setLikeCount((c) => c + 1);
   }
 
-  function handlePostReply() {
-    if (!replyText.trim()) return;
-    setReplies((prev) => [...prev, { text: replyText.trim() }]);
+  async function handlePostReply() {
+    if (!replyText.trim() || replyPosting) return;
+    const text = replyText.trim();
     setReplyText('');
     setShowReply(false);
+    setReplyPosting(true);
+
+    // Optimistic update
+    const optimistic: PersistedReply = {
+      _key: `reply_${Date.now()}`,
+      text,
+      date: new Date().toISOString().split('T')[0],
+    };
+    setReplies((prev) => [...prev, optimistic]);
+
+    try {
+      await fetch('/api/leadership-review/reviews', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ issueId, reviewKey: r._key, replyText: text }),
+      });
+    } catch {
+      // If save fails, remove the optimistic reply silently
+      setReplies((prev) => prev.filter((rep) => rep._key !== optimistic._key));
+    } finally {
+      setReplyPosting(false);
+    }
   }
 
   function handleShare() {
@@ -157,21 +184,26 @@ function ReviewCard({
           &ldquo;{r.comment}&rdquo;
         </p>
 
-        {/* Local replies */}
+        {/* Replies — loaded from Sanity, persists across refreshes */}
         {replies.length > 0 && (
           <div className="mb-3 pl-3 border-l-2 flex flex-col gap-2" style={{ borderColor: '#28358320' }}>
-            {replies.map((rep, i) => (
-              <div key={i} className="flex gap-2 items-start">
+            {replies.map((rep) => (
+              <div key={rep._key} className="flex gap-2 items-start">
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0"
                   style={{ background: '#283583', fontSize: 8 }}>
-                  Y
+                  R
                 </div>
                 <div
                   className="text-xs rounded-lg px-3 py-2 flex-1 leading-relaxed"
                   style={{ background: '#28358307', border: '1px solid #28358312', color: '#374151' }}
                 >
-                  <span className="font-bold mr-1" style={{ color: '#283583' }}>You</span>
+                  <span className="font-bold mr-1" style={{ color: '#283583' }}>Reply</span>
                   {rep.text}
+                  {rep.date && (
+                    <span className="ml-2 text-gray-400">
+                      · {new Date(rep.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -194,10 +226,10 @@ function ReviewCard({
               className="flex-1 text-xs px-3 py-2 rounded-lg border outline-none appearance-none"
               style={{ borderColor: '#28358335', color: '#111827', background: '#f7f8ff' }}
             />
-            <button onClick={handlePostReply}
-              className="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0 hover:opacity-80 transition-opacity"
+            <button onClick={handlePostReply} disabled={replyPosting}
+              className="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0 hover:opacity-80 transition-opacity disabled:opacity-50"
               style={{ background: '#283583' }}>
-              Post
+              {replyPosting ? '...' : 'Post'}
             </button>
             <button onClick={() => { setShowReply(false); setReplyText(''); }}
               className="text-xs text-gray-400 hover:text-gray-600 px-1 flex-shrink-0">
@@ -503,10 +535,11 @@ export default function ReaderReviews({
         <div className="space-y-3">
           {reviews.map((r, i) => (
             <ReviewCard
-              key={i}
+              key={r._key || i}
               r={r}
               index={i}
               isNewest={i === newestIndex}
+              issueId={issueId}
             />
           ))}
         </div>

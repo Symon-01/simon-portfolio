@@ -29,8 +29,8 @@ export default function IssueInfoPanel({
         <p className="text-white font-black text-sm" style={{ fontFamily: "'Playfair Display', serif" }}>The Leadership Review</p>
       </div>
       {!hideCover && issue.coverImage?.asset?.url && (
-        <div className="relative overflow-hidden" style={{ height: '220px' }}>
-          <img src={issue.coverImage.asset.url} alt={`Cover — ${issue.title}`} className="w-full h-full object-cover" />
+        <div className="relative overflow-hidden" style={{ height: '320px' }}>
+          <img src={issue.coverImage.asset.url} alt={`Cover — ${issue.title}`} className="w-full h-full object-cover object-top" />
           <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: 'linear-gradient(to top, rgba(40,53,131,0.85), transparent)' }} />
           <span className="absolute bottom-3 left-3 text-white text-xs font-black px-2.5 py-1 rounded" style={{ background: '#EF6203' }}>
             {issue.edition || 'Special Edition'}
