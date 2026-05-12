@@ -1,25 +1,19 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { PortableText } from '@portabletext/react';
 import { urlFor } from '@/lib/sanity.image';
 
-// ── Colour map — driven by introCardColor from Sanity ─────────────────────────
-// 'blue' | 'red' | 'green' — controls both the intro paragraph card
-// background AND all blockquote accents in the same article.
-
 const colorMap = {
-  blue:  { bg: '#28358308', border: '#28358330', accent: '#283583', quote: '#283583' },
-  red:   { bg: '#cd171a08', border: '#cd171a30', accent: '#cd171a', quote: '#cd171a' },
-  green: { bg: '#3fa53508', border: '#3fa53530', accent: '#3fa535', quote: '#3fa535' },
+  blue:  { accent: '#283583', quote: '#283583', quoteBg: '#28358308' },
+  red:   { accent: '#cd171a', quote: '#cd171a', quoteBg: '#cd171a08' },
+  green: { accent: '#3fa535', quote: '#3fa535', quoteBg: '#3fa53508' },
 } as const;
 
 type AccentColor = keyof typeof colorMap;
 
-// ── Drop cap style ─────────────────────────────────────────────────────────────
-// Applied to the first <p> inside each H2 section (newspaper style).
-// The ::first-letter pseudo-class floats the first letter 3 lines tall.
 const dropCapStyle = `
-  .drop-cap::first-letter {
+  .tlr-drop-cap::first-letter {
     float: left;
     font-size: 3.6em;
     line-height: 0.82;
@@ -29,139 +23,82 @@ const dropCapStyle = `
     font-weight: 900;
     color: #283583;
   }
+  .tlr-reader-pane::-webkit-scrollbar { width: 5px; }
+  .tlr-reader-pane::-webkit-scrollbar-track { background: transparent; }
+  .tlr-reader-pane::-webkit-scrollbar-thumb { background: #283583; border-radius: 3px; }
+  .tlr-reader-pane::-webkit-scrollbar-thumb:hover { background: #1e2a6a; }
 `;
 
-// ── Component factory — rebuilds renderers whenever color changes ──────────────
-
-function buildComponents(color: AccentColor, introCardShown: { done: boolean }) {
+function buildComponents(color: AccentColor, introShown: { done: boolean }) {
   const c = colorMap[color];
-
   return {
     block: {
-      // Normal paragraph — justified, drop cap on first paragraph after H2
       normal: ({ children }: any) => {
-        // We track whether the intro card has been rendered yet.
-        // The very first normal block gets the coloured card behind it.
-        if (!introCardShown.done) {
-          introCardShown.done = true;
+        if (!introShown.done) {
+          introShown.done = true;
           return (
-            <div
-              className="rounded-xl px-5 py-4 mb-5"
-              style={{
-                background: c.bg,
-                border: `1.5px solid ${c.border}`,
-                borderLeft: `4px solid ${c.accent}`,
-              }}
-            >
-              <p
-                className="drop-cap text-gray-800 leading-relaxed text-base"
-                style={{ textAlign: 'justify', fontFamily: "'Georgia', serif" }}
-              >
-                {children}
-              </p>
-            </div>
+            <p className="tlr-drop-cap mb-4 text-gray-800 leading-relaxed text-base"
+              style={{ textAlign: 'justify', fontFamily: "'Georgia', serif" }}>
+              {children}
+            </p>
           );
         }
         return (
-          <p
-            className="mb-5 text-gray-700 leading-relaxed text-base"
-            style={{ textAlign: 'justify' }}
-          >
+          <p className="mb-4 text-gray-700 leading-relaxed text-base" style={{ textAlign: 'justify' }}>
             {children}
           </p>
         );
       },
-
-      // H2 — larger, bolder, Playfair — triggers drop cap on NEXT paragraph
       h2: ({ children }: any) => {
-        // Reset so next normal paragraph after this H2 gets a drop cap
-        introCardShown.done = true; // intro already shown, but we want drop cap after H2
+        introShown.done = true;
         return (
-          <h2
-            className="text-3xl md:text-4xl font-black text-gray-900 mt-14 mb-3 pb-2 border-b-2 drop-cap-next"
-            style={{ fontFamily: "'Playfair Display', serif", borderColor: c.accent }}
-          >
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mt-10 mb-2 pb-2 border-b-2"
+            style={{ fontFamily: "'Playfair Display', serif", borderColor: c.accent }}>
             {children}
           </h2>
         );
       },
-
-      // H3 — larger, bolder
       h3: ({ children }: any) => (
-        <h3
-          className="text-xl md:text-2xl font-bold text-gray-800 mt-10 mb-2"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+        <h3 className="text-xl font-bold text-gray-800 mt-7 mb-2"
+          style={{ fontFamily: "'Playfair Display', serif" }}>
           {children}
         </h3>
       ),
-
-      // H4 — red uppercase section heading
       h4: ({ children }: any) => (
-        <h4
-          className="text-sm font-black uppercase tracking-widest mt-7 mb-2"
-          style={{ color: '#BB0000' }}
-        >
+        <h4 className="text-sm font-black uppercase tracking-widest mt-5 mb-1" style={{ color: '#BB0000' }}>
           {children}
         </h4>
       ),
-
-      // H5 — italic subtitle/deck
       h5: ({ children }: any) => (
-        <h5
-          className="text-base italic text-gray-500 mb-4 font-medium leading-snug"
-          style={{ textAlign: 'justify' }}
-        >
+        <h5 className="text-base italic text-gray-500 mb-3 font-medium leading-snug" style={{ textAlign: 'justify' }}>
           {children}
         </h5>
       ),
-
-      // Blockquote — accent colour from Sanity introCardColor
       blockquote: ({ children }: any) => (
-        <blockquote
-          className="pl-5 my-8 italic text-lg leading-relaxed rounded-r-lg py-4 pr-4"
-          style={{
-            borderLeft: `4px solid ${c.quote}`,
-            background: c.bg,
-            color: '#374151',
-            fontFamily: "'Georgia', serif",
-          }}
-        >
+        <blockquote className="pl-4 my-6 italic text-base leading-relaxed rounded-r-lg py-3 pr-4"
+          style={{ borderLeft: `4px solid ${c.quote}`, background: c.quoteBg, color: '#374151', fontFamily: "'Georgia', serif" }}>
           {children}
         </blockquote>
       ),
     },
-
     types: {
       image: ({ value }: any) => {
         if (!value?.asset) return null;
         const position = value.position || 'full';
         return (
-          <figure
-            className={`my-6 ${
-              position === 'left'
-                ? 'float-left mr-6 mb-2 w-full sm:w-1/2'
-                : position === 'right'
-                ? 'float-right ml-6 mb-2 w-full sm:w-1/2'
-                : 'w-full clear-both'
-            }`}
-          >
+          <figure className={`my-4 ${
+            position === 'left' ? 'float-left mr-4 mb-2 w-full sm:w-1/2'
+            : position === 'right' ? 'float-right ml-4 mb-2 w-full sm:w-1/2'
+            : 'w-full clear-both'}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={urlFor(value).width(900).url()}
-              alt={value.caption || ''}
-              className="w-full rounded-lg object-cover"
-            />
+            <img src={urlFor(value).width(900).url()} alt={value.caption || ''} className="w-full rounded-lg object-cover" />
             {value.caption && (
-              <figcaption className="text-xs text-gray-400 mt-2 text-center italic">
-                {value.caption}
-              </figcaption>
+              <figcaption className="text-xs text-gray-400 mt-1 text-center italic">{value.caption}</figcaption>
             )}
           </figure>
         );
       },
     },
-
     marks: {
       strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
       em:     ({ children }: any) => <em className="italic">{children}</em>,
@@ -169,11 +106,8 @@ function buildComponents(color: AccentColor, introCardShown: { done: boolean }) 
   };
 }
 
-// ── Shared Online Article View ────────────────────────────────────────────────
-// Props:
-//   articleContent  — Portable Text blocks from Sanity
-//   introCardColor  — 'blue' | 'red' | 'green' (set per issue in Sanity Studio)
-//                     Defaults to 'blue' if not set.
+const PREVIEW_HEIGHT = 460;
+const READER_HEIGHT  = 640;
 
 export default function OnlineArticleView({
   articleContent,
@@ -182,14 +116,23 @@ export default function OnlineArticleView({
   articleContent: any[];
   introCardColor?: string;
 }) {
-  const color: AccentColor =
-    introCardColor === 'red' ? 'red'
-    : introCardColor === 'green' ? 'green'
-    : 'blue';
+  const [mode, setMode] = useState<'collapsed' | 'open'>('collapsed');
+  const topRef = useRef<HTMLDivElement>(null);
 
-  // Mutable ref-like object — resets per render so first paragraph is always the intro card
-  const introCardShown = { done: false };
-  const components = buildComponents(color, introCardShown);
+  const color: AccentColor =
+    introCardColor === 'red' ? 'red' : introCardColor === 'green' ? 'green' : 'blue';
+
+  const handleOpen = () => {
+    setMode('open');
+    setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  };
+  const handleClose = () => {
+    setMode('collapsed');
+    setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  };
+
+  const introShown = { done: false };
+  const components = buildComponents(color, introShown);
 
   return (
     <>
@@ -199,23 +142,73 @@ export default function OnlineArticleView({
       `}</style>
 
       <div
-        className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
-        style={{ height: '780px' }}
+        ref={topRef}
+        className="w-full border-x border-b border-gray-200 rounded-b-xl"
+        aria-label="Online article view"
       >
-        {/* Scroll hint bar */}
-        <div
-          className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 text-xs text-white/80 border-b border-white/10"
-          style={{ background: '#283583' }}
-        >
-          <span>Scroll to read the full issue</span>
-          <span className="opacity-60">↕</span>
-        </div>
+        {/* ── COLLAPSED ────────────────────────────────────────────────────── */}
+        {mode === 'collapsed' && (
+          <>
+            <div className="relative" style={{ height: `${PREVIEW_HEIGHT}px`, overflow: 'hidden' }}>
+              {/* Tight padding: px-4 sm:px-6, pt-4 — no wasted space */}
+              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4 pb-2 overflow-hidden">
+                <PortableText value={articleContent} components={components} />
+                <div className="clear-both" />
+              </div>
+              <div
+                className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                style={{ height: '160px', background: 'linear-gradient(to bottom, transparent, #f9fafb)' }}
+              />
+            </div>
 
-        {/* Article body */}
-        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-8 overflow-hidden">
-          <PortableText value={articleContent} components={components} />
-          <div className="clear-both" />
-        </div>
+            <div className="flex flex-col items-center py-3 gap-0.5 border-t border-gray-100">
+              <button
+                onClick={handleOpen}
+                aria-label="Continue reading"
+                className="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all hover:shadow-md active:scale-95"
+                style={{ borderColor: '#283583', background: 'transparent' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 6l5 5 5-5" stroke="#283583" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <span className="text-xs text-gray-400 tracking-wide">Scroll inside the reader</span>
+            </div>
+          </>
+        )}
+
+        {/* ── OPEN: fixed reading pane ─────────────────────────────────────── */}
+        {mode === 'open' && (
+          <>
+            <div
+              className="tlr-reader-pane overflow-y-auto"
+              style={{
+                height: `${READER_HEIGHT}px`,
+                boxShadow: 'inset 0 8px 12px -8px rgba(40,53,131,0.07), inset 0 -8px 12px -8px rgba(40,53,131,0.07)',
+              }}
+            >
+              {/* Same tight padding as collapsed — px-4 sm:px-6, pt-4 */}
+              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4 pb-6 overflow-hidden">
+                <PortableText value={articleContent} components={components} />
+                <div className="clear-both" />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center py-3 gap-0.5 border-t border-gray-100">
+              <button
+                onClick={handleClose}
+                aria-label="Close reader"
+                className="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all hover:shadow-md active:scale-95"
+                style={{ borderColor: '#283583', background: 'transparent' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 10l5-5 5 5" stroke="#283583" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <span className="text-xs text-gray-400 tracking-wide">Close reader</span>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

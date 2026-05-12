@@ -1,19 +1,25 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+// FILE: src/app/the-leadership-review/[slug]/IssueDetailClient.tsx
+//
+// This component now receives the pre-fetched `issue` as a prop from the
+// server component (page.tsx). No useEffect, no loading spinner, no duplicate
+// network call. The page renders instantly with server data.
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { getLeadershipReviewBySlug } from '@/lib/sanity.queries';
 import type { LeadershipReviewIssue } from '@/types/leadershipReview';
 import IssueMasthead from '@/components/leadershipReview/IssueMasthead';
-import DesktopPdfViewer from '@/components/leadershipReview/DesktopPdfViewer';
-import MobilePdfViewer from '@/components/leadershipReview/MobilePdfViewer';
 import IssueInfoPanel from '@/components/leadershipReview/IssueInfoPanel';
 import ShareAndSupportCard from '@/components/leadershipReview/ShareAndSupportCard';
 import AlsoReadCard from '@/components/leadershipReview/AlsoReadCard';
 import ReaderReviews from '@/components/leadershipReview/ReaderReviews';
+import ViewerToolbar from '@/components/leadershipReview/ViewerToolbar';
+import OnlineArticleView from '@/components/leadershipReview/OnlineArticleView';
+import DesktopPdfViewer from '@/components/leadershipReview/DesktopPdfViewer';
+import MobilePdfViewer from '@/components/leadershipReview/MobilePdfViewer';
 
 // ── Download helper ───────────────────────────────────────────────────────────
-
 async function triggerDownload(url: string, filename: string) {
   try {
     const response = await fetch(url);
@@ -31,26 +37,20 @@ async function triggerDownload(url: string, filename: string) {
   }
 }
 
-// ── Main client component ─────────────────────────────────────────────────────
+// ── Props ─────────────────────────────────────────────────────────────────────
+interface Props {
+  // issue can be null if the slug doesn't match any document in Sanity
+  issue: LeadershipReviewIssue | null;
+}
 
-export default function IssueDetailClient({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  const [issue, setIssue] = useState<LeadershipReviewIssue | null>(null);
-  const [loading, setLoading] = useState(true);
+// ── Main client component ─────────────────────────────────────────────────────
+export default function IssueDetailClient({ issue }: Props) {
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
-    getLeadershipReviewBySlug(slug)
-      .then((data) => {
-        // ── Debug: remove these two lines once AlsoReadCard is confirmed working ──
-        console.log('DEBUG relatedIssue:', JSON.stringify(data?.relatedIssue, null, 2));
-        console.log('DEBUG issue keys:', data ? Object.keys(data) : 'null');
-        // ─────────────────────────────────────────────────────────────────────────
-        setIssue(data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [slug]);
+  // viewMode is lifted to page level so:
+  // - OnlineArticleView renders as a sibling of the PDF viewer (not inside it)
+  // - The toolbar controls both from one place
+  const [viewMode, setViewMode] = useState<'pdf' | 'online'>('pdf');
 
   const handleDownload = async () => {
     if (!issue?.pdfFile?.asset?.url) return;
@@ -62,16 +62,7 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
     setDownloading(false);
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50">
-      <div
-        className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
-        style={{ borderColor: '#283583', borderTopColor: 'transparent' }}
-      />
-      <p className="text-sm text-gray-400">Loading issue...</p>
-    </div>
-  );
-
+  // ── Not found ──────────────────────────────────────────────────────────────
   if (!issue) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center px-6">
@@ -95,6 +86,10 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
     </div>
   );
 
+  const hasOnlineVersion =
+    Array.isArray(issue.articleContent) && issue.articleContent.length > 0;
+  const pdfUrl = issue.pdfFile?.asset?.url;
+
   const reviewsSection = (
     <ReaderReviews
       reviews={issue.reviews || []}
@@ -104,25 +99,69 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
     />
   );
 
+  // ── Shared toolbar ─────────────────────────────────────────────────────────
+  // Rendered at page level — controls viewMode for both desktop and mobile.
+  const toolbar = pdfUrl ? (
+    <ViewerToolbar
+      title={issue.title}
+      viewMode={viewMode}
+      setViewMode={setViewMode}
+      hasOnlineVersion={hasOnlineVersion}
+      onDownload={handleDownload}
+      downloading={downloading}
+    />
+  ) : null;
+
+  // ── Online article (page-level, outside the PDF viewer card) ───────────────
+  // Rendered as a direct sibling of the PDF viewer — not nested inside it.
+  // The server-rendered duplicate in page.tsx handles Google indexing;
+  // this is the interactive reading experience for users.
+  const onlineArticle =
+    viewMode === 'online' && hasOnlineVersion ? (
+      <OnlineArticleView
+        articleContent={issue.articleContent!}
+        introCardColor={issue.introCardColor}
+      />
+    ) : null;
+
   return (
     <>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');`}</style>
       <main className="min-h-screen bg-gray-50">
         <IssueMasthead issue={issue} />
+
         <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16 pt-6">
 
-          {/* ── Desktop layout ── */}
+          {/* ── Desktop layout ───────────────────────────────────────────────── */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
+
+            {/* Main column */}
             <div>
-              {issue.pdfFile?.asset?.url ? (
-                <DesktopPdfViewer
-                  pdfUrl={issue.pdfFile.asset.url}
-                  title={issue.title}
-                  onDownload={handleDownload}
-                  downloading={downloading}
-                  articleContent={issue.articleContent}
-                  introCardColor={issue.introCardColor}
-                />
+              {pdfUrl ? (
+                <>
+                  {/* Toolbar — controls page-level viewMode */}
+                  {toolbar}
+
+                  {/*
+                    Online article — renders here at column level, not inside
+                    the PDF viewer. Natural DOM position = Google can see it
+                    (backed up by the sr-only server copy in page.tsx).
+                  */}
+                  {onlineArticle}
+
+                  {/* PDF canvas viewer — only mounted in pdf mode */}
+                  {viewMode === 'pdf' && (
+                    <DesktopPdfViewer
+                      pdfUrl={pdfUrl}
+                      title={issue.title}
+                      onDownload={handleDownload}
+                      downloading={downloading}
+                      articleContent={issue.articleContent}
+                      introCardColor={issue.introCardColor}
+                      externalViewMode="pdf"
+                    />
+                  )}
+                </>
               ) : (
                 <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-24">
                   <p className="text-sm text-gray-400 italic">
@@ -130,10 +169,11 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
                   </p>
                 </div>
               )}
+
               {reviewsSection}
             </div>
 
-            {/* ── Desktop sidebar ── */}
+            {/* Desktop sidebar */}
             <div className="flex flex-col gap-4 sticky top-6">
               <IssueInfoPanel
                 issue={issue}
@@ -143,13 +183,11 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
                 hideCover={false}
               />
               <ShareAndSupportCard title={issue.title} />
-              {issue.relatedIssue && (
-                <AlsoReadCard issue={issue.relatedIssue} />
-              )}
+              {issue.relatedIssue && <AlsoReadCard issue={issue.relatedIssue} />}
             </div>
           </div>
 
-          {/* ── Mobile layout ── */}
+          {/* ── Mobile layout ────────────────────────────────────────────────── */}
           <div className="lg:hidden flex flex-col gap-4">
             <IssueInfoPanel
               issue={issue}
@@ -158,25 +196,32 @@ export default function IssueDetailClient({ params }: { params: Promise<{ slug: 
               downloading={downloading}
               hideCover={false}
             />
-            {issue.pdfFile?.asset?.url ? (
-              <MobilePdfViewer
-                pdfUrl={issue.pdfFile.asset.url}
-                title={issue.title}
-                onDownload={handleDownload}
-                downloading={downloading}
-                articleContent={issue.articleContent}
-                introCardColor={issue.introCardColor}
-              />
+
+            {pdfUrl ? (
+              <>
+                {toolbar}
+                {onlineArticle}
+                {viewMode === 'pdf' && (
+                  <MobilePdfViewer
+                    pdfUrl={pdfUrl}
+                    title={issue.title}
+                    onDownload={handleDownload}
+                    downloading={downloading}
+                    articleContent={issue.articleContent}
+                    introCardColor={issue.introCardColor}
+                    externalViewMode="pdf"
+                  />
+                )}
+              </>
             ) : (
               <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-16">
                 <p className="text-sm text-gray-400 italic">PDF not yet available.</p>
               </div>
             )}
+
             <ShareAndSupportCard title={issue.title} />
             {reviewsSection}
-            {issue.relatedIssue && (
-              <AlsoReadCard issue={issue.relatedIssue} />
-            )}
+            {issue.relatedIssue && <AlsoReadCard issue={issue.relatedIssue} />}
           </div>
 
           <div

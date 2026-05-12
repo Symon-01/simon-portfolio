@@ -33,6 +33,8 @@ interface PricingService {
   priceLabel: string;
   originalPriceLabel?: string;
   discountLabel?: string;
+  // New field added to Sanity schema
+  pricingType?: 'fixed' | 'variable';
   order: number;
 }
 
@@ -75,7 +77,6 @@ function PricingContent() {
   useEffect(() => {
     async function fetchPricingData() {
       try {
-        // ── Categories — now includes categoryImage ──────────────────────────
         const categoriesQuery = `*[_type == "pricingCategory"] | order(order asc) {
           _id,
           name,
@@ -91,7 +92,7 @@ function PricingContent() {
           }
         }`;
 
-        // ── Services — includes discount fields, no image ────────────────────
+        // pricingType is the new field — falls back gracefully if not yet in Sanity
         const servicesQuery = `*[_type == "pricingService"] | order(order asc) {
           _id,
           name,
@@ -104,6 +105,7 @@ function PricingContent() {
           priceLabel,
           originalPriceLabel,
           discountLabel,
+          pricingType,
           order
         }`;
 

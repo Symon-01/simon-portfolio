@@ -152,8 +152,16 @@ simon-designs/
 │   │   ├── IntaSendProvider.tsx
 │   │   ├── leadershipReview
 │   │   │   ├── AllIssuesGrid.tsx
+│   │   │   ├── AlsoReadCard.tsx
+│   │   │   ├── DesktopPdfViewer.tsx
+│   │   │   ├── IssueInfoPanel.tsx
+│   │   │   ├── IssueMasthead.tsx
 │   │   │   ├── IssueViewer.tsx
-│   │   │   └── ReaderReviews.tsx
+│   │   │   ├── MobilePdfViewer.tsx
+│   │   │   ├── OnlineArticleView.tsx
+│   │   │   ├── ReaderReviews.tsx
+│   │   │   ├── ShareAndSupportCard.tsx
+│   │   │   └── ViewerToolbar.tsx
 │   │   ├── LeadershipReviewWindow.tsx
 │   │   ├── LoadingBar.tsx
 │   │   ├── MissionVision.tsx
@@ -174,8 +182,10 @@ simon-designs/
 │   │   ├── PortfolioGrid.tsx
 │   │   ├── PortfolioHero.tsx
 │   │   ├── PricingCTA.tsx
+│   │   ├── PricingEstimator.tsx
 │   │   ├── PricingGuide.tsx
 │   │   ├── PricingHero.tsx
+│   │   ├── PricingServiceRow.tsx
 │   │   ├── Service
 │   │   ├── ServiceCard.tsx
 │   │   ├── Services.tsx

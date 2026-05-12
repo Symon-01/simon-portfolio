@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import ViewerToolbar from './ViewerToolbar';
 import OnlineArticleView from './OnlineArticleView';
 
-// ── Mobile PDF Canvas Renderer ────────────────────────────────────────────────
-
 export default function MobilePdfViewer({
   pdfUrl,
   title,
@@ -13,6 +11,7 @@ export default function MobilePdfViewer({
   downloading,
   articleContent,
   introCardColor,
+  externalViewMode,
 }: {
   pdfUrl: string;
   title: string;
@@ -20,19 +19,26 @@ export default function MobilePdfViewer({
   downloading: boolean;
   articleContent?: any[];
   introCardColor?: string;
+  externalViewMode?: 'pdf' | 'online';
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const renderedRef = useRef(false);
-  const [viewMode, setViewMode] = useState<'pdf' | 'online'>('pdf');
+
+  const [internalViewMode, setInternalViewMode] = useState<'pdf' | 'online'>('pdf');
+  const isControlled = externalViewMode !== undefined;
+  const viewMode = isControlled ? externalViewMode : internalViewMode;
   const hasOnlineVersion = Array.isArray(articleContent) && articleContent.length > 0;
 
   useEffect(() => {
+    if (viewMode !== 'pdf') return;
     if (renderedRef.current) return;
     renderedRef.current = true;
 
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+
     script.onload = async () => {
       try {
         const pdfjsLib = (window as any).pdfjsLib;
@@ -44,45 +50,58 @@ export default function MobilePdfViewer({
         const container = containerRef.current;
         if (!container) return;
 
+        // Render all pages into a DocumentFragment off-screen,
+        // then insert in one operation — no progressive layout jumps.
+        const fragment = document.createDocumentFragment();
+
         for (let i = 1; i <= total; i++) {
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: window.innerWidth < 400 ? 1.2 : 1.5 });
+          const viewport = page.getViewport({
+            scale: window.innerWidth < 400 ? 1.2 : 1.5,
+          });
+
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           canvas.style.width = '100%';
           canvas.style.display = 'block';
-          canvas.style.borderBottom = '1px solid #e5e7eb';
+          canvas.style.borderBottom = i < total ? '1px solid #e5e7eb' : 'none';
+
           const ctx = canvas.getContext('2d')!;
           await page.render({ canvasContext: ctx, viewport }).promise;
-          container.appendChild(canvas);
+          fragment.appendChild(canvas);
         }
+
+        container.appendChild(fragment);
+        setLoaded(true);
       } catch (err) {
-        console.error('PDF render error:', err);
+        console.error('Mobile PDF render error:', err);
         setError(true);
       }
     };
+
     script.onerror = () => setError(true);
     document.head.appendChild(script);
-  }, [pdfUrl]);
+  }, [pdfUrl, viewMode]);
 
   return (
     <div className="w-full">
-      <ViewerToolbar
-        title={title}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        hasOnlineVersion={hasOnlineVersion}
-        onDownload={onDownload}
-        downloading={downloading}
-      />
 
-      {/* Online view */}
-      {viewMode === 'online' && hasOnlineVersion && (
+      {!isControlled && (
+        <ViewerToolbar
+          title={title}
+          viewMode={internalViewMode}
+          setViewMode={setInternalViewMode}
+          hasOnlineVersion={hasOnlineVersion}
+          onDownload={onDownload}
+          downloading={downloading}
+        />
+      )}
+
+      {!isControlled && viewMode === 'online' && hasOnlineVersion && (
         <OnlineArticleView articleContent={articleContent!} introCardColor={introCardColor} />
       )}
 
-      {/* PDF canvas view */}
       {viewMode === 'pdf' && (
         <>
           {error && (
@@ -92,19 +111,44 @@ export default function MobilePdfViewer({
                 href={pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 py-2.5 px-6 rounded-xl text-white text-sm font-black"
+                className="flex items-center gap-2 py-2.5 px-6 rounded-xl text-white text-sm font-bold"
                 style={{ background: '#283583' }}
               >
                 Open PDF
               </a>
             </div>
           )}
+
           {!error && (
             <div
-              ref={containerRef}
-              className="w-full border border-gray-200 rounded-b-xl overflow-y-auto bg-white"
-              style={{ maxHeight: '85vh' }}
-            />
+              className="w-full border border-gray-200 rounded-b-xl overflow-hidden relative"
+              style={{
+                background: '#f3f4f6',
+                minHeight: loaded ? undefined : '320px',
+              }}
+            >
+              {/* Spinner overlaid centrally — disappears once all pages are painted */}
+              {!loaded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stone-50 z-10">
+                  <div
+                    className="w-8 h-8 rounded-full border-2 animate-spin"
+                    style={{ borderColor: '#283583', borderTopColor: 'transparent' }}
+                  />
+                  <p className="text-sm text-gray-400">Loading newspaper...</p>
+                </div>
+              )}
+
+              {/* Canvas pane — invisible until fully rendered, then fades in */}
+              <div
+                ref={containerRef}
+                className="overflow-y-auto bg-white transition-opacity duration-300"
+                style={{
+                  maxHeight: '85vh',
+                  opacity: loaded ? 1 : 0,
+                  pointerEvents: loaded ? 'auto' : 'none',
+                }}
+              />
+            </div>
           )}
         </>
       )}
