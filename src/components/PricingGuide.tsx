@@ -2,7 +2,7 @@
 
 // FILE LOCATION: src/components/PricingGuide.tsx
 // Self-contained — estimator modal, service rows, and all variable configs live here.
-// No sub-component imports needed.
+// No sub-component imports needed beyond lucide-react and next/navigation.
 
 import React, { useState, useCallback, useEffect } from 'react';
 import {
@@ -90,176 +90,199 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 // ─── Variable pricing configs ─────────────────────────────────────────────────
-// Key = substring that must appear in the service name (lowercase).
-// Edit pricePerUnit / priceAdd values to match your real rates.
+// Each entry: [keyword(s) to match in service name (lowercase), config builder]
+// A service name only needs to INCLUDE one of these keywords to trigger the estimator.
+// Add more entries here as you expand your service list.
 
-const VAR_CONFIGS: [string, (base: number) => EstConfig][] = [
+const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
 
-  ['magazine layout', (base) => ({
-    serviceName: 'Magazine Layouts', basePrice: base,
+  // ── Print & Publishing ────────────────────────────────────────────────────
+  [['magazine'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'pages', label:'Number of Pages', type:'slider', min:8, max:200, step:4, unit:'pages', pricePerUnit:120 },
-      { key:'images', label:'Image Sourcing', type:'select', options:[
-        { label:'Client supplies all images', value:'client', priceAdd:0 },
-        { label:'Some stock images (~10)', value:'some', priceAdd:2500 },
-        { label:'Full stock library (20+)', value:'full', priceAdd:6000 },
+      { key: 'pages', label: 'Number of Pages', type: 'slider', min: 8, max: 200, step: 4, unit: 'pages', pricePerUnit: 120 },
+      { key: 'images', label: 'Image Sourcing', type: 'select', options: [
+        { label: 'Client supplies all images', value: 'client', priceAdd: 0 },
+        { label: 'Some stock images (~10)', value: 'some', priceAdd: 2500 },
+        { label: 'Full stock library (20+)', value: 'full', priceAdd: 6000 },
       ]},
-      { key:'rush', label:'Rush Delivery', type:'toggle', toggleLabel:'Rush delivery (within 5 days)', togglePriceAdd:3500 },
+      { key: 'rush', label: 'Rush Delivery', type: 'toggle', toggleLabel: 'Rush delivery (within 5 days)', togglePriceAdd: 3500 },
     ],
-    note:'Final quote may vary based on content complexity and revision rounds.',
+    note: 'Final quote may vary based on content complexity and revision rounds.',
   })],
 
-  ['catalog', (base) => ({
-    serviceName: 'Catalog / Booklet', basePrice: base,
+  [['catalog', 'booklet', 'catalogue'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'pages', label:'Number of Pages', type:'slider', min:8, max:120, step:4, unit:'pages', pricePerUnit:100 },
-      { key:'products', label:'Product Count', type:'select', options:[
-        { label:'Up to 20 products', value:'small', priceAdd:0 },
-        { label:'21–60 products', value:'medium', priceAdd:3000 },
-        { label:'60+ products', value:'large', priceAdd:7000 },
+      { key: 'pages', label: 'Number of Pages', type: 'slider', min: 8, max: 120, step: 4, unit: 'pages', pricePerUnit: 100 },
+      { key: 'products', label: 'Product Count', type: 'select', options: [
+        { label: 'Up to 20 products', value: 'small', priceAdd: 0 },
+        { label: '21–60 products', value: 'medium', priceAdd: 3000 },
+        { label: '60+ products', value: 'large', priceAdd: 7000 },
       ]},
-      { key:'retouch', label:'Photo Retouching', type:'toggle', toggleLabel:'Include photo retouching', togglePriceAdd:4000 },
+      { key: 'retouch', label: 'Photo Retouching', type: 'toggle', toggleLabel: 'Include photo retouching', togglePriceAdd: 4000 },
     ],
-    note:'Per-page rate applies to layouts with pre-supplied, print-ready copy.',
+    note: 'Per-page rate applies to layouts with pre-supplied, print-ready copy.',
   })],
 
-  ['annual report', (base) => ({
-    serviceName: 'Annual Report', basePrice: base,
+  [['annual report'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'pages', label:'Number of Pages', type:'slider', min:12, max:100, step:4, unit:'pages', pricePerUnit:150 },
-      { key:'charts', label:'Charts & Infographics', type:'select', options:[
-        { label:'None (text only)', value:'none', priceAdd:0 },
-        { label:'1–5 infographics', value:'few', priceAdd:4000 },
-        { label:'6–15 infographics', value:'many', priceAdd:9000 },
-        { label:'15+ infographics', value:'full', priceAdd:16000 },
+      { key: 'pages', label: 'Number of Pages', type: 'slider', min: 12, max: 100, step: 4, unit: 'pages', pricePerUnit: 150 },
+      { key: 'charts', label: 'Charts & Infographics', type: 'select', options: [
+        { label: 'None (text only)', value: 'none', priceAdd: 0 },
+        { label: '1–5 infographics', value: 'few', priceAdd: 4000 },
+        { label: '6–15 infographics', value: 'many', priceAdd: 9000 },
+        { label: '15+ infographics', value: 'full', priceAdd: 16000 },
       ]},
-      { key:'rush', label:'Priority Turnaround', type:'toggle', toggleLabel:'Priority turnaround', togglePriceAdd:5000 },
+      { key: 'rush', label: 'Priority Turnaround', type: 'toggle', toggleLabel: 'Priority turnaround', togglePriceAdd: 5000 },
     ],
-    note:'Financial data tables are included in the base per-page rate.',
+    note: 'Financial data tables are included in the base per-page rate.',
   })],
 
-  ['restaurant menu', (base) => ({
-    serviceName: 'Restaurant Menu', basePrice: base,
+  [['restaurant menu', 'menu'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'pages', label:'Menu Pages', type:'slider', min:1, max:24, step:1, unit:'pages', pricePerUnit:400 },
-      { key:'size', label:'Menu Size', type:'select', options:[
-        { label:'A5 (half-page)', value:'a5', priceAdd:0 },
-        { label:'A4 (standard)', value:'a4', priceAdd:1000 },
-        { label:'A3 (large / wall)', value:'a3', priceAdd:2500 },
-        { label:'Custom / die-cut', value:'custom', priceAdd:5000 },
+      { key: 'pages', label: 'Menu Pages', type: 'slider', min: 1, max: 24, step: 1, unit: 'pages', pricePerUnit: 400 },
+      { key: 'size', label: 'Menu Size', type: 'select', options: [
+        { label: 'A5 (half-page)', value: 'a5', priceAdd: 0 },
+        { label: 'A4 (standard)', value: 'a4', priceAdd: 1000 },
+        { label: 'A3 (large / wall)', value: 'a3', priceAdd: 2500 },
+        { label: 'Custom / die-cut', value: 'custom', priceAdd: 5000 },
       ]},
-      { key:'photos', label:'Food Photography', type:'toggle', toggleLabel:'Include food photography', togglePriceAdd:8000 },
+      { key: 'photos', label: 'Food Photography', type: 'toggle', toggleLabel: 'Include food photography', togglePriceAdd: 8000 },
     ],
-    note:'Includes 2 revision rounds. Print-ready PDF supplied for all formats.',
+    note: 'Includes 2 revision rounds. Print-ready PDF supplied for all formats.',
   })],
 
-  ['flyer', (base) => ({
-    serviceName: 'Flyer / Brochure', basePrice: base,
+  // ── Marketing Materials ───────────────────────────────────────────────────
+  [['flyer', 'brochure'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'size', label:'Size', type:'select', options:[
-        { label:'A6 / DL (small flyer)', value:'a6', priceAdd:0 },
-        { label:'A5 (half A4)', value:'a5', priceAdd:500 },
-        { label:'A4 (standard)', value:'a4', priceAdd:1000 },
-        { label:'A3 (large)', value:'a3', priceAdd:2000 },
+      { key: 'size', label: 'Size', type: 'select', options: [
+        { label: 'A6 / DL (small flyer)', value: 'a6', priceAdd: 0 },
+        { label: 'A5 (half A4)', value: 'a5', priceAdd: 500 },
+        { label: 'A4 (standard)', value: 'a4', priceAdd: 1000 },
+        { label: 'A3 (large)', value: 'a3', priceAdd: 2000 },
       ]},
-      { key:'sides', label:'Sides', type:'select', options:[
-        { label:'Single side', value:'single', priceAdd:0 },
-        { label:'Double side / tri-fold', value:'double', priceAdd:1500 },
+      { key: 'sides', label: 'Sides', type: 'select', options: [
+        { label: 'Single side', value: 'single', priceAdd: 0 },
+        { label: 'Double side / tri-fold', value: 'double', priceAdd: 1500 },
       ]},
-      { key:'print', label:'Print-Ready Files', type:'toggle', toggleLabel:'Print-ready files (CMYK + bleed)', togglePriceAdd:800 },
+      { key: 'print', label: 'Print-Ready Files', type: 'toggle', toggleLabel: 'Print-ready files (CMYK + bleed)', togglePriceAdd: 800 },
     ],
-    note:'Social media (RGB) versions included at no extra charge.',
+    note: 'Social media (RGB) versions included at no extra charge.',
   })],
 
-  ['billboard', (base) => ({
-    serviceName: 'Billboard / Banner', basePrice: base,
+  [['billboard', 'banner'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'size', label:'Billboard Size', type:'select', options:[
-        { label:'Pull-up / Roll-up (0.85×2m)', value:'pullup', priceAdd:0 },
-        { label:'Street banner (3×1m)', value:'street', priceAdd:2000 },
-        { label:'Large billboard (8×3m)', value:'large', priceAdd:6000 },
-        { label:'Mega billboard (12m+)', value:'mega', priceAdd:12000 },
+      { key: 'size', label: 'Billboard Size', type: 'select', options: [
+        { label: 'Pull-up / Roll-up (0.85×2m)', value: 'pullup', priceAdd: 0 },
+        { label: 'Street banner (3×1m)', value: 'street', priceAdd: 2000 },
+        { label: 'Large billboard (8×3m)', value: 'large', priceAdd: 6000 },
+        { label: 'Mega billboard (12m+)', value: 'mega', priceAdd: 12000 },
       ]},
-      { key:'complexity', label:'Design Complexity', type:'select', options:[
-        { label:'Simple (text + logo)', value:'simple', priceAdd:0 },
-        { label:'Standard (photos + graphics)', value:'standard', priceAdd:2000 },
-        { label:'Complex (custom illustration)', value:'complex', priceAdd:5000 },
+      { key: 'complexity', label: 'Design Complexity', type: 'select', options: [
+        { label: 'Simple (text + logo)', value: 'simple', priceAdd: 0 },
+        { label: 'Standard (photos + graphics)', value: 'standard', priceAdd: 2000 },
+        { label: 'Complex (custom illustration)', value: 'complex', priceAdd: 5000 },
       ]},
     ],
-    note:'Supplied as high-res PDF / TIFF at the required DPI for printing.',
+    note: 'Supplied as high-res PDF / TIFF at the required DPI for printing.',
   })],
 
-  ['website ui', (base) => ({
-    serviceName: 'Website UI Design', basePrice: base,
+  // ── UI/UX Design ──────────────────────────────────────────────────────────
+  [['website ui', 'web ui', 'website design', 'web design'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'screens', label:'Number of Screens / Pages', type:'slider', min:1, max:30, step:1, unit:'screens', pricePerUnit:2500 },
-      { key:'responsive', label:'Mobile-Responsive Variants', type:'toggle', toggleLabel:'Mobile-responsive variants', togglePriceAdd:8000 },
-      { key:'handoff', label:'Developer Handoff', type:'toggle', toggleLabel:'Developer handoff (Figma annotations)', togglePriceAdd:5000 },
+      { key: 'screens', label: 'Number of Screens / Pages', type: 'slider', min: 1, max: 30, step: 1, unit: 'screens', pricePerUnit: 2500 },
+      { key: 'responsive', label: 'Mobile-Responsive Variants', type: 'toggle', toggleLabel: 'Mobile-responsive variants', togglePriceAdd: 8000 },
+      { key: 'handoff', label: 'Developer Handoff', type: 'toggle', toggleLabel: 'Developer handoff (Figma annotations)', togglePriceAdd: 5000 },
     ],
-    note:'Designs delivered as Figma file with organised components and style guide.',
+    note: 'Designs delivered as Figma file with organised components and style guide.',
   })],
 
-  ['mobile app', (base) => ({
-    serviceName: 'Mobile App UI Design', basePrice: base,
+  [['mobile app', 'app ui', 'app design'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'screens', label:'Number of Screens', type:'slider', min:5, max:60, step:5, unit:'screens', pricePerUnit:3000 },
-      { key:'platform', label:'Platform', type:'select', options:[
-        { label:'iOS only', value:'ios', priceAdd:0 },
-        { label:'Android only', value:'android', priceAdd:0 },
-        { label:'Both (iOS + Android)', value:'both', priceAdd:10000 },
+      { key: 'screens', label: 'Number of Screens', type: 'slider', min: 5, max: 60, step: 5, unit: 'screens', pricePerUnit: 3000 },
+      { key: 'platform', label: 'Platform', type: 'select', options: [
+        { label: 'iOS only', value: 'ios', priceAdd: 0 },
+        { label: 'Android only', value: 'android', priceAdd: 0 },
+        { label: 'Both (iOS + Android)', value: 'both', priceAdd: 10000 },
       ]},
-      { key:'prototype', label:'Interactive Prototype', type:'toggle', toggleLabel:'Interactive prototype (Figma)', togglePriceAdd:7000 },
+      { key: 'prototype', label: 'Interactive Prototype', type: 'toggle', toggleLabel: 'Interactive prototype (Figma)', togglePriceAdd: 7000 },
     ],
-    note:'Includes onboarding flow, core navigation, and up to 2 user flows.',
+    note: 'Includes onboarding flow, core navigation, and up to 2 user flows.',
   })],
 
-  ['wireframe', (base) => ({
-    serviceName: 'Wireframing & Prototyping', basePrice: base,
+  [['wireframe', 'wireframing', 'prototype', 'prototyping'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'screens', label:'Number of Screens', type:'slider', min:3, max:40, step:1, unit:'screens', pricePerUnit:1500 },
-      { key:'fidelity', label:'Fidelity Level', type:'select', options:[
-        { label:'Low-fi (grayscale blocks)', value:'lofi', priceAdd:0 },
-        { label:'Mid-fi (structure + labels)', value:'midfi', priceAdd:3000 },
-        { label:'Hi-fi (near-final visual)', value:'hifi', priceAdd:8000 },
+      { key: 'screens', label: 'Number of Screens', type: 'slider', min: 3, max: 40, step: 1, unit: 'screens', pricePerUnit: 1500 },
+      { key: 'fidelity', label: 'Fidelity Level', type: 'select', options: [
+        { label: 'Low-fi (grayscale blocks)', value: 'lofi', priceAdd: 0 },
+        { label: 'Mid-fi (structure + labels)', value: 'midfi', priceAdd: 3000 },
+        { label: 'Hi-fi (near-final visual)', value: 'hifi', priceAdd: 8000 },
       ]},
     ],
-    note:'All wireframes delivered in Figma with a clickable flow.',
+    note: 'All wireframes delivered in Figma with a clickable flow.',
   })],
 
-  ['product packaging', (base) => ({
-    serviceName: 'Product Packaging', basePrice: base,
+  // ── Packaging Design ──────────────────────────────────────────────────────
+  [['product packaging', 'packaging'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'complexity', label:'Complexity Tier', type:'select', options:[
-        { label:'Simple (flat label / sleeve)', value:'simple', priceAdd:0 },
-        { label:'Standard (shaped box + graphics)', value:'standard', priceAdd:4000 },
-        { label:'Premium (dieline + 3D mock)', value:'premium', priceAdd:9000 },
+      { key: 'complexity', label: 'Complexity Tier', type: 'select', options: [
+        { label: 'Simple (flat label / sleeve)', value: 'simple', priceAdd: 0 },
+        { label: 'Standard (shaped box + graphics)', value: 'standard', priceAdd: 4000 },
+        { label: 'Premium (dieline + 3D mock)', value: 'premium', priceAdd: 9000 },
       ]},
-      { key:'variants', label:'Number of Variants', type:'slider', min:1, max:10, step:1, unit:'variants', pricePerUnit:2500 },
-      { key:'mockup', label:'3D Mockup', type:'toggle', toggleLabel:'Photo-realistic 3D mockup', togglePriceAdd:4500 },
+      { key: 'variants', label: 'Number of Variants', type: 'slider', min: 1, max: 10, step: 1, unit: 'variants', pricePerUnit: 2500 },
+      { key: 'mockup', label: '3D Mockup', type: 'toggle', toggleLabel: 'Photo-realistic 3D mockup', togglePriceAdd: 4500 },
     ],
-    note:'Includes print-ready dieline files and one structural revision.',
+    note: 'Includes print-ready dieline files and one structural revision.',
   })],
 
-  ['label design', (base) => ({
-    serviceName: 'Label Design', basePrice: base,
+  [['label design', 'label'], (base, name) => ({
+    serviceName: name, basePrice: base,
     factors: [
-      { key:'shape', label:'Label Shape', type:'select', options:[
-        { label:'Rectangle / Square', value:'rect', priceAdd:0 },
-        { label:'Circle / Oval', value:'circle', priceAdd:500 },
-        { label:'Custom die-cut', value:'custom', priceAdd:2500 },
+      { key: 'shape', label: 'Label Shape', type: 'select', options: [
+        { label: 'Rectangle / Square', value: 'rect', priceAdd: 0 },
+        { label: 'Circle / Oval', value: 'circle', priceAdd: 500 },
+        { label: 'Custom die-cut', value: 'custom', priceAdd: 2500 },
       ]},
-      { key:'variants', label:'Number of Variants', type:'slider', min:1, max:8, step:1, unit:'variants', pricePerUnit:1500 },
+      { key: 'variants', label: 'Number of Variants', type: 'slider', min: 1, max: 8, step: 1, unit: 'variants', pricePerUnit: 1500 },
     ],
-    note:'Supplied as print-ready PDF + editable source file.',
+    note: 'Supplied as print-ready PDF + editable source file.',
   })],
+
+  // ── Brand Identity ────────────────────────────────────────────────────────
+  [['brand guideline', 'brand guide', 'brand manual'], (base, name) => ({
+    serviceName: name, basePrice: base,
+    factors: [
+      { key: 'elements', label: 'Number of Brand Elements', type: 'select', options: [
+        { label: 'Core (logo, colours, fonts)', value: 'core', priceAdd: 0 },
+        { label: 'Extended (+ patterns, icons)', value: 'extended', priceAdd: 4000 },
+        { label: 'Full (+ templates, imagery style)', value: 'full', priceAdd: 9000 },
+      ]},
+      { key: 'pages', label: 'Guideline Document Pages', type: 'slider', min: 10, max: 60, step: 5, unit: 'pages', pricePerUnit: 200 },
+    ],
+    note: 'Delivered as interactive PDF and editable source file.',
+  })],
+
 ];
 
 // ─── Helper: resolve variable config for a service ────────────────────────────
+// Checks if ANY keyword in a keyword group is included in the service name.
 
 function resolveConfig(service: PricingService): EstConfig | null {
   const lower = service.name.toLowerCase();
-  for (const [key, builder] of VAR_CONFIGS) {
-    if (lower.includes(key)) return builder(service.price);
+  for (const [keywords, builder] of VAR_CONFIGS) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      return builder(service.price, service.name);
+    }
   }
   return null;
 }
@@ -286,7 +309,7 @@ function fmtDiscount(raw: string): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ESTIMATOR MODAL (inline, no external import)
+// ESTIMATOR MODAL (inline — no external import needed)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface EstimatorProps {
@@ -300,7 +323,6 @@ interface EstimatorProps {
 function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: EstimatorProps) {
   const al = accentColor + '22';
 
-  // initialise factor values
   const [vals, setVals] = useState<Record<string, number | string | boolean>>(() => {
     const init: Record<string, number | string | boolean> = {};
     config.factors.forEach((f) => {
@@ -314,7 +336,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
   const [total, setTotal]   = useState(config.basePrice);
   const [popped, setPopped] = useState(false);
 
-  // recalculate total whenever vals change
   useEffect(() => {
     let t = config.basePrice;
     config.factors.forEach((f) => {
@@ -382,6 +403,7 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
         }
         ._est_sel:focus{outline:none}
         ._est_popped{animation:_est_pop .32s ease}
+        ._est_cta{transition:opacity .15s, transform .15s}
         ._est_cta:hover{opacity:.88;transform:translateY(-1px)}
         ._est_cta:active{transform:translateY(0)}
         ._est_dim:hover{background:#f3f4f6;color:#374151}
@@ -391,51 +413,51 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
       <div
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         style={{
-          position:'fixed', inset:0, background:'rgba(0,0,0,.55)',
-          backdropFilter:'blur(4px)', zIndex:1000,
-          display:'flex', alignItems:'center', justifyContent:'center',
-          padding:'1rem', animation:'_est_fi .22s ease',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)',
+          backdropFilter: 'blur(4px)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '1rem', animation: '_est_fi .22s ease',
         }}
       >
         {/* Panel */}
         <div
           className="_est_panel"
           style={{
-            background:'#fff', borderRadius:24, width:'100%', maxWidth:520,
-            maxHeight:'90vh', overflowY:'auto',
-            boxShadow:'0 40px 100px rgba(0,0,0,.28)',
-            animation:'_est_su .3s cubic-bezier(.22,.68,0,1.2)',
+            background: '#fff', borderRadius: 24, width: '100%', maxWidth: 520,
+            maxHeight: '90vh', overflowY: 'auto',
+            boxShadow: '0 40px 100px rgba(0,0,0,.28)',
+            animation: '_est_su .3s cubic-bezier(.22,.68,0,1.2)',
           }}
         >
           {/* Header */}
           <div style={{
-            padding:'1.5rem 1.6rem 1.2rem', borderBottom:'1.5px solid #f3f4f6',
-            display:'flex', alignItems:'flex-start', justifyContent:'space-between',
-            gap:'1rem', position:'sticky', top:0, background:'#fff', zIndex:2,
-            borderRadius:'24px 24px 0 0',
+            padding: '1.5rem 1.6rem 1.2rem', borderBottom: '1.5px solid #f3f4f6',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            gap: '1rem', position: 'sticky', top: 0, background: '#fff', zIndex: 2,
+            borderRadius: '24px 24px 0 0',
           }}>
-            <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
               <div style={{
-                width:44, height:44, borderRadius:12, background:al,
-                border:`1.5px solid ${accentColor}`,
-                display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
+                width: 44, height: 44, borderRadius: 12, background: al,
+                border: `1.5px solid ${accentColor}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <Calculator size={20} color={accentColor} />
               </div>
               <div>
-                <div style={{ fontSize:'1rem', fontWeight:800, color:'#111827', letterSpacing:'-.02em', lineHeight:1.2 }}>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#111827', letterSpacing: '-.02em', lineHeight: 1.2 }}>
                   {config.serviceName}
                 </div>
-                <div style={{ fontSize:'.74rem', color:'#9ca3af', marginTop:2 }}>
+                <div style={{ fontSize: '.74rem', color: '#9ca3af', marginTop: 2 }}>
                   Adjust the options to estimate your cost
                 </div>
               </div>
             </div>
             <button onClick={onClose} style={{
-              width:34, height:34, borderRadius:'50%',
-              border:'1.5px solid #e5e7eb', background:'#f9fafb',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              cursor:'pointer', flexShrink:0, color:'#6b7280',
+              width: 34, height: 34, borderRadius: '50%',
+              border: '1.5px solid #e5e7eb', background: '#f9fafb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', flexShrink: 0, color: '#6b7280',
             }}>
               <X size={15} />
             </button>
@@ -443,38 +465,38 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
 
           {/* Live total */}
           <div style={{
-            margin:'1.25rem 1.6rem 0', padding:'1rem 1.2rem', background:al,
-            borderRadius:14, border:`1.5px solid ${accentColor}`,
-            display:'flex', alignItems:'center', justifyContent:'space-between', gap:'1rem',
+            margin: '1.25rem 1.6rem 0', padding: '1rem 1.2rem', background: al,
+            borderRadius: 14, border: `1.5px solid ${accentColor}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
           }}>
             <div>
-              <div style={{ fontSize:'.72rem', fontWeight:700, color:accentColor, textTransform:'uppercase', letterSpacing:'.1em' }}>
+              <div style={{ fontSize: '.72rem', fontWeight: 700, color: accentColor, textTransform: 'uppercase', letterSpacing: '.1em' }}>
                 Estimated Cost
               </div>
-              <div style={{ fontSize:'.68rem', color:'#9ca3af', marginTop:2 }}>
+              <div style={{ fontSize: '.68rem', color: '#9ca3af', marginTop: 2 }}>
                 Base: {currency} {config.basePrice.toLocaleString()}
               </div>
             </div>
             <div className={popped ? '_est_popped' : ''} style={{
-              fontSize:'1.6rem', fontWeight:900, color:accentColor, letterSpacing:'-.04em',
+              fontSize: '1.6rem', fontWeight: 900, color: accentColor, letterSpacing: '-.04em',
             }}>
               {currency} {total.toLocaleString()}
             </div>
           </div>
 
           {/* Factors */}
-          <div style={{ padding:'1.25rem 1.6rem', display:'flex', flexDirection:'column', gap:'1.35rem' }}>
+          <div style={{ padding: '1.25rem 1.6rem', display: 'flex', flexDirection: 'column', gap: '1.35rem' }}>
             {config.factors.map((factor) => (
-              <div key={factor.key} style={{ display:'flex', flexDirection:'column', gap:'.5rem' }}>
+              <div key={factor.key} style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
 
                 {/* Slider */}
                 {factor.type === 'slider' && (
                   <>
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <span style={{ fontSize:'.82rem', fontWeight:700, color:'#374151' }}>{factor.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#374151' }}>{factor.label}</span>
                       <span style={{
-                        fontSize:'.76rem', fontWeight:800, color:accentColor,
-                        background:al, border:`1px solid ${accentColor}`, borderRadius:999, padding:'2px 10px',
+                        fontSize: '.76rem', fontWeight: 800, color: accentColor,
+                        background: al, border: `1px solid ${accentColor}`, borderRadius: 999, padding: '2px 10px',
                       }}>
                         {vals[factor.key] as number} {factor.unit}
                       </span>
@@ -487,7 +509,7 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
                       style={{ accentColor } as React.CSSProperties}
                       onChange={(e) => setVals((v) => ({ ...v, [factor.key]: Number(e.target.value) }))}
                     />
-                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:'.66rem', color:'#9ca3af' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.66rem', color: '#9ca3af' }}>
                       <span>{factor.min} {factor.unit}</span>
                       <span>+{currency} {factor.pricePerUnit.toLocaleString()} / {factor.unit}</span>
                       <span>{factor.max} {factor.unit}</span>
@@ -498,11 +520,11 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
                 {/* Select */}
                 {factor.type === 'select' && (
                   <>
-                    <span style={{ fontSize:'.82rem', fontWeight:700, color:'#374151' }}>{factor.label}</span>
+                    <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#374151' }}>{factor.label}</span>
                     <select
                       className="_est_sel"
                       value={vals[factor.key] as string}
-                      style={{ border:'1.5px solid #e5e7eb' }}
+                      style={{ border: '1.5px solid #e5e7eb' }}
                       onChange={(e) => setVals((v) => ({ ...v, [factor.key]: e.target.value }))}
                     >
                       {factor.options.map((opt) => (
@@ -521,36 +543,36 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
                   <div
                     onClick={() => setVals((v) => ({ ...v, [factor.key]: !v[factor.key] }))}
                     style={{
-                      display:'flex', alignItems:'center', justifyContent:'space-between',
-                      padding:'.6rem .9rem',
-                      border:`1.5px solid ${vals[factor.key] ? accentColor : '#e5e7eb'}`,
-                      borderRadius:10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '.6rem .9rem',
+                      border: `1.5px solid ${vals[factor.key] ? accentColor : '#e5e7eb'}`,
+                      borderRadius: 10,
                       background: vals[factor.key] ? al : '#fafafa',
-                      cursor:'pointer', transition:'border-color .15s, background .15s',
+                      cursor: 'pointer', transition: 'border-color .15s, background .15s',
                     }}
                   >
                     <div>
-                      <div style={{ fontSize:'.81rem', fontWeight:600, color:'#374151' }}>
+                      <div style={{ fontSize: '.81rem', fontWeight: 600, color: '#374151' }}>
                         {factor.toggleLabel}
                       </div>
                       {factor.togglePriceAdd > 0 && (
-                        <div style={{ fontSize:'.7rem', color:'#9ca3af', marginTop:1 }}>
+                        <div style={{ fontSize: '.7rem', color: '#9ca3af', marginTop: 1 }}>
                           +{currency} {factor.togglePriceAdd.toLocaleString()}
                         </div>
                       )}
                     </div>
-                    {/* Switch knob */}
+                    {/* Switch */}
                     <div style={{
-                      width:38, height:22, borderRadius:999, flexShrink:0,
+                      width: 38, height: 22, borderRadius: 999, flexShrink: 0,
                       background: vals[factor.key] ? accentColor : '#e5e7eb',
-                      position:'relative', transition:'background .2s',
+                      position: 'relative', transition: 'background .2s',
                     }}>
                       <div style={{
-                        position:'absolute', top:3,
+                        position: 'absolute', top: 3,
                         left: vals[factor.key] ? 19 : 3,
-                        width:16, height:16, borderRadius:'50%',
-                        background:'#fff', boxShadow:'0 1px 4px rgba(0,0,0,.2)',
-                        transition:'left .2s cubic-bezier(.22,.68,0,1.4)',
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)',
+                        transition: 'left .2s cubic-bezier(.22,.68,0,1.4)',
                       }} />
                     </div>
                   </div>
@@ -563,12 +585,12 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
           {/* Note */}
           {config.note && (
             <div style={{
-              margin:'0 1.6rem', padding:'.7rem .9rem', borderRadius:10,
-              background:'#fffbeb', border:'1px solid #fde68a',
-              display:'flex', gap:'.5rem', alignItems:'flex-start',
+              margin: '0 1.6rem', padding: '.7rem .9rem', borderRadius: 10,
+              background: '#fffbeb', border: '1px solid #fde68a',
+              display: 'flex', gap: '.5rem', alignItems: 'flex-start',
             }}>
-              <Info size={13} color="#d97706" style={{ flexShrink:0, marginTop:1 }} />
-              <p style={{ fontSize:'.72rem', color:'#92400e', lineHeight:1.55, margin:0 }}>
+              <Info size={13} color="#d97706" style={{ flexShrink: 0, marginTop: 1 }} />
+              <p style={{ fontSize: '.72rem', color: '#92400e', lineHeight: 1.55, margin: 0 }}>
                 {config.note}
               </p>
             </div>
@@ -576,19 +598,19 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
 
           {/* Footer */}
           <div style={{
-            padding:'1.25rem 1.6rem 1.6rem', borderTop:'1.5px solid #f3f4f6',
-            marginTop:'1.25rem', display:'flex', flexDirection:'column', gap:'.65rem',
+            padding: '1.25rem 1.6rem 1.6rem', borderTop: '1.5px solid #f3f4f6',
+            marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '.65rem',
           }}>
             <button
               className="_est_cta"
               onClick={() => onGetQuote(config.serviceName, total, buildSummary())}
               style={{
-                width:'100%', padding:'.85rem', borderRadius:12, border:'none',
-                background:`linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
-                color:'#fff', fontSize:'.88rem', fontWeight:800, cursor:'pointer',
-                display:'flex', alignItems:'center', justifyContent:'center', gap:'.5rem',
-                boxShadow:'0 6px 20px rgba(0,0,0,.15)', fontFamily:'inherit',
-                letterSpacing:'.01em', transition:'opacity .15s, transform .15s',
+                width: '100%', padding: '.85rem', borderRadius: 12, border: 'none',
+                background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
+                color: '#fff', fontSize: '.88rem', fontWeight: 800, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.5rem',
+                boxShadow: '0 6px 20px rgba(0,0,0,.15)', fontFamily: 'inherit',
+                letterSpacing: '.01em',
               }}
             >
               Get a Formal Quote <ArrowRight size={15} />
@@ -597,11 +619,11 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
               className="_est_dim"
               onClick={onClose}
               style={{
-                width:'100%', padding:'.65rem', borderRadius:10,
-                border:'1.5px solid #e5e7eb', background:'transparent',
-                color:'#6b7280', fontSize:'.8rem', fontWeight:600,
-                cursor:'pointer', fontFamily:'inherit',
-                transition:'background .15s, color .15s',
+                width: '100%', padding: '.65rem', borderRadius: 10,
+                border: '1.5px solid #e5e7eb', background: 'transparent',
+                color: '#6b7280', fontSize: '.8rem', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+                transition: 'background .15s, color .15s',
               }}
             >
               Keep browsing
@@ -614,7 +636,7 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SERVICE ROW (inline, no external import)
+// SERVICE ROW (inline)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface ServiceRowProps {
@@ -640,30 +662,28 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
           padding:5px 12px; border-radius:999px; font-size:.72rem; font-weight:800;
           cursor:pointer; font-family:inherit; letter-spacing:.02em;
           transition:background .15s, color .15s, transform .15s;
-          border:1.5px solid ${accentColor};
-          background:${al}; color:${accentColor};
         }
-        ._est_btn:hover { background:${accentColor}; color:#fff; transform:translateY(-1px) }
+        ._est_btn:hover { transform:translateY(-1px) }
         ._est_btn:active { transform:translateY(0) }
       `}</style>
 
       <div className="_sr">
         {/* Name + price */}
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'.5rem' }}>
-          <span style={{ fontSize:'.82rem', fontWeight:600, color:'#374151', lineHeight:1.35, flex:1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '.5rem' }}>
+          <span style={{ fontSize: '.82rem', fontWeight: 600, color: '#374151', lineHeight: 1.35, flex: 1 }}>
             {service.name}
           </span>
           {isVar ? (
-            <span style={{ fontSize:'.72rem', color:'#6b7280', fontStyle:'italic', flexShrink:0 }}>
+            <span style={{ fontSize: '.72rem', color: '#6b7280', fontStyle: 'italic', flexShrink: 0 }}>
               From {currency} {service.price.toLocaleString()}
             </span>
           ) : (
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', flexShrink:0 }}>
-              <span style={{ fontSize:'.86rem', fontWeight:800, color:accentColor, letterSpacing:'-.01em' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
+              <span style={{ fontSize: '.86rem', fontWeight: 800, color: accentColor, letterSpacing: '-.01em' }}>
                 {service.priceLabel}
               </span>
               {service.originalPriceLabel && (
-                <span style={{ fontSize:'.67rem', color:'#d1d5db', textDecoration:'line-through', marginTop:1 }}>
+                <span style={{ fontSize: '.67rem', color: '#d1d5db', textDecoration: 'line-through', marginTop: 1 }}>
                   {service.originalPriceLabel}
                 </span>
               )}
@@ -674,26 +694,34 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
         {/* Description */}
         {service.description &&
           service.description.trim().toLowerCase() !== service.name.trim().toLowerCase() && (
-          <div style={{ fontSize:'.71rem', color:'#9ca3af', lineHeight:1.45, marginTop:3 }}>
+          <div style={{ fontSize: '.71rem', color: '#9ca3af', lineHeight: 1.45, marginTop: 3 }}>
             {service.description}
           </div>
         )}
 
         {/* Discount pill + estimate button */}
-        <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, marginTop:4 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 4 }}>
           {service.discountLabel && (
             <span style={{
-              display:'inline-flex', alignItems:'center', gap:3,
-              padding:'2px 8px', borderRadius:999, fontSize:'.65rem', fontWeight:900,
-              letterSpacing:'.06em', background:'linear-gradient(135deg,#EF6203,#f7931e)',
-              color:'#fff', boxShadow:'0 2px 5px rgba(239,98,3,.28)',
+              display: 'inline-flex', alignItems: 'center', gap: 3,
+              padding: '2px 8px', borderRadius: 999, fontSize: '.65rem', fontWeight: 900,
+              letterSpacing: '.06em', background: 'linear-gradient(135deg,#EF6203,#f7931e)',
+              color: '#fff', boxShadow: '0 2px 5px rgba(239,98,3,.28)',
             }}>
               <Tag size={8} />
               {fmtDiscount(service.discountLabel)}
             </span>
           )}
           {isVar && (
-            <button className="_est_btn" onClick={() => setOpen(true)}>
+            <button
+              className="_est_btn"
+              onClick={() => setOpen(true)}
+              style={{
+                border: `1.5px solid ${accentColor}`,
+                background: al,
+                color: accentColor,
+              }}
+            >
               <Calculator size={11} />
               Estimate Price
               <ChevronRight size={10} />
@@ -776,14 +804,14 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
         .pg-card:hover .pg-img img{transform:scale(1.07)}
         .pg-body{padding:1.35rem 1.4rem 1.3rem;flex:1;display:flex;flex-direction:column}
         .pg-ibadge{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;
-          justify-content:center;flex-shrink:0;transition:background .22s ease}
+          justify-content:center;flex-shrink:0}
         .pg-card-title{font-size:.98rem;font-weight:800;color:#111827;letter-spacing:-.02em;line-height:1.2}
         .pg-card-desc{font-size:.81rem;color:#6b7280;line-height:1.6;margin:.7rem 0 .5rem;flex:1}
         .pg-count{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;
           color:#9ca3af;margin-bottom:.65rem}
         .pg-toggle{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:700;
           border-radius:999px;padding:5px 13px;cursor:pointer;width:fit-content;
-          transition:background .18s,color .18s;letter-spacing:.01em;font-family:inherit}
+          transition:background .18s,color .18s;letter-spacing:.01em;font-family:inherit;border:none}
         .pg-services-panel{margin-top:1rem;padding-top:.85rem;border-top:1.5px solid #f3f4f6}
         .pg-hint{display:flex;align-items:center;gap:6px;padding:7px 11px;background:#fff8f0;
           border:1px solid #fed7aa;border-radius:8px;margin-bottom:.75rem;
@@ -796,7 +824,7 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
         <div className="pg-inner">
 
           {/* Heading */}
-          <div style={{ textAlign:'center', marginBottom:'3rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <div className="pg-eyebrow"><Sparkles size={11} /> Transparent &amp; Flexible</div>
             <h2 className="pg-title">{settings?.pageTitle || 'Our Pricing Guide'}</h2>
             <p className="pg-sub">
@@ -807,11 +835,11 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
           {/* Legend */}
           <div className="pg-legend">
             <div className="pg-legend-item">
-              <div style={{ width:8, height:8, borderRadius:'50%', background:'#048F02', flexShrink:0 }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#048F02', flexShrink: 0 }} />
               Fixed price — shown directly
             </div>
             <div className="pg-legend-item">
-              <div style={{ width:8, height:8, borderRadius:'50%', background:'#EF6203', flexShrink:0 }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF6203', flexShrink: 0 }} />
               Variable price — use the estimator to calculate your cost
             </div>
           </div>
@@ -829,7 +857,7 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
                 <div key={cat._id} className="pg-card">
                   {/* Top stripe */}
                   <div className="pg-stripe"
-                    style={{ background:`linear-gradient(90deg,${accent.from},${accent.to})` }} />
+                    style={{ background: `linear-gradient(90deg,${accent.from},${accent.to})` }} />
 
                   {/* Image */}
                   {imgUrl && (
@@ -840,11 +868,10 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
 
                   {/* Body */}
                   <div className="pg-body">
-                    {/* Icon + title */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'.7rem', marginBottom:0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', marginBottom: 0 }}>
                       <div className="pg-ibadge"
-                        style={{ background:accent.light, border:`1.5px solid ${accent.from}` }}>
-                        <IconComp size={19} style={{ color:accent.from }} />
+                        style={{ background: accent.light, border: `1.5px solid ${accent.from}` }}>
+                        <IconComp size={19} style={{ color: accent.from }} />
                       </div>
                       <h3 className="pg-card-title">{cat.name}</h3>
                     </div>
@@ -862,8 +889,9 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
                       className="pg-toggle"
                       onClick={() => toggle(cat._id)}
                       style={{
-                        color:accent.from, background:accent.light,
-                        border:`1.5px solid ${accent.from}`,
+                        color: accent.from,
+                        background: accent.light,
+                        border: `1.5px solid ${accent.from}`,
                       }}
                     >
                       {isOpen
@@ -897,8 +925,8 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
           </div>
 
           {categories.length === 0 && (
-            <div style={{ textAlign:'center', padding:'3rem 0' }}>
-              <p style={{ color:'#6b7280', fontSize:'1rem' }}>
+            <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+              <p style={{ color: '#6b7280', fontSize: '1rem' }}>
                 No pricing categories found. Please create them in Sanity.
               </p>
             </div>
