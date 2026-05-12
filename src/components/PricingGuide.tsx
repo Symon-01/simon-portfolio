@@ -5,6 +5,7 @@
 // No sub-component imports needed beyond lucide-react and next/navigation.
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Palette, Megaphone, Layout, BookOpen, Package,
   ChevronDown, ChevronUp, Sparkles, X, Calculator,
@@ -323,6 +324,13 @@ interface EstimatorProps {
 function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: EstimatorProps) {
   const al = accentColor + '22';
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   const [vals, setVals] = useState<Record<string, number | string | boolean>>(() => {
     const init: Record<string, number | string | boolean> = {};
     config.factors.forEach((f) => {
@@ -370,7 +378,13 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
     return lines.join('\n');
   };
 
-  return (
+  // createPortal renders outside the card DOM tree, so position:fixed is
+  // never clipped by the card's overflow:hidden or any parent transform.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
+
+  const modal = (
     <>
       <style>{`
         @keyframes _est_fi { from{opacity:0} to{opacity:1} }
@@ -633,6 +647,8 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
       </div>
     </>
   );
+
+  return createPortal(modal, document.body);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
