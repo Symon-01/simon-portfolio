@@ -1,5 +1,4 @@
 'use client';
-
 // FILE: src/app/the-leadership-review/[slug]/IssueDetailClient.tsx
 //
 // This component now receives the pre-fetched `issue` as a prop from the
@@ -46,7 +45,6 @@ interface Props {
 // ── Main client component ─────────────────────────────────────────────────────
 export default function IssueDetailClient({ issue }: Props) {
   const [downloading, setDownloading] = useState(false);
-
   // viewMode is lifted to page level so:
   // - OnlineArticleView renders as a sibling of the PDF viewer (not inside it)
   // - The toolbar controls both from one place
@@ -113,14 +111,15 @@ export default function IssueDetailClient({ issue }: Props) {
   ) : null;
 
   // ── Online article (page-level, outside the PDF viewer card) ───────────────
-  // Rendered as a direct sibling of the PDF viewer — not nested inside it.
-  // The server-rendered duplicate in page.tsx handles Google indexing;
-  // this is the interactive reading experience for users.
+  // FIX: issueTitle is now passed so the headline appears above the article body
+  // in Read Online mode. Previously this prop was missing, which is why the
+  // intro card and headline were not showing.
   const onlineArticle =
     viewMode === 'online' && hasOnlineVersion ? (
       <OnlineArticleView
         articleContent={issue.articleContent!}
         introCardColor={issue.introCardColor}
+        issueTitle={issue.title}
       />
     ) : null;
 
@@ -129,26 +128,21 @@ export default function IssueDetailClient({ issue }: Props) {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');`}</style>
       <main className="min-h-screen bg-gray-50">
         <IssueMasthead issue={issue} />
-
         <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16 pt-6">
-
           {/* ── Desktop layout ───────────────────────────────────────────────── */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
-
             {/* Main column */}
             <div>
               {pdfUrl ? (
                 <>
                   {/* Toolbar — controls page-level viewMode */}
                   {toolbar}
-
                   {/*
                     Online article — renders here at column level, not inside
                     the PDF viewer. Natural DOM position = Google can see it
                     (backed up by the sr-only server copy in page.tsx).
                   */}
                   {onlineArticle}
-
                   {/* PDF canvas viewer — only mounted in pdf mode */}
                   {viewMode === 'pdf' && (
                     <DesktopPdfViewer
@@ -169,10 +163,8 @@ export default function IssueDetailClient({ issue }: Props) {
                   </p>
                 </div>
               )}
-
               {reviewsSection}
             </div>
-
             {/* Desktop sidebar */}
             <div className="flex flex-col gap-4 sticky top-6">
               <IssueInfoPanel
@@ -196,7 +188,6 @@ export default function IssueDetailClient({ issue }: Props) {
               downloading={downloading}
               hideCover={false}
             />
-
             {pdfUrl ? (
               <>
                 {toolbar}
@@ -218,7 +209,6 @@ export default function IssueDetailClient({ issue }: Props) {
                 <p className="text-sm text-gray-400 italic">PDF not yet available.</p>
               </div>
             )}
-
             <ShareAndSupportCard title={issue.title} />
             {reviewsSection}
             {issue.relatedIssue && <AlsoReadCard issue={issue.relatedIssue} />}
@@ -237,7 +227,6 @@ export default function IssueDetailClient({ issue }: Props) {
               ← View All Issues
             </Link>
           </div>
-
         </div>
       </main>
     </>

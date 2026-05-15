@@ -12,7 +12,6 @@ const sanity = createClient({
 });
 
 // ── POST — submit a new review ────────────────────────────────────────────────
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -124,13 +123,14 @@ export async function POST(request: Request) {
 }
 
 // ── PATCH — append a reply to an existing review ──────────────────────────────
-// Body: { issueId, reviewKey, replyText }
+// Body: { issueId, reviewKey, replyText, authorName, affiliation }
 // Finds the review by _key and appends to its replies[] array in Sanity.
-
+// FIX: authorName and affiliation are now saved to Sanity so they persist
+// after a page refresh, instead of only existing in local React state.
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { issueId, reviewKey, replyText } = body;
+    const { issueId, reviewKey, replyText, authorName, affiliation } = body;
 
     if (!issueId || !reviewKey || !replyText?.trim()) {
       return NextResponse.json(
@@ -143,6 +143,10 @@ export async function PATCH(request: Request) {
       _key: `reply_${Date.now()}`,
       text: replyText.trim(),
       date: new Date().toISOString().split('T')[0],
+      // FIX: these two fields were missing before — they are now saved to Sanity
+      // so the reply author name and affiliation survive a page refresh.
+      authorName:  authorName?.trim()  || 'Anonymous',
+      affiliation: affiliation?.trim() || '',
     };
 
     // Use Sanity's array path notation to append to the specific review's replies

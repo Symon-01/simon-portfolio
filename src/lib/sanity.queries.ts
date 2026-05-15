@@ -1,5 +1,4 @@
 // FILE: src/lib/sanity.queries.ts
-
 import { client } from './sanity.client';
 import { Banner } from '@/types/banner';
 import type {
@@ -10,7 +9,6 @@ import type {
 // ============================================
 // SERVICE QUERIES
 // ============================================
-
 export const homepageServicesQuery = `
   *[_type == "service" && displayOnHomepage == true] | order(order asc) {
     _id,
@@ -57,7 +55,6 @@ export const serviceBySlugQuery = `
 // ============================================
 // BANNER QUERIES
 // ============================================
-
 export async function getBannerByLocation(location: string): Promise<Banner | null> {
   try {
     const query = `*[_type == "banner" && pageLocation == $location][0]{
@@ -210,7 +207,6 @@ export const allBannersQuery = `
 // ============================================
 // ABOUT ME QUERIES
 // ============================================
-
 export const aboutMeQuery = `*[_type == "aboutMe"][0]{
   _id,
   heroTitle,
@@ -265,7 +261,6 @@ export const aboutMePageQuery = `{
 // ============================================
 // SKILLS & EXPERTISE QUERY
 // ============================================
-
 export const skillsExpertiseQuery = `*[_type == "skillsExpertise"][0]{
   _id,
   sectionDescription,
@@ -290,7 +285,6 @@ export const skillsExpertiseQuery = `*[_type == "skillsExpertise"][0]{
 // ============================================
 // CREATIVE PHILOSOPHY QUERY
 // ============================================
-
 export const creativePhilosophyQuery = `*[_type == "creativePhilosophy"][0]{
   _id,
   mainQuote,
@@ -305,7 +299,6 @@ export const creativePhilosophyQuery = `*[_type == "creativePhilosophy"][0]{
 // ============================================
 // PERSONAL NOTE QUERY
 // ============================================
-
 export const personalNoteQuery = `*[_type == "personalNote"][0]{
   _id,
   paragraphs[] {
@@ -344,7 +337,8 @@ export const allLeadershipReviewIssuesQuery = `
 `;
 
 // Single issue by slug — full data.
-// *** reviews filtered: ONLY approved, non-hidden ones come through ***
+// FIX: reviews projection now includes _key and replies[] so that replies
+// saved to Sanity are loaded back on page refresh instead of disappearing.
 export const leadershipReviewBySlugQuery = `
   *[_type == "leadershipReview" && slug.current == $slug][0] {
     _id,
@@ -396,12 +390,20 @@ export const leadershipReviewBySlugQuery = `
     },
     responsePrompt,
     "reviews": reviews[status == "approved" && isHidden != true] {
+      _key,
       reviewerName,
       affiliation,
       location,
       rating,
       comment,
-      date
+      date,
+      "replies": replies[] {
+        _key,
+        text,
+        date,
+        authorName,
+        affiliation
+      }
     }
   }
 `;
@@ -434,7 +436,6 @@ export const featuredLeadershipReviewQuery = `
 `;
 
 // ── Async fetch functions ─────────────────────────────────────────────────────
-
 export async function getAllLeadershipReviewIssues(): Promise<LeadershipReviewIssueSummary[]> {
   try {
     return await client.fetch(allLeadershipReviewIssuesQuery);

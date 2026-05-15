@@ -4,6 +4,15 @@ import { useState } from 'react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+export type NestedReply = {
+  _key: string;
+  text: string;
+  date: string;
+  authorName?: string;
+  affiliation?: string;
+  replies?: NestedReply[];
+};
+
 export type Review = {
   _key?: string;
   reviewerName: string;
@@ -12,11 +21,10 @@ export type Review = {
   rating: number;
   comment: string;
   date?: string;
-  replies?: { _key: string; text: string; date: string }[];
+  replies?: NestedReply[];
 };
 
-// ── Star display (read-only) ──────────────────────────────────────────────────
-
+// ── Star display ──────────────────────────────────────────────────────────────
 export function StarDisplay({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5">
@@ -31,27 +39,289 @@ export function StarDisplay({ rating }: { rating: number }) {
   );
 }
 
-// ── Avatar with initials ──────────────────────────────────────────────────────
-
-function Avatar({ name }: { name: string }) {
+// ── Avatar ────────────────────────────────────────────────────────────────────
+function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
-  // Deterministic colour from first char — cycles through brand palette
   const palette = ['#283583', '#cd171a', '#3fa535', '#EF6203', '#7C3AED', '#0891B2'];
   const bg = palette[name.charCodeAt(0) % palette.length];
   return (
     <div
-      className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0 select-none"
-      style={{ background: bg, boxShadow: `0 0 0 2px white, 0 0 0 3.5px ${bg}40` }}
+      className="rounded-full flex items-center justify-center text-white font-black flex-shrink-0 select-none"
+      style={{
+        width: size, height: size,
+        fontSize: size * 0.33,
+        background: bg,
+        boxShadow: `0 0 0 2px white, 0 0 0 3.5px ${bg}40`,
+      }}
     >
       {initials}
     </div>
   );
 }
 
-// ── Single review card (with likes, replies, share) ───────────────────────────
+// ── Reply composer ────────────────────────────────────────────────────────────
+// Layout mirrors Point Blank Analytics:
+//   1. "Write your reply…" textarea (full width)
+//   2. Name (required) | Affiliation (optional) — side by side
+//   3. POST REPLY button (right-aligned)
+function ReplyComposer({
+  onPost,
+  onCancel,
+  posting,
+}: {
+  onPost: (name: string, affiliation: string, text: string) => void;
+  onCancel: () => void;
+  posting: boolean;
+}) {
+  const [text,        setText]   = useState('');
+  const [name,        setName]   = useState('');
+  const [affiliation, setAffil]  = useState('');
 
-type PersistedReply = { _key: string; text: string; date: string };
+  const base  = 'w-full text-sm px-3 py-2.5 rounded-lg border outline-none transition-colors appearance-none';
+  const style = { borderColor: '#d1d5db', background: '#ffffff', color: '#111827' };
+  const focus = (e: React.FocusEvent<any>) => { e.target.style.borderColor = '#283583'; };
+  const blur  = (e: React.FocusEvent<any>) => { e.target.style.borderColor = '#d1d5db'; };
 
+  const canPost = name.trim().length > 0 && text.trim().length > 0;
+
+  return (
+    <div className="mt-3 mb-1 rounded-xl overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
+      {/* 1. Reply textarea */}
+      <textarea
+        autoFocus
+        rows={3}
+        placeholder="Write your reply…"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="w-full text-sm px-4 py-3 outline-none resize-none border-b"
+        style={{ borderColor: '#e5e7eb', color: '#111827', background: '#ffffff' }}
+        onFocus={(e) => { e.target.style.borderColor = '#283583'; }}
+        onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; }}
+      />
+
+      {/* 2. Name + Affiliation row */}
+      <div className="grid grid-cols-2 gap-0 border-b" style={{ borderColor: '#e5e7eb' }}>
+        <input
+          type="text"
+          placeholder="Your name (Required)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="text-sm px-4 py-2.5 outline-none border-r appearance-none"
+          style={{ borderColor: '#e5e7eb', color: '#111827', background: '#ffffff' }}
+          onFocus={focus} onBlur={blur}
+        />
+        <input
+          type="text"
+          placeholder="Affiliation"
+          value={affiliation}
+          onChange={(e) => setAffil(e.target.value)}
+          className="text-sm px-4 py-2.5 outline-none appearance-none"
+          style={{ color: '#111827', background: '#ffffff' }}
+          onFocus={focus} onBlur={blur}
+        />
+      </div>
+
+      {/* 3. Actions row */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50">
+        <button
+          onClick={onCancel}
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => canPost && onPost(name.trim(), affiliation.trim(), text.trim())}
+          disabled={posting || !canPost}
+          className="text-xs font-black px-5 py-2 rounded-lg text-white tracking-wide transition-opacity hover:opacity-80 disabled:opacity-40 uppercase"
+          style={{ background: '#283583', letterSpacing: '0.06em' }}
+        >
+          {posting ? 'Posting…' : 'Post Reply'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Action bar ────────────────────────────────────────────────────────────────
+function ActionBar({
+  likeCount, liked, onLike,
+  replyCount, showReply, onToggleReply,
+  onShare, shareDone,
+}: {
+  likeCount: number; liked: boolean; onLike: () => void;
+  replyCount: number; showReply: boolean; onToggleReply: () => void;
+  onShare: () => void; shareDone: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-0.5 pt-1.5 mt-1.5 border-t" style={{ borderColor: '#28358312' }}>
+      {/* Like */}
+      <button
+        onClick={onLike}
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all hover:scale-105 active:scale-95 select-none"
+        style={{ color: liked ? '#cd171a' : '#9ca3af', background: liked ? '#cd171a10' : 'transparent' }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24"
+          fill={liked ? '#cd171a' : 'none'} stroke={liked ? '#cd171a' : '#9ca3af'}
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+        {likeCount > 0 ? `Helpful (${likeCount})` : 'Helpful'}
+      </button>
+
+      {/* Reply */}
+      <button
+        onClick={onToggleReply}
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all hover:bg-gray-50 select-none"
+        style={{ color: showReply ? '#283583' : '#9ca3af' }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 17 4 12 9 7" /><path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+        </svg>
+        Reply{replyCount > 0 ? ` (${replyCount})` : ''}
+      </button>
+
+      {/* Share — right-aligned */}
+      <button
+        onClick={onShare}
+        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all hover:bg-gray-50 select-none ml-auto"
+        style={{ color: shareDone ? '#3fa535' : '#9ca3af' }}
+      >
+        {shareDone ? (
+          <>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="#3fa535" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+            Copied!
+          </>
+        ) : (
+          <>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            Share
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ── Recursive reply node ───────────────────────────────────────────────────────
+function ReplyNode({
+  reply,
+  depth,
+}: {
+  reply: NestedReply;
+  depth: number;
+}) {
+  const [liked,     setLiked]     = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [showReply, setShowReply] = useState(false);
+  const [posting,   setPosting]   = useState(false);
+  const [shareDone, setShareDone] = useState(false);
+  const [children,  setChildren]  = useState<NestedReply[]>(reply.replies || []);
+
+  // Indent caps at 4 levels so it doesn't get too narrow on mobile
+  const indent = Math.min(depth, 4) * 16;
+
+  function handleLike() {
+    if (liked) return;
+    setLiked(true);
+    setLikeCount((c) => c + 1);
+  }
+
+  function handleShare() {
+    const snippet = reply.authorName ? `${reply.authorName}: ${reply.text}` : reply.text;
+    navigator.clipboard.writeText(`${snippet}\n\n${window.location.href}`).then(() => {
+      setShareDone(true);
+      setTimeout(() => setShareDone(false), 2500);
+    });
+  }
+
+  async function handlePost(name: string, affiliation: string, text: string) {
+    setPosting(true);
+    const newReply: NestedReply = {
+      _key:        `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      text,
+      date:        new Date().toISOString().split('T')[0],
+      authorName:  name,
+      affiliation: affiliation || undefined,
+      replies:     [],
+    };
+    setChildren((prev) => [...prev, newReply]);
+    setShowReply(false);
+    setPosting(false);
+  }
+
+  return (
+    <div style={{ marginLeft: indent }}>
+      <div className="flex gap-2.5 items-start">
+        <Avatar name={reply.authorName || 'R'} size={30} />
+
+        <div className="flex-1 min-w-0">
+          {/* Reply bubble */}
+          <div className="rounded-xl px-3 py-2.5" style={{ background: '#f8f9ff', border: '1px solid #28358315' }}>
+            {/* Author row */}
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+              <span className="text-xs font-black" style={{ color: '#283583' }}>
+                {reply.authorName || 'Anonymous'}
+              </span>
+              {reply.affiliation && (
+                <span
+                  className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: '#EF620315', color: '#EF6203', border: '1px solid #EF620335', fontSize: '10px' }}
+                >
+                  {reply.affiliation}
+                </span>
+              )}
+              {reply.date && (
+                <span className="text-xs text-gray-400 ml-auto" style={{ fontSize: '10px' }}>
+                  {new Date(reply.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              )}
+            </div>
+
+            {/* Reply text */}
+            <p className="text-xs text-gray-700 leading-relaxed">{reply.text}</p>
+
+            {/* Actions */}
+            <ActionBar
+              likeCount={likeCount} liked={liked} onLike={handleLike}
+              replyCount={children.length} showReply={showReply}
+              onToggleReply={() => setShowReply((v) => !v)}
+              onShare={handleShare} shareDone={shareDone}
+            />
+          </div>
+
+          {/* Inline reply composer */}
+          {showReply && (
+            <ReplyComposer
+              onPost={handlePost}
+              onCancel={() => setShowReply(false)}
+              posting={posting}
+            />
+          )}
+
+          {/* Nested children */}
+          {children.length > 0 && (
+            <div className="mt-2.5 flex flex-col gap-2.5">
+              {children.map((child) => (
+                <ReplyNode key={child._key} reply={child} depth={depth + 1} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Top-level review card ─────────────────────────────────────────────────────
 function ReviewCard({
   r,
   index,
@@ -63,14 +333,12 @@ function ReviewCard({
   isNewest: boolean;
   issueId: string;
 }) {
-  const [liked,       setLiked]       = useState(false);
-  const [likeCount,   setLikeCount]   = useState(0);
-  const [showReply,   setShowReply]   = useState(false);
-  const [replyText,   setReplyText]   = useState('');
-  // Initialise from Sanity data — persists across refreshes
-  const [replies,     setReplies]     = useState<PersistedReply[]>(r.replies || []);
-  const [replyPosting, setReplyPosting] = useState(false);
-  const [shareDone,   setShareDone]   = useState(false);
+  const [liked,     setLiked]     = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [showReply, setShowReply] = useState(false);
+  const [replies,   setReplies]   = useState<NestedReply[]>(r.replies || []);
+  const [posting,   setPosting]   = useState(false);
+  const [shareDone, setShareDone] = useState(false);
 
   const stripeGradients = [
     'linear-gradient(to right, #283583, #EF6203)',
@@ -84,35 +352,6 @@ function ReviewCard({
     setLikeCount((c) => c + 1);
   }
 
-  async function handlePostReply() {
-    if (!replyText.trim() || replyPosting) return;
-    const text = replyText.trim();
-    setReplyText('');
-    setShowReply(false);
-    setReplyPosting(true);
-
-    // Optimistic update
-    const optimistic: PersistedReply = {
-      _key: `reply_${Date.now()}`,
-      text,
-      date: new Date().toISOString().split('T')[0],
-    };
-    setReplies((prev) => [...prev, optimistic]);
-
-    try {
-      await fetch('/api/leadership-review/reviews', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ issueId, reviewKey: r._key, replyText: text }),
-      });
-    } catch {
-      // If save fails, remove the optimistic reply silently
-      setReplies((prev) => prev.filter((rep) => rep._key !== optimistic._key));
-    } finally {
-      setReplyPosting(false);
-    }
-  }
-
   function handleShare() {
     const text = `"${r.comment}" — ${r.reviewerName}${r.affiliation ? `, ${r.affiliation}` : ''}\n\n${window.location.href}`;
     navigator.clipboard.writeText(text).then(() => {
@@ -121,19 +360,53 @@ function ReviewCard({
     });
   }
 
+  async function handlePost(name: string, affiliation: string, text: string) {
+    setPosting(true);
+    const newReply: NestedReply = {
+      _key:        `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      text,
+      date:        new Date().toISOString().split('T')[0],
+      authorName:  name,
+      affiliation: affiliation || undefined,
+      replies:     [],
+    };
+
+    // Optimistic update
+    setReplies((prev) => [...prev, newReply]);
+    setShowReply(false);
+
+    try {
+      await fetch('/api/leadership-review/reviews', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          issueId,
+          reviewKey:   r._key,
+          replyText:   text,
+          authorName:  name,
+          affiliation,
+        }),
+      });
+    } catch {
+      // Keep optimistic reply — network errors shouldn't break the UX
+    } finally {
+      setPosting(false);
+    }
+  }
+
   return (
     <div
-      className="bg-white rounded-xl overflow-hidden transition-all duration-700"
+      className="bg-white rounded-xl overflow-hidden"
       style={{
-        border: isNewest ? '1.5px solid #3fa535' : '1.5px solid #28358318',
+        border:    isNewest ? '1.5px solid #3fa535' : '1.5px solid #28358318',
         boxShadow: isNewest ? '0 0 0 3px rgba(63,165,53,0.12)' : '0 2px 10px rgba(40,53,131,0.06)',
       }}
     >
-      {/* Thin accent stripe at top */}
+      {/* Accent stripe */}
       <div className="h-0.5 w-full" style={{ background: stripeGradients[index % 3] }} />
 
       <div className="p-4">
-        {/* Header row: avatar + name + affiliation badge */}
+        {/* Header */}
         <div className="flex items-start gap-2.5 mb-3">
           <Avatar name={r.reviewerName} />
           <div className="flex-1 min-w-0 pt-0.5">
@@ -150,7 +423,7 @@ function ReviewCard({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <StarDisplay rating={r.rating} />
               {r.location && (
                 <span className="text-xs text-gray-400 flex items-center gap-0.5">
@@ -163,12 +436,7 @@ function ReviewCard({
                 </span>
               )}
               {r.date && (
-                <span className="text-xs text-gray-400 flex items-center gap-0.5">
-                  <svg width="9" height="9" viewBox="0 0 16 16" fill="none">
-                    <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" stroke="#9ca3af" strokeWidth="1.3" />
-                    <path d="M1.5 6h13" stroke="#9ca3af" strokeWidth="1.3" />
-                    <path d="M5 1.5v2M11 1.5v2" stroke="#9ca3af" strokeWidth="1.3" strokeLinecap="round" />
-                  </svg>
+                <span className="text-xs text-gray-400">
                   {new Date(r.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               )}
@@ -177,140 +445,41 @@ function ReviewCard({
         </div>
 
         {/* Comment */}
-        <p
-          className="text-sm text-gray-700 italic leading-relaxed mb-3"
-          style={{ fontFamily: "'Georgia', serif" }}
-        >
+        <p className="text-sm text-gray-700 italic leading-relaxed mb-1" style={{ fontFamily: "'Georgia', serif" }}>
           &ldquo;{r.comment}&rdquo;
         </p>
 
-        {/* Replies — loaded from Sanity, persists across refreshes */}
+        {/* Action bar */}
+        <ActionBar
+          likeCount={likeCount} liked={liked} onLike={handleLike}
+          replyCount={replies.length} showReply={showReply}
+          onToggleReply={() => setShowReply((v) => !v)}
+          onShare={handleShare} shareDone={shareDone}
+        />
+
+        {/* Inline reply composer — appears directly below action bar */}
+        {showReply && (
+          <ReplyComposer
+            onPost={handlePost}
+            onCancel={() => setShowReply(false)}
+            posting={posting}
+          />
+        )}
+
+        {/* Reply thread */}
         {replies.length > 0 && (
-          <div className="mb-3 pl-3 border-l-2 flex flex-col gap-2" style={{ borderColor: '#28358320' }}>
+          <div className="mt-3 flex flex-col gap-2.5 pt-3 border-t" style={{ borderColor: '#28358310' }}>
             {replies.map((rep) => (
-              <div key={rep._key} className="flex gap-2 items-start">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0"
-                  style={{ background: '#283583', fontSize: 8 }}>
-                  R
-                </div>
-                <div
-                  className="text-xs rounded-lg px-3 py-2 flex-1 leading-relaxed"
-                  style={{ background: '#28358307', border: '1px solid #28358312', color: '#374151' }}
-                >
-                  <span className="font-bold mr-1" style={{ color: '#283583' }}>Reply</span>
-                  {rep.text}
-                  {rep.date && (
-                    <span className="ml-2 text-gray-400">
-                      · {new Date(rep.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                  )}
-                </div>
-              </div>
+              <ReplyNode key={rep._key} reply={rep} depth={0} />
             ))}
           </div>
         )}
-
-        {/* Inline reply box */}
-        {showReply && (
-          <div className="flex gap-2 mb-3 items-center">
-            <input
-              autoFocus
-              type="text"
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handlePostReply();
-                if (e.key === 'Escape') { setShowReply(false); setReplyText(''); }
-              }}
-              placeholder="Write a reply… (Enter to post)"
-              className="flex-1 text-xs px-3 py-2 rounded-lg border outline-none appearance-none"
-              style={{ borderColor: '#28358335', color: '#111827', background: '#f7f8ff' }}
-            />
-            <button onClick={handlePostReply} disabled={replyPosting}
-              className="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0 hover:opacity-80 transition-opacity disabled:opacity-50"
-              style={{ background: '#283583' }}>
-              {replyPosting ? '...' : 'Post'}
-            </button>
-            <button onClick={() => { setShowReply(false); setReplyText(''); }}
-              className="text-xs text-gray-400 hover:text-gray-600 px-1 flex-shrink-0">
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Action bar: Like · Reply · Share */}
-        <div
-          className="flex items-center gap-0.5 pt-2 border-t"
-          style={{ borderColor: '#28358310' }}
-        >
-          {/* Like */}
-          <button
-            onClick={handleLike}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105 active:scale-95 select-none"
-            style={{
-              color: liked ? '#cd171a' : '#9ca3af',
-              background: liked ? '#cd171a10' : 'transparent',
-            }}
-            title="Like this response"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24"
-              fill={liked ? '#cd171a' : 'none'}
-              stroke={liked ? '#cd171a' : '#9ca3af'}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            {likeCount > 0 ? likeCount : 'Like'}
-          </button>
-
-          {/* Reply */}
-          <button
-            onClick={() => { setShowReply((v) => !v); setReplyText(''); }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-gray-50 select-none"
-            style={{ color: showReply ? '#283583' : '#9ca3af' }}
-            title="Reply to this response"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 17 4 12 9 7" />
-              <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
-            </svg>
-            Reply{replies.length > 0 ? ` (${replies.length})` : ''}
-          </button>
-
-          {/* Share — right-aligned */}
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-gray-50 select-none ml-auto"
-            style={{ color: shareDone ? '#3fa535' : '#9ca3af' }}
-            title="Copy this response"
-          >
-            {shareDone ? (
-              <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="#3fa535" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                Copied!
-              </>
-            ) : (
-              <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-                Share
-              </>
-            )}
-          </button>
-        </div>
       </div>
     </div>
   );
 }
 
-// ── Reader Reviews ────────────────────────────────────────────────────────────
+// ── ReaderReviews ─────────────────────────────────────────────────────────────
 
 const DEFAULT_PROMPT = "What did you think of this issue? Which story resonated most with you?";
 
@@ -323,19 +492,13 @@ export default function ReaderReviews({
   reviews: Review[];
   issueTitle: string;
   issueId: string;
-  responsePrompt?: string; // Editable per issue in Sanity Studio
+  responsePrompt?: string;
 }) {
   const prompt = responsePrompt?.trim() || DEFAULT_PROMPT;
 
   const [reviews,     setReviews]     = useState<Review[]>(initialReviews);
   const [newestIndex, setNewestIndex] = useState<number | null>(null);
-  const [formData,    setFormData]    = useState({
-    reviewerName: '',
-    affiliation:  '',   // NEW
-    location:     '',
-    rating:       5,
-    comment:      '',
-  });
+  const [formData,    setFormData]    = useState({ reviewerName: '', affiliation: '', location: '', rating: 5, comment: '' });
   const [submitting,  setSubmitting]  = useState(false);
   const [submitted,   setSubmitted]   = useState(false);
   const [error,       setError]       = useState('');
@@ -352,6 +515,7 @@ export default function ReaderReviews({
       rating:       formData.rating,
       comment:      formData.comment.trim(),
       date:         new Date().toISOString().split('T')[0],
+      replies:      [],
     };
     setReviews((prev) => {
       const updated = [...prev, newReview];
@@ -386,7 +550,7 @@ export default function ReaderReviews({
   return (
     <div className="mt-8">
 
-      {/* Section heading — unchanged from original */}
+      {/* Section heading */}
       <div className="flex items-center gap-3 mb-6">
         <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, #283583, transparent)' }} />
         <h2 className="text-lg font-black px-2" style={{ fontFamily: "'Playfair Display', serif", color: '#283583' }}>
@@ -395,11 +559,9 @@ export default function ReaderReviews({
         <div className="h-px flex-1" style={{ background: 'linear-gradient(to left, #283583, transparent)' }} />
       </div>
 
-      {/* ── Submission form — shown until submitted ── */}
+      {/* Submission form */}
       {!submitted ? (
         <div className="rounded-xl overflow-hidden mb-6" style={{ border: '1.5px solid #283583' }}>
-
-          {/* Form header — unchanged from original */}
           <div className="px-5 py-3 flex items-center gap-3" style={{ background: '#283583' }}>
             <div className="flex flex-col h-6 w-1 rounded-sm overflow-hidden flex-shrink-0">
               <div className="flex-1" style={{ background: '#006600' }} />
@@ -407,15 +569,13 @@ export default function ReaderReviews({
               <div className="flex-1" style={{ background: '#000000' }} />
             </div>
             <div>
-              <p className="text-white font-black text-sm" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Share Your Response
-              </p>
+              <p className="text-white font-black text-sm" style={{ fontFamily: "'Playfair Display', serif" }}>Share Your Response</p>
               <p className="text-white/60 text-xs">What did you think of &ldquo;{issueTitle}&rdquo;?</p>
             </div>
           </div>
 
           <div className="bg-white p-5">
-            {/* Star rating — unchanged */}
+            {/* Star rating */}
             <div className="mb-4">
               <p className="text-sm font-semibold text-gray-700 mb-2">Your Rating</p>
               <div className="flex gap-1">
@@ -427,8 +587,7 @@ export default function ReaderReviews({
                     className="transition-transform hover:scale-110 active:scale-95">
                     <svg width="28" height="28" viewBox="0 0 16 16"
                       fill={s <= (hoveredStar || formData.rating) ? '#EF6203' : 'none'}
-                      stroke={s <= (hoveredStar || formData.rating) ? '#EF6203' : '#d1d5db'}
-                      strokeWidth="1.2">
+                      stroke={s <= (hoveredStar || formData.rating) ? '#EF6203' : '#d1d5db'} strokeWidth="1.2">
                       <path d="M8 1l1.9 4 4.4.6-3.2 3.1.8 4.4L8 11l-3.9 2.1.8-4.4L1.7 5.6l4.4-.6z" />
                     </svg>
                   </button>
@@ -436,7 +595,7 @@ export default function ReaderReviews({
               </div>
             </div>
 
-            {/* Name + Affiliation (NEW — sits where Name + Location used to be) */}
+            {/* Name + Affiliation */}
             <div className="grid sm:grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="text-sm font-semibold text-gray-700 mb-1 block">
@@ -445,74 +604,59 @@ export default function ReaderReviews({
                 <input type="text" placeholder="e.g. James Mwangi"
                   value={formData.reviewerName}
                   onChange={(e) => setFormData({ ...formData, reviewerName: e.target.value })}
-                  className={inputClass} style={inputStyle}
-                  onFocus={onFocus} onBlur={onBlur} />
+                  className={inputClass} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                  Title / Affiliation
-                  <span className="ml-1 font-normal text-gray-400 text-xs">(optional)</span>
+                  Title / Affiliation <span className="font-normal text-gray-400 text-xs">(optional)</span>
                 </label>
                 <input type="text" placeholder="e.g. Economist, MP Kiambu, Prof. UoN"
                   value={formData.affiliation}
                   onChange={(e) => setFormData({ ...formData, affiliation: e.target.value })}
-                  className={inputClass} style={inputStyle}
-                  onFocus={onFocus} onBlur={onBlur} />
+                  className={inputClass} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
               </div>
             </div>
 
-            {/* Location — now its own row below */}
+            {/* Location */}
             <div className="mb-3">
               <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                Location
-                <span className="ml-1 font-normal text-gray-400 text-xs">(optional)</span>
+                Location <span className="font-normal text-gray-400 text-xs">(optional)</span>
               </label>
-              <input type="text" placeholder="e.g. Nairobi, Nyeri..."
+              <input type="text" placeholder="e.g. Nairobi, Nyeri…"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className={inputClass} style={inputStyle}
-                onFocus={onFocus} onBlur={onBlur} />
+                className={inputClass} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
             </div>
 
-            {/* Response textarea — placeholder from Sanity responsePrompt */}
+            {/* Response textarea */}
             <div className="mb-4">
               <label className="text-sm font-semibold text-gray-700 mb-1 block">
                 Your Response <span style={{ color: '#cd171a' }}>*</span>
               </label>
-              <textarea rows={4}
-                placeholder={prompt}
+              <textarea rows={4} placeholder={prompt}
                 value={formData.comment}
                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                className={`${inputClass} resize-none`} style={inputStyle}
-                onFocus={onFocus} onBlur={onBlur} />
+                className={`${inputClass} resize-none`} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
             </div>
 
-            {error && (
-              <p className="text-sm font-semibold mb-3" style={{ color: '#cd171a' }}>{error}</p>
-            )}
+            {error && <p className="text-sm font-semibold mb-3" style={{ color: '#cd171a' }}>{error}</p>}
 
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <button type="button" onClick={handleSubmit}
-                disabled={submitting || !formData.reviewerName.trim() || !formData.comment.trim()}
-                className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
-                style={{ background: submitting ? '#9ca3af' : '#283583' }}>
-                {submitting && (
-                  <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
-                    style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
-                )}
-                {submitting ? 'Posting…' : 'Submit Response'}
-              </button>
-
-            </div>
+            <button type="button" onClick={handleSubmit}
+              disabled={submitting || !formData.reviewerName.trim() || !formData.comment.trim()}
+              className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+              style={{ background: submitting ? '#9ca3af' : '#283583' }}>
+              {submitting && (
+                <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
+                  style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
+              )}
+              {submitting ? 'Posting…' : 'Submit Response'}
+            </button>
           </div>
         </div>
-
       ) : (
-        /* Success state — unchanged from original */
         <div className="rounded-xl px-5 py-4 mb-6 flex items-center gap-3"
           style={{ background: 'rgba(63,165,53,0.08)', border: '1.5px solid #3fa53540' }}>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: '#3fa535' }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#3fa535' }}>
             <svg width="16" height="16" fill="none" stroke="white" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -526,7 +670,7 @@ export default function ReaderReviews({
         </div>
       )}
 
-      {/* ── Review cards ── */}
+      {/* Review cards */}
       {reviews.length === 0 ? (
         <p className="text-sm text-gray-400 italic text-center py-4">
           No reviews yet. Be the first to share your thoughts.
@@ -534,13 +678,7 @@ export default function ReaderReviews({
       ) : (
         <div className="space-y-3">
           {reviews.map((r, i) => (
-            <ReviewCard
-              key={r._key || i}
-              r={r}
-              index={i}
-              isNewest={i === newestIndex}
-              issueId={issueId}
-            />
+            <ReviewCard key={r._key || i} r={r} index={i} isNewest={i === newestIndex} issueId={issueId} />
           ))}
         </div>
       )}
