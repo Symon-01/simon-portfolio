@@ -1,5 +1,4 @@
 // FILE: sanity/schemaTypes/leadershipReview.ts
-
 import { defineField, defineType } from 'sanity'
 
 export default defineType({
@@ -78,23 +77,44 @@ export default defineType({
       validation: Rule => Rule.required(),
     }),
 
-    // ── Online Article Settings ───────────────────────────────────────────────
+    // ── Online Article Colour Settings ────────────────────────────────────────
+    // These two fields are SEPARATE so you can mix colours per issue.
+    // e.g. intro card = blue, pull quotes = green.
+
     defineField({
       name: 'introCardColor',
-      title: 'Intro Card & Quote Colour',
+      title: 'Intro Paragraph Card Colour',
       type: 'string',
       description:
-        'Choose the accent colour for the intro paragraph highlight card and all pull quotes in the online view. You can change this per issue.',
+        'Colour of the highlighted intro paragraph card (the very first paragraph) and all drop cap letters in the online view.',
       options: {
         list: [
           { title: '🔵 Blue', value: 'blue' },
-          { title: '🔴 Red', value: 'red' },
+          { title: '🔴 Red',  value: 'red'  },
           { title: '🟢 Green', value: 'green' },
         ],
         layout: 'radio',
       },
       initialValue: 'blue',
     }),
+
+    defineField({
+      name: 'quoteColor',
+      title: 'Pull Quote / Blockquote Colour',
+      type: 'string',
+      description:
+        'Colour of the pull quote / blockquote cards in the online view. Set this independently from the intro card colour above.',
+      options: {
+        list: [
+          { title: '🔵 Blue', value: 'blue' },
+          { title: '🔴 Red',  value: 'red'  },
+          { title: '🟢 Green', value: 'green' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'blue',
+    }),
+
     defineField({
       name: 'articleContent',
       title: 'Article Content (Web / Online Version)',
@@ -159,8 +179,6 @@ export default defineType({
     }),
 
     // ── Reader Response Prompt ────────────────────────────────────────────────
-    // NEW: Editable per issue. Shown as the placeholder inside the response
-    // textarea so you can tailor the question to each article's topic.
     defineField({
       name: 'responsePrompt',
       title: 'Reader Response Prompt',
@@ -169,8 +187,8 @@ export default defineType({
         'The question shown inside the response text box. Change this per issue to ask readers something specific about the story. e.g. "What does double-degree leadership mean for Kenyan politics?"',
       placeholder: 'e.g. What did you think of this issue? Which story resonated most with you?',
     }),
-    // ─────────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────────
     defineField({
       name: 'featuredLeader',
       title: 'Featured Leader',
@@ -207,16 +225,16 @@ export default defineType({
       of: [{ type: 'string' }],
       options: {
         list: [
-          { title: 'Education', value: 'Education' },
-          { title: 'Policy', value: 'Policy' },
-          { title: 'County Leadership', value: 'County Leadership' },
+          { title: 'Education',           value: 'Education'           },
+          { title: 'Policy',              value: 'Policy'              },
+          { title: 'County Leadership',   value: 'County Leadership'   },
           { title: 'National Leadership', value: 'National Leadership' },
-          { title: 'Constituency', value: 'Constituency' },
-          { title: 'Special Edition', value: 'Special Edition' },
-          { title: 'Monthly Edition', value: 'Monthly Edition' },
-          { title: 'Infrastructure', value: 'Infrastructure' },
-          { title: 'Health', value: 'Health' },
-          { title: 'Business', value: 'Business' },
+          { title: 'Constituency',        value: 'Constituency'        },
+          { title: 'Special Edition',     value: 'Special Edition'     },
+          { title: 'Monthly Edition',     value: 'Monthly Edition'     },
+          { title: 'Infrastructure',      value: 'Infrastructure'      },
+          { title: 'Health',              value: 'Health'              },
+          { title: 'Business',            value: 'Business'            },
         ],
       },
     }),
@@ -240,7 +258,6 @@ export default defineType({
           name: 'review',
           fields: [
             defineField({ name: 'reviewerName', title: 'Reviewer Name', type: 'string' }),
-            // NEW: Title / Affiliation field
             defineField({
               name: 'affiliation',
               title: 'Title / Affiliation',
@@ -258,9 +275,9 @@ export default defineType({
               description: 'Pending = not yet reviewed. Approved = shows publicly. Rejected = hidden.',
               options: {
                 list: [
-                  { title: '⏳ Pending (default — not shown yet)', value: 'pending' },
-                  { title: '✅ Approved (shows on the website)', value: 'approved' },
-                  { title: "❌ Rejected (hidden, won't show)", value: 'rejected' },
+                  { title: '⏳ Pending (default — not shown yet)', value: 'pending'  },
+                  { title: '✅ Approved (shows on the website)',    value: 'approved' },
+                  { title: "❌ Rejected (hidden, won't show)",      value: 'rejected' },
                 ],
                 layout: 'radio',
               },
@@ -275,8 +292,10 @@ export default defineType({
               of: [{
                 type: 'object',
                 fields: [
-                  defineField({ name: 'text', title: 'Reply Text', type: 'text', rows: 2 }),
-                  defineField({ name: 'date', title: 'Date', type: 'date' }),
+                  defineField({ name: 'text',        title: 'Reply Text',   type: 'text',   rows: 2 }),
+                  defineField({ name: 'date',        title: 'Date',         type: 'date'            }),
+                  defineField({ name: 'authorName',  title: 'Author Name',  type: 'string'          }),
+                  defineField({ name: 'affiliation', title: 'Affiliation',  type: 'string'          }),
                 ],
                 preview: {
                   select: { title: 'text', subtitle: 'date' },
@@ -289,8 +308,8 @@ export default defineType({
           ],
           preview: {
             select: {
-              title: 'reviewerName',
-              subtitle: 'status',
+              title:       'reviewerName',
+              subtitle:    'status',
               description: 'comment',
               affiliation: 'affiliation',
             },
@@ -300,7 +319,7 @@ export default defineType({
               const e = subtitle === 'approved' ? '✅' : subtitle === 'rejected' ? '❌' : '⏳';
               const nameLabel = affiliation ? `${title} · ${affiliation}` : title;
               return {
-                title: nameLabel ?? 'Anonymous',
+                title:    nameLabel ?? 'Anonymous',
                 subtitle: `${e} ${subtitle ?? 'pending'} — ${description?.slice(0, 60) ?? ''}…`,
               };
             },
@@ -314,7 +333,7 @@ export default defineType({
     select: { title: 'title', subtitle: 'featuredLeader', media: 'coverImage' },
     prepare({ title, subtitle, media }: { title: string; subtitle: string; media: any }) {
       return {
-        title: title ?? 'Untitled Issue',
+        title:    title ?? 'Untitled Issue',
         subtitle: subtitle ? `Featured: ${subtitle}` : 'No leader specified',
         media,
       };

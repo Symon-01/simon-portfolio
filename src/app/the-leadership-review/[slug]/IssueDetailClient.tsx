@@ -1,9 +1,5 @@
 'use client';
 // FILE: src/app/the-leadership-review/[slug]/IssueDetailClient.tsx
-//
-// This component now receives the pre-fetched `issue` as a prop from the
-// server component (page.tsx). No useEffect, no loading spinner, no duplicate
-// network call. The page renders instantly with server data.
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -36,18 +32,12 @@ async function triggerDownload(url: string, filename: string) {
   }
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
 interface Props {
-  // issue can be null if the slug doesn't match any document in Sanity
   issue: LeadershipReviewIssue | null;
 }
 
-// ── Main client component ─────────────────────────────────────────────────────
 export default function IssueDetailClient({ issue }: Props) {
   const [downloading, setDownloading] = useState(false);
-  // viewMode is lifted to page level so:
-  // - OnlineArticleView renders as a sibling of the PDF viewer (not inside it)
-  // - The toolbar controls both from one place
   const [viewMode, setViewMode] = useState<'pdf' | 'online'>('pdf');
 
   const handleDownload = async () => {
@@ -97,8 +87,6 @@ export default function IssueDetailClient({ issue }: Props) {
     />
   );
 
-  // ── Shared toolbar ─────────────────────────────────────────────────────────
-  // Rendered at page level — controls viewMode for both desktop and mobile.
   const toolbar = pdfUrl ? (
     <ViewerToolbar
       title={issue.title}
@@ -110,16 +98,20 @@ export default function IssueDetailClient({ issue }: Props) {
     />
   ) : null;
 
-  // ── Online article (page-level, outside the PDF viewer card) ───────────────
-  // FIX: issueTitle is now passed so the headline appears above the article body
-  // in Read Online mode. Previously this prop was missing, which is why the
-  // intro card and headline were not showing.
+  // ── Online article view ────────────────────────────────────────────────────
+  // NOTE: We do NOT pass issueTitle as a prop here.
+  // Your Sanity article content already begins with the issue title as the
+  // first H2 block. Passing it separately caused a duplicate heading.
+  // The OnlineArticleView Portable Text renderer handles the title styling.
+  //
+  // We DO pass both introCardColor and quoteColor so they can be set
+  // independently per-issue in Sanity Studio (e.g. blue intro + green quotes).
   const onlineArticle =
     viewMode === 'online' && hasOnlineVersion ? (
       <OnlineArticleView
         articleContent={issue.articleContent!}
         introCardColor={issue.introCardColor}
-        issueTitle={issue.title}
+        quoteColor={issue.quoteColor}
       />
     ) : null;
 
@@ -129,21 +121,14 @@ export default function IssueDetailClient({ issue }: Props) {
       <main className="min-h-screen bg-gray-50">
         <IssueMasthead issue={issue} />
         <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pb-16 pt-6">
-          {/* ── Desktop layout ───────────────────────────────────────────────── */}
+
+          {/* ── Desktop layout ─────────────────────────────────────────────── */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
-            {/* Main column */}
             <div>
               {pdfUrl ? (
                 <>
-                  {/* Toolbar — controls page-level viewMode */}
                   {toolbar}
-                  {/*
-                    Online article — renders here at column level, not inside
-                    the PDF viewer. Natural DOM position = Google can see it
-                    (backed up by the sr-only server copy in page.tsx).
-                  */}
                   {onlineArticle}
-                  {/* PDF canvas viewer — only mounted in pdf mode */}
                   {viewMode === 'pdf' && (
                     <DesktopPdfViewer
                       pdfUrl={pdfUrl}
@@ -165,7 +150,6 @@ export default function IssueDetailClient({ issue }: Props) {
               )}
               {reviewsSection}
             </div>
-            {/* Desktop sidebar */}
             <div className="flex flex-col gap-4 sticky top-6">
               <IssueInfoPanel
                 issue={issue}
@@ -179,7 +163,7 @@ export default function IssueDetailClient({ issue }: Props) {
             </div>
           </div>
 
-          {/* ── Mobile layout ────────────────────────────────────────────────── */}
+          {/* ── Mobile layout ──────────────────────────────────────────────── */}
           <div className="lg:hidden flex flex-col gap-4">
             <IssueInfoPanel
               issue={issue}

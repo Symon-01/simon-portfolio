@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       date: new Date().toISOString().split('T')[0],
       status: 'approved',
       isHidden: false,
+      helpfulCount: 0,   // initialised at zero when review is created
       replies: [],
     };
 
@@ -122,14 +123,49 @@ export async function POST(request: Request) {
   }
 }
 
-// ── PATCH — append a reply to an existing review ──────────────────────────────
-// Body: { issueId, reviewKey, replyText, authorName, affiliation }
-// Finds the review by _key and appends to its replies[] array in Sanity.
-// FIX: authorName and affiliation are now saved to Sanity so they persist
-// after a page refresh, instead of only existing in local React state.
+// ── PATCH — two operations depending on `type` field in body ──────────────────
+//
+//  type: 'reply'   → append a reply to a review's replies[] array
+//  type: 'helpful' → increment helpfulCount on a specific review
+//
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
+    const { type = 'reply' } = body;
+
+    // ── helpful: increment helpfulCount ──────────────────────────────────────
+    if (type === 'helpful') {
+      const { issueId, reviewKey } = body;
+
+      if (!issueId || !reviewKey) {
+        return NextResponse.json(
+          { error: 'Missing required fields: issueId and reviewKey.' },
+          { status: 400 }
+        );
+      }
+
+      // Fetch the document so we can read the current helpfulCount
+      const doc = await sanity.fetch(
+        `*[_id == $issueId][0]{
+          "review": reviews[_key == $reviewKey][0]{ helpfulCount }
+        }`,
+        { issueId, reviewKey }
+      );
+
+      const current = doc?.review?.helpfulCount ?? 0;
+
+      await sanity
+        .patch(issueId)
+        .set({ [`reviews[_key=="${reviewKey}"].helpfulCount`]: current + 1 })
+        .commit();
+
+      return NextResponse.json(
+        { success: true, helpfulCount: current + 1 },
+        { status: 200 }
+      );
+    }
+
+    // ── reply: append a reply to a review ────────────────────────────────────
     const { issueId, reviewKey, replyText, authorName, affiliation } = body;
 
     if (!issueId || !reviewKey || !replyText?.trim()) {
@@ -143,13 +179,10 @@ export async function PATCH(request: Request) {
       _key: `reply_${Date.now()}`,
       text: replyText.trim(),
       date: new Date().toISOString().split('T')[0],
-      // FIX: these two fields were missing before — they are now saved to Sanity
-      // so the reply author name and affiliation survive a page refresh.
       authorName:  authorName?.trim()  || 'Anonymous',
       affiliation: affiliation?.trim() || '',
     };
 
-    // Use Sanity's array path notation to append to the specific review's replies
     await sanity
       .patch(issueId)
       .setIfMissing({ [`reviews[_key=="${reviewKey}"].replies`]: [] })
@@ -160,10 +193,11 @@ export async function PATCH(request: Request) {
       { success: true, reply: newReply },
       { status: 200 }
     );
+
   } catch (error: any) {
-    console.error('[Leadership Review] Reply submission error:', error?.message || error);
+    console.error('[Leadership Review] PATCH error:', error?.message || error);
     return NextResponse.json(
-      { error: 'Something went wrong while saving your reply. Please try again.' },
+      { error: 'Something went wrong. Please try again.' },
       { status: 500 }
     );
   }

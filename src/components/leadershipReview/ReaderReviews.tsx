@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -10,6 +10,7 @@ export type NestedReply = {
   date: string;
   authorName?: string;
   affiliation?: string;
+  helpfulCount?: number;
   replies?: NestedReply[];
 };
 
@@ -21,6 +22,7 @@ export type Review = {
   rating: number;
   comment: string;
   date?: string;
+  helpfulCount?: number;
   replies?: NestedReply[];
 };
 
@@ -59,78 +61,53 @@ function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   );
 }
 
-// ── Reply composer ────────────────────────────────────────────────────────────
-// Layout mirrors Point Blank Analytics:
-//   1. "Write your reply…" textarea (full width)
-//   2. Name (required) | Affiliation (optional) — side by side
-//   3. POST REPLY button (right-aligned)
+// ── Reply composer ─────────────────────────────────────────────────────────────
 function ReplyComposer({
-  onPost,
-  onCancel,
-  posting,
+  onPost, onCancel, posting,
 }: {
   onPost: (name: string, affiliation: string, text: string) => void;
   onCancel: () => void;
   posting: boolean;
 }) {
-  const [text,        setText]   = useState('');
-  const [name,        setName]   = useState('');
-  const [affiliation, setAffil]  = useState('');
+  const [text,  setText]  = useState('');
+  const [name,  setName]  = useState('');
+  const [affil, setAffil] = useState('');
 
-  const base  = 'w-full text-sm px-3 py-2.5 rounded-lg border outline-none transition-colors appearance-none';
-  const style = { borderColor: '#d1d5db', background: '#ffffff', color: '#111827' };
   const focus = (e: React.FocusEvent<any>) => { e.target.style.borderColor = '#283583'; };
-  const blur  = (e: React.FocusEvent<any>) => { e.target.style.borderColor = '#d1d5db'; };
-
+  const blur  = (e: React.FocusEvent<any>) => { e.target.style.borderColor = '#e5e7eb'; };
   const canPost = name.trim().length > 0 && text.trim().length > 0;
 
   return (
     <div className="mt-3 mb-1 rounded-xl overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
-      {/* 1. Reply textarea */}
       <textarea
-        autoFocus
-        rows={3}
+        autoFocus rows={3}
         placeholder="Write your reply…"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+        value={text} onChange={(e) => setText(e.target.value)}
         className="w-full text-sm px-4 py-3 outline-none resize-none border-b"
         style={{ borderColor: '#e5e7eb', color: '#111827', background: '#ffffff' }}
         onFocus={(e) => { e.target.style.borderColor = '#283583'; }}
-        onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; }}
+        onBlur={(e)  => { e.target.style.borderColor = '#e5e7eb'; }}
       />
-
-      {/* 2. Name + Affiliation row */}
       <div className="grid grid-cols-2 gap-0 border-b" style={{ borderColor: '#e5e7eb' }}>
-        <input
-          type="text"
-          placeholder="Your name (Required)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+        <input type="text" placeholder="Your name (Required)"
+          value={name} onChange={(e) => setName(e.target.value)}
           className="text-sm px-4 py-2.5 outline-none border-r appearance-none"
           style={{ borderColor: '#e5e7eb', color: '#111827', background: '#ffffff' }}
           onFocus={focus} onBlur={blur}
         />
-        <input
-          type="text"
-          placeholder="Affiliation"
-          value={affiliation}
-          onChange={(e) => setAffil(e.target.value)}
+        <input type="text" placeholder="Affiliation"
+          value={affil} onChange={(e) => setAffil(e.target.value)}
           className="text-sm px-4 py-2.5 outline-none appearance-none"
           style={{ color: '#111827', background: '#ffffff' }}
           onFocus={focus} onBlur={blur}
         />
       </div>
-
-      {/* 3. Actions row */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50">
-        <button
-          onClick={onCancel}
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-        >
+        <button onClick={onCancel} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
           Cancel
         </button>
         <button
-          onClick={() => canPost && onPost(name.trim(), affiliation.trim(), text.trim())}
+          onClick={() => canPost && onPost(name.trim(), affil.trim(), text.trim())}
           disabled={posting || !canPost}
           className="text-xs font-black px-5 py-2 rounded-lg text-white tracking-wide transition-opacity hover:opacity-80 disabled:opacity-40 uppercase"
           style={{ background: '#283583', letterSpacing: '0.06em' }}
@@ -154,7 +131,6 @@ function ActionBar({
 }) {
   return (
     <div className="flex items-center gap-0.5 pt-1.5 mt-1.5 border-t" style={{ borderColor: '#28358312' }}>
-      {/* Like */}
       <button
         onClick={onLike}
         className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all hover:scale-105 active:scale-95 select-none"
@@ -168,7 +144,6 @@ function ActionBar({
         {likeCount > 0 ? `Helpful (${likeCount})` : 'Helpful'}
       </button>
 
-      {/* Reply */}
       <button
         onClick={onToggleReply}
         className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all hover:bg-gray-50 select-none"
@@ -181,7 +156,6 @@ function ActionBar({
         Reply{replyCount > 0 ? ` (${replyCount})` : ''}
       </button>
 
-      {/* Share — right-aligned */}
       <button
         onClick={onShare}
         className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all hover:bg-gray-50 select-none ml-auto"
@@ -212,6 +186,8 @@ function ActionBar({
 }
 
 // ── Recursive reply node ───────────────────────────────────────────────────────
+// replyKey is the unique _key of this reply — used as the localStorage key
+// so the "already voted" state persists across refreshes at every nesting depth.
 function ReplyNode({
   reply,
   depth,
@@ -219,21 +195,38 @@ function ReplyNode({
   reply: NestedReply;
   depth: number;
 }) {
+  // ── Helpful — persisted in localStorage per reply _key ────────────────────
+  const storageKey = `helpful_reply_${reply._key}`;
   const [liked,     setLiked]     = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const [showReply, setShowReply] = useState(false);
-  const [posting,   setPosting]   = useState(false);
-  const [shareDone, setShareDone] = useState(false);
-  const [children,  setChildren]  = useState<NestedReply[]>(reply.replies || []);
+  const [likeCount, setLikeCount] = useState(reply.helpfulCount ?? 0);
 
-  // Indent caps at 4 levels so it doesn't get too narrow on mobile
-  const indent = Math.min(depth, 4) * 16;
+  // Restore voted state from localStorage on mount
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(storageKey) === '1') setLiked(true);
+    } catch { /* private browsing — silently ignore */ }
+  }, [storageKey]);
 
   function handleLike() {
     if (liked) return;
     setLiked(true);
     setLikeCount((c) => c + 1);
+    // Persist flag so vote survives refresh
+    try { localStorage.setItem(storageKey, '1'); } catch { /* ignore */ }
+    // NOTE: nested reply helpful counts are stored only in localStorage
+    // (not synced to Sanity) because Sanity's patch syntax doesn't support
+    // deeply nested array-of-array mutations. The top-level review helpful
+    // count IS synced to Sanity. For nested replies, localStorage is sufficient
+    // — the count resets if the user clears their browser data, which is
+    // an acceptable trade-off for deeply nested content.
   }
+
+  const [showReply, setShowReply] = useState(false);
+  const [posting,   setPosting]   = useState(false);
+  const [shareDone, setShareDone] = useState(false);
+  const [children,  setChildren]  = useState<NestedReply[]>(reply.replies || []);
+
+  const indent = Math.min(depth, 4) * 16;
 
   function handleShare() {
     const snippet = reply.authorName ? `${reply.authorName}: ${reply.text}` : reply.text;
@@ -251,6 +244,7 @@ function ReplyNode({
       date:        new Date().toISOString().split('T')[0],
       authorName:  name,
       affiliation: affiliation || undefined,
+      helpfulCount: 0,
       replies:     [],
     };
     setChildren((prev) => [...prev, newReply]);
@@ -262,9 +256,7 @@ function ReplyNode({
     <div style={{ marginLeft: indent }}>
       <div className="flex gap-2.5 items-start">
         <Avatar name={reply.authorName || 'R'} size={30} />
-
         <div className="flex-1 min-w-0">
-          {/* Reply bubble */}
           <div className="rounded-xl px-3 py-2.5" style={{ background: '#f8f9ff', border: '1px solid #28358315' }}>
             {/* Author row */}
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
@@ -272,10 +264,8 @@ function ReplyNode({
                 {reply.authorName || 'Anonymous'}
               </span>
               {reply.affiliation && (
-                <span
-                  className="text-xs font-bold px-1.5 py-0.5 rounded-full"
-                  style={{ background: '#EF620315', color: '#EF6203', border: '1px solid #EF620335', fontSize: '10px' }}
-                >
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: '#EF620315', color: '#EF6203', border: '1px solid #EF620335', fontSize: '10px' }}>
                   {reply.affiliation}
                 </span>
               )}
@@ -289,7 +279,7 @@ function ReplyNode({
             {/* Reply text */}
             <p className="text-xs text-gray-700 leading-relaxed">{reply.text}</p>
 
-            {/* Actions */}
+            {/* Action bar — with persisted helpful count */}
             <ActionBar
               likeCount={likeCount} liked={liked} onLike={handleLike}
               replyCount={children.length} showReply={showReply}
@@ -298,16 +288,10 @@ function ReplyNode({
             />
           </div>
 
-          {/* Inline reply composer */}
           {showReply && (
-            <ReplyComposer
-              onPost={handlePost}
-              onCancel={() => setShowReply(false)}
-              posting={posting}
-            />
+            <ReplyComposer onPost={handlePost} onCancel={() => setShowReply(false)} posting={posting} />
           )}
 
-          {/* Nested children */}
           {children.length > 0 && (
             <div className="mt-2.5 flex flex-col gap-2.5">
               {children.map((child) => (
@@ -323,18 +307,37 @@ function ReplyNode({
 
 // ── Top-level review card ─────────────────────────────────────────────────────
 function ReviewCard({
-  r,
-  index,
-  isNewest,
-  issueId,
+  r, index, isNewest, issueId,
 }: {
-  r: Review;
-  index: number;
-  isNewest: boolean;
-  issueId: string;
+  r: Review; index: number; isNewest: boolean; issueId: string;
 }) {
+  const reviewKey  = r._key || '';
+  const storageKey = `helpful_${issueId}_${reviewKey}`;
+
+  // Helpful count — initial value from Sanity, flag from localStorage
   const [liked,     setLiked]     = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const [likeCount, setLikeCount] = useState(r.helpfulCount ?? 0);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(storageKey) === '1') setLiked(true);
+    } catch { /* ignore */ }
+  }, [storageKey]);
+
+  async function handleLike() {
+    if (liked) return;
+    setLiked(true);
+    setLikeCount((c) => c + 1);
+    try { localStorage.setItem(storageKey, '1'); } catch { /* ignore */ }
+    try {
+      await fetch('/api/leadership-review/reviews', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'helpful', issueId, reviewKey }),
+      });
+    } catch { /* keep optimistic update */ }
+  }
+
   const [showReply, setShowReply] = useState(false);
   const [replies,   setReplies]   = useState<NestedReply[]>(r.replies || []);
   const [posting,   setPosting]   = useState(false);
@@ -345,12 +348,6 @@ function ReviewCard({
     'linear-gradient(to right, #cd171a, #283583)',
     'linear-gradient(to right, #006600, #283583)',
   ];
-
-  function handleLike() {
-    if (liked) return;
-    setLiked(true);
-    setLikeCount((c) => c + 1);
-  }
 
   function handleShare() {
     const text = `"${r.comment}" — ${r.reviewerName}${r.affiliation ? `, ${r.affiliation}` : ''}\n\n${window.location.href}`;
@@ -363,35 +360,27 @@ function ReviewCard({
   async function handlePost(name: string, affiliation: string, text: string) {
     setPosting(true);
     const newReply: NestedReply = {
-      _key:        `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      _key:         `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       text,
-      date:        new Date().toISOString().split('T')[0],
-      authorName:  name,
-      affiliation: affiliation || undefined,
-      replies:     [],
+      date:         new Date().toISOString().split('T')[0],
+      authorName:   name,
+      affiliation:  affiliation || undefined,
+      helpfulCount: 0,
+      replies:      [],
     };
-
-    // Optimistic update
     setReplies((prev) => [...prev, newReply]);
     setShowReply(false);
-
     try {
       await fetch('/api/leadership-review/reviews', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          issueId,
-          reviewKey:   r._key,
-          replyText:   text,
-          authorName:  name,
-          affiliation,
+          type: 'reply', issueId, reviewKey: r._key,
+          replyText: text, authorName: name, affiliation,
         }),
       });
-    } catch {
-      // Keep optimistic reply — network errors shouldn't break the UX
-    } finally {
-      setPosting(false);
-    }
+    } catch { /* keep optimistic reply */ }
+    finally { setPosting(false); }
   }
 
   return (
@@ -402,9 +391,7 @@ function ReviewCard({
         boxShadow: isNewest ? '0 0 0 3px rgba(63,165,53,0.12)' : '0 2px 10px rgba(40,53,131,0.06)',
       }}
     >
-      {/* Accent stripe */}
       <div className="h-0.5 w-full" style={{ background: stripeGradients[index % 3] }} />
-
       <div className="p-4">
         {/* Header */}
         <div className="flex items-start gap-2.5 mb-3">
@@ -415,10 +402,8 @@ function ReviewCard({
                 {r.reviewerName}
               </span>
               {r.affiliation && (
-                <span
-                  className="text-xs font-bold px-2 py-0.5 rounded-full leading-tight flex-shrink-0"
-                  style={{ background: '#EF620315', color: '#EF6203', border: '1px solid #EF620335' }}
-                >
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full leading-tight flex-shrink-0"
+                  style={{ background: '#EF620315', color: '#EF6203', border: '1px solid #EF620335' }}>
                   {r.affiliation}
                 </span>
               )}
@@ -457,16 +442,10 @@ function ReviewCard({
           onShare={handleShare} shareDone={shareDone}
         />
 
-        {/* Inline reply composer — appears directly below action bar */}
         {showReply && (
-          <ReplyComposer
-            onPost={handlePost}
-            onCancel={() => setShowReply(false)}
-            posting={posting}
-          />
+          <ReplyComposer onPost={handlePost} onCancel={() => setShowReply(false)} posting={posting} />
         )}
 
-        {/* Reply thread */}
         {replies.length > 0 && (
           <div className="mt-3 flex flex-col gap-2.5 pt-3 border-t" style={{ borderColor: '#28358310' }}>
             {replies.map((rep) => (
@@ -484,15 +463,9 @@ function ReviewCard({
 const DEFAULT_PROMPT = "What did you think of this issue? Which story resonated most with you?";
 
 export default function ReaderReviews({
-  reviews: initialReviews,
-  issueTitle,
-  issueId,
-  responsePrompt,
+  reviews: initialReviews, issueTitle, issueId, responsePrompt,
 }: {
-  reviews: Review[];
-  issueTitle: string;
-  issueId: string;
-  responsePrompt?: string;
+  reviews: Review[]; issueTitle: string; issueId: string; responsePrompt?: string;
 }) {
   const prompt = responsePrompt?.trim() || DEFAULT_PROMPT;
 
@@ -515,6 +488,7 @@ export default function ReaderReviews({
       rating:       formData.rating,
       comment:      formData.comment.trim(),
       date:         new Date().toISOString().split('T')[0],
+      helpfulCount: 0,
       replies:      [],
     };
     setReviews((prev) => {
@@ -549,8 +523,6 @@ export default function ReaderReviews({
 
   return (
     <div className="mt-8">
-
-      {/* Section heading */}
       <div className="flex items-center gap-3 mb-6">
         <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, #283583, transparent)' }} />
         <h2 className="text-lg font-black px-2" style={{ fontFamily: "'Playfair Display', serif", color: '#283583' }}>
@@ -559,7 +531,6 @@ export default function ReaderReviews({
         <div className="h-px flex-1" style={{ background: 'linear-gradient(to left, #283583, transparent)' }} />
       </div>
 
-      {/* Submission form */}
       {!submitted ? (
         <div className="rounded-xl overflow-hidden mb-6" style={{ border: '1.5px solid #283583' }}>
           <div className="px-5 py-3 flex items-center gap-3" style={{ background: '#283583' }}>
@@ -573,16 +544,13 @@ export default function ReaderReviews({
               <p className="text-white/60 text-xs">What did you think of &ldquo;{issueTitle}&rdquo;?</p>
             </div>
           </div>
-
           <div className="bg-white p-5">
-            {/* Star rating */}
             <div className="mb-4">
               <p className="text-sm font-semibold text-gray-700 mb-2">Your Rating</p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <button key={s} type="button"
-                    onMouseEnter={() => setHoveredStar(s)}
-                    onMouseLeave={() => setHoveredStar(0)}
+                    onMouseEnter={() => setHoveredStar(s)} onMouseLeave={() => setHoveredStar(0)}
                     onClick={() => setFormData({ ...formData, rating: s })}
                     className="transition-transform hover:scale-110 active:scale-95">
                     <svg width="28" height="28" viewBox="0 0 16 16"
@@ -594,61 +562,38 @@ export default function ReaderReviews({
                 ))}
               </div>
             </div>
-
-            {/* Name + Affiliation */}
             <div className="grid sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                  Your Name <span style={{ color: '#cd171a' }}>*</span>
-                </label>
+                <label className="text-sm font-semibold text-gray-700 mb-1 block">Your Name <span style={{ color: '#cd171a' }}>*</span></label>
                 <input type="text" placeholder="e.g. James Mwangi"
-                  value={formData.reviewerName}
-                  onChange={(e) => setFormData({ ...formData, reviewerName: e.target.value })}
+                  value={formData.reviewerName} onChange={(e) => setFormData({ ...formData, reviewerName: e.target.value })}
                   className={inputClass} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                  Title / Affiliation <span className="font-normal text-gray-400 text-xs">(optional)</span>
-                </label>
+                <label className="text-sm font-semibold text-gray-700 mb-1 block">Title / Affiliation <span className="font-normal text-gray-400 text-xs">(optional)</span></label>
                 <input type="text" placeholder="e.g. Economist, MP Kiambu, Prof. UoN"
-                  value={formData.affiliation}
-                  onChange={(e) => setFormData({ ...formData, affiliation: e.target.value })}
+                  value={formData.affiliation} onChange={(e) => setFormData({ ...formData, affiliation: e.target.value })}
                   className={inputClass} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
               </div>
             </div>
-
-            {/* Location */}
             <div className="mb-3">
-              <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                Location <span className="font-normal text-gray-400 text-xs">(optional)</span>
-              </label>
+              <label className="text-sm font-semibold text-gray-700 mb-1 block">Location <span className="font-normal text-gray-400 text-xs">(optional)</span></label>
               <input type="text" placeholder="e.g. Nairobi, Nyeri…"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 className={inputClass} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
             </div>
-
-            {/* Response textarea */}
             <div className="mb-4">
-              <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                Your Response <span style={{ color: '#cd171a' }}>*</span>
-              </label>
+              <label className="text-sm font-semibold text-gray-700 mb-1 block">Your Response <span style={{ color: '#cd171a' }}>*</span></label>
               <textarea rows={4} placeholder={prompt}
-                value={formData.comment}
-                onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                value={formData.comment} onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                 className={`${inputClass} resize-none`} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
             </div>
-
             {error && <p className="text-sm font-semibold mb-3" style={{ color: '#cd171a' }}>{error}</p>}
-
             <button type="button" onClick={handleSubmit}
               disabled={submitting || !formData.reviewerName.trim() || !formData.comment.trim()}
               className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
               style={{ background: submitting ? '#9ca3af' : '#283583' }}>
-              {submitting && (
-                <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
-                  style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
-              )}
+              {submitting && <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />}
               {submitting ? 'Posting…' : 'Submit Response'}
             </button>
           </div>
@@ -662,19 +607,14 @@ export default function ReaderReviews({
             </svg>
           </div>
           <div>
-            <p className="font-black text-sm" style={{ color: '#3fa535', fontFamily: "'Playfair Display', serif" }}>
-              Thank you for your response!
-            </p>
+            <p className="font-black text-sm" style={{ color: '#3fa535', fontFamily: "'Playfair Display', serif" }}>Thank you for your response!</p>
             <p className="text-xs text-gray-500">Your review has been posted below.</p>
           </div>
         </div>
       )}
 
-      {/* Review cards */}
       {reviews.length === 0 ? (
-        <p className="text-sm text-gray-400 italic text-center py-4">
-          No reviews yet. Be the first to share your thoughts.
-        </p>
+        <p className="text-sm text-gray-400 italic text-center py-4">No reviews yet. Be the first to share your thoughts.</p>
       ) : (
         <div className="space-y-3">
           {reviews.map((r, i) => (

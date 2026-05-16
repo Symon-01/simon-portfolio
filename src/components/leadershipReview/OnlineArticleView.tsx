@@ -6,26 +6,27 @@ import { PortableText } from '@portabletext/react';
 import { urlFor } from '@/lib/sanity.image';
 
 // ── Brand colour maps ──────────────────────────────────────────────────────────
-// introCardColor → controls the intro paragraph card + drop cap colour.
-// quoteColor     → controls blockquote / pull-quote colour (set separately).
-// Both are chosen independently per-issue in Sanity Studio.
+// introCardColor → controls intro paragraph card border/background + all drop caps.
+// quoteColor     → controls blockquote / pull-quote card colour independently.
+// You set these TWO fields separately per-issue in Sanity Studio.
+// Example: introCardColor = "blue", quoteColor = "green" → blue intro, green quotes.
 
 const introColorMap = {
   blue: {
     accent:     '#283583',
-    heroBg:     'rgba(40, 53, 131, 0.07)',
+    heroBg:     'rgba(40, 53, 131, 0.10)',
     heroBorder: '#283583',
     dropCap:    '#283583',
   },
   red: {
     accent:     '#BB0000',
-    heroBg:     'rgba(187, 0, 0, 0.07)',
+    heroBg:     'rgba(187, 0, 0, 0.10)',
     heroBorder: '#BB0000',
     dropCap:    '#BB0000',
   },
   green: {
     accent:     '#2e7d32',
-    heroBg:     'rgba(46, 125, 50, 0.07)',
+    heroBg:     'rgba(46, 125, 50, 0.10)',
     heroBorder: '#2e7d32',
     dropCap:    '#2e7d32',
   },
@@ -34,15 +35,15 @@ const introColorMap = {
 const quoteColorMap = {
   blue: {
     quote:   '#283583',
-    quoteBg: 'rgba(40, 53, 131, 0.05)',
+    quoteBg: 'rgba(40, 53, 131, 0.06)',
   },
   red: {
     quote:   '#BB0000',
-    quoteBg: 'rgba(187, 0, 0, 0.05)',
+    quoteBg: 'rgba(187, 0, 0, 0.06)',
   },
   green: {
     quote:   '#2e7d32',
-    quoteBg: 'rgba(46, 125, 50, 0.05)',
+    quoteBg: 'rgba(46, 125, 50, 0.06)',
   },
 } as const;
 
@@ -53,29 +54,45 @@ const globalStyle = (dropCapColor: string) => `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
 
   /*
-    Drop cap — newspaper style.
+    UNIFORM FONT: All body text in the reader uses Georgia serif, matching the
+    PDF layout. Previously only drop-cap paragraphs had Georgia; all others were
+    in the browser default sans-serif, creating an inconsistent look.
+  */
+  .tlr-article-body {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #374151;
+  }
 
-    IMPORTANT: font-size uses rem (not em) so it is always relative to the
-    root font size (16px), not the paragraph. This keeps it consistent whether
-    the paragraph has padding (intro card) or not.
+  /*
+    DROP CAP — newspaper style, matching the PDF exactly.
 
-    How the 3-line span works:
-      Body text: font-size ~1rem, line-height 1.6 → each line ≈ 1.6rem tall.
-      To span 3 lines: 3 × 1.6rem = 4.8rem → font-size: 4.8rem.
-      line-height: 0.85 shrinks the letter's own box so text wraps tightly.
-      margin-top: 0.08rem sits the top of the letter flush with line 1.
+    HOW THE 3-LINE SPAN WORKS:
+    Body line-height: 1.75rem (1rem font × 1.75).
+    To span exactly 3 lines: 3 × 1.75rem = 5.25rem → font-size: 5.25rem.
 
-    To change how many lines it spans:
-      2 lines → font-size: 3.2rem
-      3 lines → font-size: 4.8rem  (current)
-      4 lines → font-size: 6.4rem
+    line-height: 0.82 collapses the letter's invisible bounding box so that
+    the second and third lines of body text wrap up tightly next to it,
+    instead of leaving a gap below the letter.
+
+    margin-top: 0.05rem nudges the top of the letter to sit on the same
+    cap-line as the first line of body text.
+
+    margin-right: 8px gives a comfortable gap between the large letter and
+    the body text beside it.
+
+    NOTE: When the drop cap paragraph is inside the intro card (which has
+    14px padding), the letter visually appears to start 14px below the card's
+    top edge — this is correct newspaper behaviour (the card is the paragraph
+    box, the drop cap floats inside it).
   */
   .tlr-drop-cap::first-letter {
     float: left;
-    font-size: 4.8rem;
-    line-height: 0.85;
-    margin-top: 0.08rem;
-    margin-right: 6px;
+    font-size: 5.25rem;
+    line-height: 0.82;
+    margin-top: 0.05rem;
+    margin-right: 8px;
     margin-bottom: 0;
     font-family: 'Playfair Display', serif;
     font-weight: 400;
@@ -83,17 +100,25 @@ const globalStyle = (dropCapColor: string) => `
     color: ${dropCapColor};
   }
 
+  /* Scrollbar styling for the open reading pane */
   .tlr-reader-pane::-webkit-scrollbar        { width: 5px; }
   .tlr-reader-pane::-webkit-scrollbar-track  { background: transparent; }
   .tlr-reader-pane::-webkit-scrollbar-thumb  { background: #283583; border-radius: 3px; }
   .tlr-reader-pane::-webkit-scrollbar-thumb:hover { background: #1e2a6a; }
 `;
 
-// ── Portable Text component factory ───────────────────────────────────────────
-// sectionState.isIntro     → true for the very first normal paragraph
-//                            (renders the coloured intro card + drop cap)
-// sectionState.isFirstPara → true after every H2/H3
-//                            (next normal paragraph gets a drop cap, no card)
+// ── Section state ──────────────────────────────────────────────────────────────
+// isIntro:     true until the FIRST normal paragraph is rendered.
+//              The first normal paragraph gets the coloured card + drop cap.
+//              IMPORTANT: H2/H3 headings do NOT turn off isIntro anymore.
+//              This fixes the bug where your article starts with an H2 title
+//              (the issue name), which was consuming isIntro and leaving the
+//              first real paragraph with no card.
+//
+// isFirstPara: true immediately after an H2 or H3 is rendered.
+//              The next normal paragraph after a heading gets a drop cap only
+//              (no card). After that paragraph renders, isFirstPara = false.
+
 function buildComponents(
   introColor: AccentColor,
   qColor: AccentColor,
@@ -104,54 +129,57 @@ function buildComponents(
 
   return {
     block: {
+
+      // ── Normal paragraph ───────────────────────────────────────────────────
       normal: ({ children }: any) => {
-        // ── Very first paragraph: intro card + drop cap ──────────────────────
+
+        // First normal paragraph anywhere in the article → intro card + drop cap
         if (sectionState.isIntro) {
           sectionState.isIntro     = false;
           sectionState.isFirstPara = false;
           return (
             <p
-              className="tlr-drop-cap mb-5 text-gray-800 leading-relaxed text-base"
+              className="tlr-drop-cap mb-5 leading-relaxed"
               style={{
                 textAlign:    'justify',
-                fontFamily:   "'Georgia', serif",
                 background:   c.heroBg,
                 borderLeft:   `4px solid ${c.heroBorder}`,
                 borderRadius: '0 8px 8px 0',
-                padding:      '14px 16px 14px 18px',
+                padding:      '14px 18px 14px 18px',
+                // No fontFamily here — inherited from .tlr-article-body (Georgia)
               }}
             >
               {children}
             </p>
           );
         }
-        // ── First paragraph after H2/H3: drop cap only ───────────────────────
+
+        // First paragraph after an H2 or H3 → drop cap, no card
         if (sectionState.isFirstPara) {
           sectionState.isFirstPara = false;
           return (
             <p
-              className="tlr-drop-cap mb-4 text-gray-700 leading-relaxed text-base"
-              style={{ textAlign: 'justify', fontFamily: "'Georgia', serif" }}
+              className="tlr-drop-cap mb-4 leading-relaxed"
+              style={{ textAlign: 'justify' }}
             >
               {children}
             </p>
           );
         }
-        // ── All other paragraphs ─────────────────────────────────────────────
+
+        // All other paragraphs — Georgia font from .tlr-article-body
         return (
-          <p
-            className="mb-4 text-gray-700 leading-relaxed text-base"
-            style={{ textAlign: 'justify' }}
-          >
+          <p className="mb-4 leading-relaxed" style={{ textAlign: 'justify' }}>
             {children}
           </p>
         );
       },
 
-      // H2 — major article title (e.g. "Double Graduation Makes History")
-      // Sets isFirstPara so the paragraph immediately after gets a drop cap.
+      // ── H2 — major section title ───────────────────────────────────────────
+      // Sets isFirstPara so the next paragraph gets a drop cap.
+      // Does NOT touch isIntro — if the article opens with an H2 title, the
+      // first normal paragraph that follows still gets the intro card.
       h2: ({ children }: any) => {
-        sectionState.isIntro     = false;
         sectionState.isFirstPara = true;
         return (
           <h2
@@ -167,9 +195,8 @@ function buildComponents(
         );
       },
 
-      // H3 — sub-article title
+      // ── H3 — sub-section title ─────────────────────────────────────────────
       h3: ({ children }: any) => {
-        sectionState.isIntro     = false;
         sectionState.isFirstPara = true;
         return (
           <h3
@@ -184,38 +211,37 @@ function buildComponents(
         );
       },
 
-      // H4 — red section label (e.g. "NATIONAL RECOGNITION: THE CBS AWARD.")
-      h4: ({ children }: any) => {
-        sectionState.isIntro = false;
-        return (
-          <h4
-            className="text-sm font-black uppercase tracking-widest mt-5 mb-1"
-            style={{ color: '#BB0000' }}
-          >
-            {children}
-          </h4>
-        );
-      },
+      // ── H4 — red all-caps label (e.g. "NATIONAL RECOGNITION: THE CBS AWARD.")
+      h4: ({ children }: any) => (
+        <h4
+          className="text-sm font-black uppercase tracking-widest mt-5 mb-1"
+          style={{ color: '#BB0000', fontFamily: "'Playfair Display', serif" }}
+        >
+          {children}
+        </h4>
+      ),
 
-      // H5 — italic subtitle / deck line
+      // ── H5 — italic subtitle / caption line below a heading
       h5: ({ children }: any) => (
         <h5
           className="text-base italic text-gray-500 mb-3 font-normal leading-snug"
-          style={{ textAlign: 'justify', fontFamily: "'Georgia', serif" }}
+          style={{ textAlign: 'justify' }}
         >
           {children}
         </h5>
       ),
 
-      // Blockquote / pull quote — uses the SEPARATE quoteColor, not introColor
+      // ── Blockquote / pull quote ────────────────────────────────────────────
+      // Uses quoteColor (set separately from introCardColor in Sanity Studio).
+      // You can have a blue intro card but green pull quotes in the same issue.
       blockquote: ({ children }: any) => (
         <blockquote
-          className="pl-4 my-6 italic text-base leading-relaxed rounded-r-lg py-3 pr-4"
+          className="pl-4 my-6 italic leading-relaxed rounded-r-lg py-3 pr-4"
           style={{
             borderLeft: `4px solid ${qc.quote}`,
             background: qc.quoteBg,
             color:      '#374151',
-            fontFamily: "'Georgia', serif",
+            fontSize:   '1rem',
           }}
         >
           {children}
@@ -223,6 +249,7 @@ function buildComponents(
       ),
     },
 
+    // ── Block-level image ──────────────────────────────────────────────────────
     types: {
       image: ({ value }: any) => {
         if (!value?.asset) return null;
@@ -230,7 +257,7 @@ function buildComponents(
         return (
           <figure
             className={`my-4 ${
-              position === 'left'  ? 'float-left mr-4 mb-2 w-full sm:w-1/2'
+              position === 'left'   ? 'float-left mr-4 mb-2 w-full sm:w-1/2'
               : position === 'right' ? 'float-right ml-4 mb-2 w-full sm:w-1/2'
               : 'w-full clear-both'
             }`}
@@ -268,11 +295,7 @@ export default function OnlineArticleView({
   quoteColor,
 }: {
   articleContent: any[];
-  // Colour for the intro paragraph card border/background + all drop caps.
   introCardColor?: string;
-  // NEW: Separate colour for blockquote / pull-quote cards.
-  // Set independently per-issue in Sanity Studio.
-  // Defaults to 'blue' if not provided.
   quoteColor?: string;
 }) {
   const [mode, setMode] = useState<'collapsed' | 'open'>('collapsed');
@@ -300,16 +323,17 @@ export default function OnlineArticleView({
     setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   };
 
+  // sectionState is created fresh every render (this component only re-renders
+  // when mode changes, so this is safe — the article content doesn't change).
   const sectionState = { isIntro: true, isFirstPara: false };
   const components   = buildComponents(introColor, qColor, sectionState);
 
-  // ── The article body ────────────────────────────────────────────────────────
-  // We do NOT render issueTitle here.
-  // Your Sanity article content already has the issue title as the first H2
-  // block, so rendering it as a separate prop caused a duplicate heading.
-  // The Portable Text renderer (h2 handler above) takes care of it.
+  // ── Article body ────────────────────────────────────────────────────────────
+  // tlr-article-body sets Georgia as the font for ALL text inside — headings
+  // override this with Playfair Display inline, but body paragraphs inherit
+  // Georgia, giving a uniform serif look throughout (matching the PDF).
   const articleBody = (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-6 overflow-hidden">
+    <div className="tlr-article-body max-w-3xl mx-auto px-4 sm:px-6 pt-4 pb-6 overflow-hidden">
       <PortableText value={articleContent} components={components} />
       <div className="clear-both" />
     </div>
@@ -320,17 +344,19 @@ export default function OnlineArticleView({
       <style>{globalStyle(c.dropCap)}</style>
       <div
         ref={topRef}
-        className="w-full border-x border-b border-gray-200 rounded-b-xl"
+        className="w-full border-x border-b border-gray-200 rounded-b-xl bg-white"
         aria-label="Online article view"
       >
-        {/* ── COLLAPSED: preview with fade ─────────────────────────────────── */}
+
+        {/* ── COLLAPSED: preview with bottom fade ──────────────────────────── */}
         {mode === 'collapsed' && (
           <>
             <div className="relative" style={{ height: `${PREVIEW_HEIGHT}px`, overflow: 'hidden' }}>
               {articleBody}
+              {/* Gradient fade so the cutoff looks intentional, not abrupt */}
               <div
                 className="absolute bottom-0 left-0 right-0 pointer-events-none"
-                style={{ height: '160px', background: 'linear-gradient(to bottom, transparent, #f9fafb)' }}
+                style={{ height: '160px', background: 'linear-gradient(to bottom, transparent, white)' }}
               />
             </div>
             <div className="flex flex-col items-center py-3 gap-0.5 border-t border-gray-100">
@@ -338,18 +364,18 @@ export default function OnlineArticleView({
                 onClick={handleOpen}
                 aria-label="Continue reading"
                 className="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all hover:shadow-md active:scale-95"
-                style={{ borderColor: c.accent, background: 'transparent' }}
+                style={{ borderColor: c.accent }}
               >
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                   <path d="M3 6l5 5 5-5" stroke={c.accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <span className="text-xs text-gray-400 tracking-wide">Scroll inside the reader</span>
+              <span className="text-xs text-gray-400 tracking-wide">Continue reading</span>
             </div>
           </>
         )}
 
-        {/* ── OPEN: scrollable full reader ─────────────────────────────────── */}
+        {/* ── OPEN: full scrollable reading pane ───────────────────────────── */}
         {mode === 'open' && (
           <>
             <div
@@ -366,7 +392,7 @@ export default function OnlineArticleView({
                 onClick={handleClose}
                 aria-label="Close reader"
                 className="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all hover:shadow-md active:scale-95"
-                style={{ borderColor: c.accent, background: 'transparent' }}
+                style={{ borderColor: c.accent }}
               >
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                   <path d="M3 10l5-5 5 5" stroke={c.accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -376,6 +402,7 @@ export default function OnlineArticleView({
             </div>
           </>
         )}
+
       </div>
     </>
   );

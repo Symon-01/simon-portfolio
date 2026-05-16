@@ -1,16 +1,27 @@
 // FILE: src/types/leadershipReview.ts
 
+// ── Reply type ────────────────────────────────────────────────────────────────
+export interface LRReply {
+  _key: string;
+  text: string;
+  date: string;
+  authorName?: string;
+  affiliation?: string;
+}
+
+// ── Review type ───────────────────────────────────────────────────────────────
 export interface LRReview {
+  _key?: string;
   reviewerName: string;
-  affiliation?: string;  // Title / Affiliation e.g. "Economist", "MP Kiambu"
+  affiliation?: string;
   location: string;
   rating: number;
   comment: string;
   date: string;
+  replies?: LRReply[];
 }
 
-// Lightweight related issue — used for the "Also Read" sidebar card.
-// Includes all fields needed to match the AllIssuesGrid card design exactly.
+// ── Related issue (for "Also Read" sidebar card) ──────────────────────────────
 export interface LRRelatedIssue {
   title: string;
   slug: { current: string };
@@ -30,6 +41,7 @@ export interface LRRelatedIssue {
   tags?: string[];
 }
 
+// ── Full issue (single issue detail page) ────────────────────────────────────
 export interface LeadershipReviewIssue {
   _id: string;
   title: string;
@@ -63,7 +75,12 @@ export interface LeadershipReviewIssue {
       url: string;
     };
   };
+  // Colour for the intro paragraph highlight card + all drop caps.
+  // Options: 'blue' | 'red' | 'green'. Set in Sanity Studio.
   introCardColor?: 'blue' | 'red' | 'green';
+  // Colour for all blockquote / pull-quote cards in this issue.
+  // Set INDEPENDENTLY from introCardColor — e.g. blue intro + green quotes.
+  quoteColor?: 'blue' | 'red' | 'green';
   articleContent?: any[];
   relatedIssue?: LRRelatedIssue;
   responsePrompt?: string;
@@ -77,7 +94,7 @@ export interface LeadershipReviewIssue {
   reviews: LRReview[];
 }
 
-// Lightweight version used in grids and the portfolio window
+// ── Lightweight summary (grids, portfolio window) ─────────────────────────────
 export interface LeadershipReviewIssueSummary {
   _id: string;
   title: string;

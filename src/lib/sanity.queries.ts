@@ -336,9 +336,7 @@ export const allLeadershipReviewIssuesQuery = `
   }
 `;
 
-// Single issue by slug — full data.
-// FIX: reviews projection now includes _key and replies[] so that replies
-// saved to Sanity are loaded back on page refresh instead of disappearing.
+// Single issue by slug — full data including helpfulCount on every review.
 export const leadershipReviewBySlugQuery = `
   *[_type == "leadershipReview" && slug.current == $slug][0] {
     _id,
@@ -368,6 +366,7 @@ export const leadershipReviewBySlugQuery = `
     tags,
     isFeatured,
     introCardColor,
+    quoteColor,
     "articleContent": articleContent[] {
       ...,
       _type == "image" => {
@@ -397,6 +396,7 @@ export const leadershipReviewBySlugQuery = `
       rating,
       comment,
       date,
+      helpfulCount,          // ← was missing; caused count to show 0 after refresh
       "replies": replies[] {
         _key,
         text,
@@ -449,9 +449,6 @@ export async function getLeadershipReviewBySlug(
   slug: string
 ): Promise<LeadershipReviewIssue | null> {
   try {
-    // next: { revalidate: 0 } forces Next.js to always fetch fresh data
-    // and never serve a cached response — critical for dynamic fields like
-    // relatedIssue that are added after the initial page render was cached.
     return await client.fetch(
       leadershipReviewBySlugQuery,
       { slug },

@@ -4,25 +4,54 @@
 import Link from 'next/link';
 import type { LeadershipReviewIssue } from '@/types/leadershipReview';
 
+// ============================================================
+// SIMON DESIGNS — src/components/leadershipReview/IssueMasthead.tsx
+//
+// CHANGE FROM ORIGINAL:
+// Added a hidden <img> tag alongside the CSS background-image
+// on the masthead background. Google cannot crawl CSS
+// background-image. The tag is invisible to users but readable
+// by Googlebot. Everything else is identical to your original.
+// ============================================================
+
 export default function IssueMasthead({ issue }: { issue: LeadershipReviewIssue }) {
   const bgImageUrl = issue.mastheadBackground?.asset?.url;
 
   return (
     <div className="relative border-b border-gray-100 overflow-hidden">
 
-      {/* ── Background image layer (only renders when image is set in Sanity) ── */}
+      {/* ── Background image layer ── */}
       {bgImageUrl && (
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('${bgImageUrl}')` }}
         >
-          {/* White overlay — keeps all existing newspaper text fully readable.
-              Adjust opacity (bg-white/70, bg-white/85, etc.) to taste. */}
+          {/*
+            ── SEO IMAGE FIX ──────────────────────────────────────
+            Hidden <img> tag so Google can index this masthead
+            background image. CSS background-image is invisible
+            to Googlebot. This img is invisible to users
+            (opacity 0, 1px, aria-hidden) but crawlable by Google.
+            ────────────────────────────────────────────────────── */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={bgImageUrl}
+            alt={`The Leadership Review — ${issue.title || 'Issue'} — Published by Simon Designs`}
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              opacity: 0,
+              pointerEvents: 'none',
+            }}
+          />
+          {/* White overlay — keeps newspaper text fully readable */}
           <div className="absolute inset-0 bg-white/90" />
         </div>
       )}
 
-      {/* ── Existing masthead content — untouched, just lifted above the bg ── */}
+      {/* ── Existing masthead content — untouched ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 sm:py-4 relative z-10">
         <div
           className="flex items-center justify-between pb-2 sm:pb-3"

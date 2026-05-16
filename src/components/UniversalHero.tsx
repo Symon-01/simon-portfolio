@@ -1,8 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react'; // <-- Import useRef
+import { useState, useEffect, useRef } from 'react';
 import { getBannerByLocation } from '@/lib/sanity.queries';
 import { Banner } from '@/types/banner';
+
+// ============================================================
+// SIMON DESIGNS — src/components/UniversalHero.tsx
+//
+// CHANGE FROM ORIGINAL:
+// Added a hidden <img> tag alongside the CSS background-image.
+// Google cannot crawl CSS background-image, so without this tag
+// none of your hero/banner images would appear in Google Image
+// search. The tag is invisible to users but fully readable by
+// Google's crawler. Everything else is identical to your original.
+// ============================================================
 
 interface UniversalHeroProps {
   location: string;
@@ -15,7 +26,7 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
   const [textVisible, setTextVisible] = useState(false);
   const [buttonsVisible, setButtonsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const sectionRef = useRef<HTMLElement>(null); // <-- Add ref for IntersectionObserver
+  const sectionRef = useRef<HTMLElement>(null);
 
   // Fetch banner from Sanity
   useEffect(() => {
@@ -34,34 +45,24 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
     fetchBanner();
   }, [location]);
 
-  // *** REPLACED BLOCK ***
-  // This useEffect now uses IntersectionObserver to trigger animations on scroll
   useEffect(() => {
-    // Don't run if loading, no banner, or if animation already triggered
     if (isLoading || !banner || textVisible) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // When the section is intersecting (visible)
         if (entry.isIntersecting) {
           console.log('✅ Hero section is in view, starting animation...');
-          
-          // Trigger the animation sequence
           setTextVisible(true);
-          setTimeout(() => setButtonsVisible(true), 600); // 600ms delay for buttons
-
-          // Disconnect the observer so it only runs once
+          setTimeout(() => setButtonsVisible(true), 600);
           observer.disconnect();
         }
       },
-      { threshold: 0.2 } // Trigger when 20% is visible
+      { threshold: 0.2 }
     );
 
     const currentRef = sectionRef.current;
     if (currentRef) {
       observer.observe(currentRef);
-      
-      // "Already in view" check for page loads
       const rect = currentRef.getBoundingClientRect();
       const isInView = rect.top < window.innerHeight && rect.bottom > 0;
       if (isInView) {
@@ -72,15 +73,13 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
       }
     }
 
-    // Cleanup function
     return () => {
       if (currentRef) {
         observer.unobserve(currentRef);
       }
       observer.disconnect();
     };
-    
-  }, [isLoading, banner, textVisible]); // <-- Dependencies ensure this runs after data loads
+  }, [isLoading, banner, textVisible]);
 
   // Auto-advance slider if multiple images
   useEffect(() => {
@@ -136,12 +135,11 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
         return 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700';
       case 'red':
         return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700';
-      default: // green
+      default:
         return 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800';
     }
   };
 
-  // Default scrolling banner items if not provided
   const defaultScrollingItems = [
     '✨ Transform Your Brand Today',
     '🎨 Award-Winning Design Team',
@@ -277,12 +275,41 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
         }
       `}</style>
 
-      {/* --- ADD REF HERE --- */}
       <section ref={sectionRef} className="relative w-full overflow-x-hidden">
-        {/* Hero Content Section */}
         <div className="relative w-full h-[42vh] md:h-[38vh] min-h-[320px] md:min-h-[360px] flex items-center justify-center text-center text-white overflow-hidden">
-          {/* Background Image */}
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${imageUrl}')` }}>
+
+          {/* Background Image as CSS (for visual display) */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url('${imageUrl}')` }}
+          >
+            {/*
+              ── SEO IMAGE FIX ──────────────────────────────────────
+              Hidden <img> tag so Google's image crawler can index
+              this banner image. CSS background-image is invisible
+              to Google. This tag is invisible to users but readable
+              by Googlebot. Applied to ALL banner/hero images across
+              every page that uses UniversalHero.
+              ────────────────────────────────────────────────────── */}
+            {imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageUrl}
+                alt={
+                  currentImage.heading
+                    ? `${currentImage.heading} — Simon Designs`
+                    : `Simon Designs graphic design services — ${location.replace(/-/g, ' ')}`
+                }
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  width: '1px',
+                  height: '1px',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
             {/* Dark overlay for text readability */}
             <div className="absolute inset-0 bg-black/65" />
           </div>
@@ -317,7 +344,7 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
               </p>
             )}
 
-            {/* Buttons OR Badge - Show only if enabled */}
+            {/* Buttons OR Badge */}
             {currentImage.showButtons && (currentImage.button1Text || currentImage.button2Text) ? (
               <div className={`flex justify-center gap-4 md:gap-6 ${buttonsVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-800`}>
                 {currentImage.button1Text && currentImage.button1Link && (
@@ -347,13 +374,12 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
                 )}
               </div>
             ) : currentImage.subheading ? (
-              // Show badge if buttons are disabled - you can customize this text in Sanity
-              <div 
+              <div
                 className={`flex justify-center ${
                   buttonsVisible ? 'opacity-100' : 'opacity-0'
                 } transition-opacity duration-800`}
               >
-                <div 
+                <div
                   className={`hero-badge subtle-bounce ${
                     buttonsVisible ? 'pop-in' : ''
                   }`}
@@ -365,7 +391,7 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
             ) : null}
           </div>
 
-          {/* Slider indicators (only show if more than 1 image) */}
+          {/* Slider indicators */}
           {banner.isSlider && banner.images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
               {banner.images.map((_, index) => (
@@ -382,7 +408,7 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
           )}
         </div>
 
-        {/* Animated Green Banner - Full Width at Bottom */}
+        {/* Animated Green Banner */}
         <div style={{ backgroundColor: '#048F02', willChange: 'transform' }} className="overflow-hidden py-2.5">
           <div className="banner-scroll whitespace-nowrap inline-block">
             {scrollingItems.map((item, index) => (
@@ -390,7 +416,6 @@ export default function UniversalHero({ location, scrollingBannerItems }: Univer
                 {item}
               </span>
             ))}
-            {/* Duplicate for seamless loop */}
             {scrollingItems.map((item, index) => (
               <span key={`dup-${index}`} className="inline-block px-8 text-white font-semibold text-sm">
                 {item}
