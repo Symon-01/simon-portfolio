@@ -21,6 +21,7 @@ import servicesProcess from './servicesProcess';
 import servicesFeatures from './servicesFeatures';
 import contactInfo from './contactInfo';
 import leadershipReview from './leadershipReview';
+import leadershipNomination from './leadershipNomination';
 
 export const schemaTypes = [
   portfolio,
@@ -44,4 +45,5 @@ export const schemaTypes = [
   servicesFeatures,
   contactInfo,
   leadershipReview,
+  leadershipNomination,
 ];
