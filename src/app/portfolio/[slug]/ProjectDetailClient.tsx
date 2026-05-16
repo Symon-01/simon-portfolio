@@ -36,7 +36,6 @@ export default function ProjectDetailClient({
         client,
         projectDate,
 
-        // ✅ FIXED: "isCover" is now consistent everywhere (was "isCoverImage" in some places)
         "images": images[]{
           "_type": _type,
           "url": select(
@@ -44,7 +43,7 @@ export default function ProjectDetailClient({
             asset->url
           ),
           "isCover": select(
-            _type == "projectImage" => isCoverImage,
+            _type == "projectImage" => isCover,
             false
           ),
           "alt": select(
@@ -88,7 +87,6 @@ export default function ProjectDetailClient({
           fileDescription
         },
 
-        // ✅ FIXED: same "isCover" fix applied to related projects images too
         relatedProjects[]->{
           _id,
           title,
@@ -103,7 +101,7 @@ export default function ProjectDetailClient({
               asset->url
             ),
             "isCover": select(
-              _type == "projectImage" => isCoverImage,
+              _type == "projectImage" => isCover,
               false
             ),
             "alt": select(

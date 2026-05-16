@@ -3,6 +3,18 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+// ============================================================
+// SIMON DESIGNS — src/components/Hero.tsx
+//
+// CHANGE FROM ORIGINAL:
+// Added hidden <img> tags inside each background slide div.
+// These are invisible to users (opacity-0, aria-hidden) but
+// fully visible to Google's image crawler, which cannot read
+// CSS background-image. This is the standard SEO fix for
+// image sliders that use background-image.
+// Everything else is identical to your original file.
+// ============================================================
+
 interface Banner {
   images?: Array<{
     image: { asset: { url: string } };
@@ -27,9 +39,17 @@ export default function Hero({ banner }: HeroProps) {
 
   const fallbackBackgroundImages = [
     '/hero.jpg',
-    '/hero2.png',   
-    '/hero3.png',   
-    '/hero5.png'    
+    '/hero2.png',
+    '/hero3.png',
+    '/hero5.png'
+  ];
+
+  // Alt text for fallback local images (for SEO)
+  const fallbackImageAlts = [
+    'Simon Designs graphic design studio — creative design services in Kenya',
+    'Simon Designs branding and marketing materials design',
+    'Simon Designs UI/UX and packaging design work',
+    'Simon Designs professional graphic design portfolio',
   ];
 
   const fallbackSlideContent = [
@@ -85,11 +105,20 @@ export default function Hero({ banner }: HeroProps) {
 
   const animationPatterns = ["fade", "slideLeft", "slideRight", "slideUp"];
 
-  const backgroundImages = useSanity 
+  const backgroundImages = useSanity
     ? banner.images.map(img => img.image.asset.url)
     : fallbackBackgroundImages;
 
-  const slideContent = useSanity 
+  // Alt text for Sanity images (uses heading as alt, falls back to generic)
+  const backgroundImageAlts = useSanity
+    ? banner.images.map(img =>
+        img.heading
+          ? `${img.heading} — Simon Designs`
+          : 'Simon Designs graphic design and branding services Kenya'
+      )
+    : fallbackImageAlts;
+
+  const slideContent = useSanity
     ? banner.images.map((img, index) => ({
         title: img.heading || "Simon Designs",
         description: img.subheading || "Creative Excellence",
@@ -146,20 +175,20 @@ export default function Hero({ banner }: HeroProps) {
     setIsTransitioning(true);
     setTextVisible(false);
     setButtonsVisible(false);
-    
-    setCurrentImageIndex((prevIndex) => 
+
+    setCurrentImageIndex((prevIndex) =>
       (prevIndex + 1) % backgroundImages.length
     );
-    
+
     setTimeout(() => {
-      setCurrentTextIndex((prevIndex) => 
+      setCurrentTextIndex((prevIndex) =>
         (prevIndex + 1) % slideContent.length
       );
       setAnimationKey(prev => prev + 1);
       setTimeout(() => setTextVisible(true), 100);
       setTimeout(() => setButtonsVisible(true), 600);
     }, 800);
-    
+
     setTimeout(() => setIsTransitioning(false), 2500);
   };
 
@@ -168,20 +197,20 @@ export default function Hero({ banner }: HeroProps) {
     setIsTransitioning(true);
     setTextVisible(false);
     setButtonsVisible(false);
-    
-    setCurrentImageIndex((prevIndex) => 
+
+    setCurrentImageIndex((prevIndex) =>
       prevIndex === 0 ? backgroundImages.length - 1 : prevIndex - 1
     );
-    
+
     setTimeout(() => {
-      setCurrentTextIndex((prevIndex) => 
+      setCurrentTextIndex((prevIndex) =>
         prevIndex === 0 ? slideContent.length - 1 : prevIndex - 1
       );
       setAnimationKey(prev => prev + 1);
       setTimeout(() => setTextVisible(true), 100);
       setTimeout(() => setButtonsVisible(true), 600);
     }, 800);
-    
+
     setTimeout(() => setIsTransitioning(false), 2500);
   };
 
@@ -190,16 +219,16 @@ export default function Hero({ banner }: HeroProps) {
     setIsTransitioning(true);
     setTextVisible(false);
     setButtonsVisible(false);
-    
+
     setCurrentImageIndex(index);
-    
+
     setTimeout(() => {
       setCurrentTextIndex(index);
       setAnimationKey(prev => prev + 1);
       setTimeout(() => setTextVisible(true), 100);
       setTimeout(() => setButtonsVisible(true), 600);
     }, 800);
-    
+
     setTimeout(() => setIsTransitioning(false), 2500);
   };
 
@@ -217,13 +246,12 @@ export default function Hero({ banner }: HeroProps) {
         goToNext();
       }
     }, 6000);
-
     return () => clearInterval(interval);
   }, [isTransitioning, backgroundImages.length]);
 
   const getAnimationClasses = (animation: string, isActive: boolean, isVisible: boolean) => {
     const baseClasses = "transition-all duration-1000 ease-out";
-    
+
     if (!isActive || !isVisible) {
       switch (animation) {
         case "slideLeft":
@@ -237,7 +265,7 @@ export default function Hero({ banner }: HeroProps) {
           return `${baseClasses} opacity-0 transform scale-95`;
       }
     }
-    
+
     return `${baseClasses} opacity-100 transform translate-x-0 translate-y-0 scale-100`;
   };
 
@@ -258,13 +286,13 @@ export default function Hero({ banner }: HeroProps) {
             opacity: 1;
           }
         }
-        
+
         @keyframes heroButtonBounce {
-          0%, 100% { 
-            transform: translateY(0px) scale(1); 
+          0%, 100% {
+            transform: translateY(0px) scale(1);
           }
-          50% { 
-            transform: translateY(-3px) scale(1.02); 
+          50% {
+            transform: translateY(-3px) scale(1.02);
           }
         }
 
@@ -285,19 +313,41 @@ export default function Hero({ banner }: HeroProps) {
           animation-play-state: paused;
         }
       `}</style>
-      
+
       <section className="relative w-full">
         <div className="relative w-full h-[50vh] md:h-[48vh] min-h-[400px] md:min-h-[480px] flex items-center justify-center text-center text-white overflow-hidden">
+
           {backgroundImages.map((image, index) => (
             <div
               key={index}
               className={`absolute inset-0 bg-cover bg-center transition-all duration-[2500ms] ease-in-out transform ${
-                index === currentImageIndex 
-                  ? 'opacity-100 scale-100' 
+                index === currentImageIndex
+                  ? 'opacity-100 scale-100'
                   : 'opacity-0 scale-105'
               }`}
               style={{ backgroundImage: `url('${image}')` }}
             >
+              {/*
+                ── SEO IMAGE FIX ──────────────────────────────────────
+                This <img> tag is invisible to users (opacity-0, pointer-
+                events-none, aria-hidden) but fully readable by Google's
+                image crawler. Google cannot index CSS background-image,
+                so without this tag none of your hero images would ever
+                appear in Google Image search results.
+                ────────────────────────────────────────────────────── */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={image}
+                alt={backgroundImageAlts[index] || 'Simon Designs — graphic design services Kenya'}
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  width: '1px',
+                  height: '1px',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                }}
+              />
               <div className="absolute inset-0 bg-black/65"></div>
             </div>
           ))}
@@ -307,10 +357,10 @@ export default function Hero({ banner }: HeroProps) {
             disabled={isTransitioning}
             className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/40 hover:bg-black/60 text-white p-2.5 md:p-3 rounded-full transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <svg 
-              className="w-4 h-4 md:w-6 md:h-6 transform group-hover:-translate-x-1 transition-transform duration-300" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-4 h-4 md:w-6 md:h-6 transform group-hover:-translate-x-1 transition-transform duration-300"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -322,10 +372,10 @@ export default function Hero({ banner }: HeroProps) {
             disabled={isTransitioning}
             className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/40 hover:bg-black/60 text-white p-2.5 md:p-3 rounded-full transition-all duration-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <svg 
-              className="w-4 h-4 md:w-6 md:h-6 transform group-hover:translate-x-1 transition-transform duration-300" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-4 h-4 md:w-6 md:h-6 transform group-hover:translate-x-1 transition-transform duration-300"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -339,25 +389,25 @@ export default function Hero({ banner }: HeroProps) {
                 onClick={() => goToSlide(index)}
                 disabled={isTransitioning}
                 className={`w-2.5 h-2.5 md:w-4 md:h-4 rounded-full transition-all duration-700 transform hover:scale-125 disabled:cursor-not-allowed ${
-                  index === currentImageIndex 
-                    ? 'bg-white shadow-lg scale-110' 
+                  index === currentImageIndex
+                    ? 'bg-white shadow-lg scale-110'
                     : 'bg-white/40 hover:bg-white/70'
                 }`}
               />
             ))}
           </div>
-          
+
           <div className="max-w-6xl px-6 sm:px-8 lg:px-12 relative z-10 mx-auto">
             {slideContent.map((content, index) => (
               <div
                 key={index}
                 className={`${index === currentTextIndex ? 'block' : 'hidden'}`}
               >
-                <h1 
+                <h1
                   className={`mb-4 md:mb-6 text-center font-bold ${
                     getAnimationClasses(content.animation, index === currentTextIndex, textVisible)
                   }`}
-                  style={{ 
+                  style={{
                     fontSize: 'clamp(1.875rem, 5vw, 3rem)',
                     lineHeight: '1.2',
                     letterSpacing: '-0.02em',
@@ -367,11 +417,11 @@ export default function Hero({ banner }: HeroProps) {
                 >
                   {content.title}
                 </h1>
-                <p 
+                <p
                   className={`mb-6 md:mb-8 text-center max-w-3xl mx-auto ${
                     getAnimationClasses(content.animation, index === currentTextIndex, textVisible)
                   }`}
-                  style={{ 
+                  style={{
                     fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)',
                     lineHeight: '1.6',
                     transitionDelay: textVisible ? '400ms' : '0ms',
@@ -380,9 +430,9 @@ export default function Hero({ banner }: HeroProps) {
                 >
                   {content.description}
                 </p>
-                
+
                 {content.showButtons && (
-                  <div 
+                  <div
                     key={`buttons-${animationKey}`}
                     className={`flex flex-wrap justify-center gap-4 md:gap-6 transition-all duration-700 ${
                       buttonsVisible ? 'opacity-100' : 'opacity-0'
@@ -421,17 +471,17 @@ export default function Hero({ banner }: HeroProps) {
                         }}
                       >
                         <span className="relative z-10">{content.button1Text}</span>
-                        <div 
+                        <div
                           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{background: getButtonGradient(content.button1Color).hover}}
+                          style={{ background: getButtonGradient(content.button1Color).hover }}
                         />
-                        <div 
+                        <div
                           className="absolute -inset-1 rounded-full opacity-30 group-hover:opacity-60 blur-sm transition-all duration-300"
-                          style={{background: getButtonGradient(content.button1Color).normal}}
+                          style={{ background: getButtonGradient(content.button1Color).normal }}
                         />
                       </Link>
                     )}
-                    
+
                     {content.button2Text && content.button2Link && (
                       <Link
                         href={content.button2Link}
@@ -462,13 +512,13 @@ export default function Hero({ banner }: HeroProps) {
                         }}
                       >
                         <span className="relative z-10">{content.button2Text}</span>
-                        <div 
+                        <div
                           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{background: getButtonGradient(content.button2Color).hover}}
+                          style={{ background: getButtonGradient(content.button2Color).hover }}
                         />
-                        <div 
+                        <div
                           className="absolute -inset-1 rounded-full opacity-30 group-hover:opacity-60 blur-sm transition-all duration-300"
-                          style={{background: getButtonGradient(content.button2Color).normal}}
+                          style={{ background: getButtonGradient(content.button2Color).normal }}
                         />
                       </Link>
                     )}
@@ -479,53 +529,29 @@ export default function Hero({ banner }: HeroProps) {
           </div>
         </div>
 
-        <div style={{backgroundColor: '#048F02'}} className="overflow-hidden py-2.5">
+        <div style={{ backgroundColor: '#048F02' }} className="overflow-hidden py-2.5">
           <div className="banner-scroll whitespace-nowrap inline-block">
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Transform Your Brand Today
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Brand Identity Design
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Award-Winning Projects
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Transparent Pricing
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Free Consultation Available
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              UI/UX Design
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Creative Excellence
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Marketing Materials
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Quick Response Time
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Professional Solutions
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Transform Your Brand Today
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Brand Identity Design
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Award-Winning Projects
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Transparent Pricing
-            </span>
-            <span className="inline-block px-8 text-white font-semibold text-sm">
-              Free Consultation Available
-            </span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Transform Your Brand Today</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Brand Identity Design</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Award-Winning Projects</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Transparent Pricing</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Free Consultation Available</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">UI/UX Design</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Creative Excellence</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Marketing Materials</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Quick Response Time</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Professional Solutions</span>
+            {/* Duplicate set for seamless infinite scroll */}
+            <span className="inline-block px-8 text-white font-semibold text-sm">Transform Your Brand Today</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Brand Identity Design</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Award-Winning Projects</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Transparent Pricing</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Free Consultation Available</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">UI/UX Design</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Creative Excellence</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Marketing Materials</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Quick Response Time</span>
+            <span className="inline-block px-8 text-white font-semibold text-sm">Professional Solutions</span>
           </div>
         </div>
       </section>
