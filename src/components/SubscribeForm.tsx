@@ -4,9 +4,9 @@
 import { useState } from 'react';
 
 // ── Brand colours ─────────────────────────────────────────────────────────────
-const BLUE  = '#273583';  // navy
-const GREEN = '#40a535';  // forest green
-const RED   = '#cd1719';  // deep red
+const BLUE  = '#273583';
+const GREEN = '#40a535';
+const RED   = '#cd1719';
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -70,7 +70,7 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
   if (variant === 'inline') {
     return (
       <div
-        className="rounded-2xl overflow-hidden px-6 sm:px-10 py-8 sm:py-10"
+        className="rounded-2xl overflow-hidden px-6 sm:px-10 py-6 sm:py-8"
         style={{ background: BLUE }}
       >
         {/* Top rule — newspaper-style double line */}
@@ -93,19 +93,20 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
           </div>
         </div>
 
-        {/* Heading */}
+        {/* Heading — matches CTAStrip "Know a leader worth celebrating?" exactly */}
         <h3
-          className="text-white mb-2 leading-tight"
+          className="text-white mb-2 leading-snug"
           style={{
             fontFamily: "'Playfair Display', serif",
-            fontWeight: 900,
-            fontSize: 'clamp(1.3rem, 3vw, 1.85rem)',
+            fontWeight: 700,
+            fontSize: 'clamp(1rem, 2.5vw, 1.15rem)',
           }}
         >
           Get New Issues Delivered to Your Inbox
         </h3>
 
-        <p className="text-sm leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
+        {/* Subtitle — matches CTAStrip subtitle: text-xs leading-relaxed */}
+        <p className="text-xs leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
           Be the first to read every new edition of The Leadership Review — free, straight to your inbox, no spam.
         </p>
 
@@ -135,11 +136,12 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
             <p className="text-xs mb-3" style={{ color: '#fca5a5' }}>{message}</p>
           )}
 
+          {/* Button — matches CTAStrip button: text-sm font-bold */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               style={{ background: RED }}
             >
               {status === 'loading' ? (
@@ -172,10 +174,6 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
   }
 
   // ── COMPACT variant ────────────────────────────────────────────────────────
-  // Sidebar card on the Issue Detail page, rendered inside IssueDetailClient.
-  // Matches IssueInfoPanel's header style: solid navy header, white body.
-  // Red subscribe button to create a strong visual hierarchy.
-  // Unique identity: envelope icon in a red badge, bold serif headline.
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -189,7 +187,6 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
         className="px-4 py-4 flex items-start gap-3"
         style={{ background: BLUE }}
       >
-        {/* Envelope badge */}
         <div
           className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mt-0.5"
           style={{ background: RED }}
@@ -237,7 +234,7 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
 
         <button
           type="submit"
-          onClick={handleSubmit as any}
+          onClick={handleSubmit as React.MouseEventHandler}
           disabled={status === 'loading'}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-xs font-black hover:opacity-90 disabled:opacity-50 transition-all"
           style={{ background: RED }}
@@ -260,7 +257,6 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
           )}
         </button>
 
-        {/* Trust signals */}
         <div className="flex items-center justify-center gap-2 pt-0.5">
           <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
             <path d="M8 1l1.5 4.5H14l-3.5 2.5 1.5 4.5L8 10l-4 2.5 1.5-4.5L2 5.5h4.5z" stroke={BLUE} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
