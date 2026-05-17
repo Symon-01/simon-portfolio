@@ -541,11 +541,6 @@ function NominationModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden">
-        <div style={{ height: '4px', display: 'flex' }}>
-          <div style={{ flex: 1, background: BLUE }} />
-          <div style={{ flex: 1, background: GREEN }} />
-          <div style={{ flex: 1, background: RED }} />
-        </div>
         <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-gray-100">
           <div className="flex items-start justify-between gap-3">
             <div>

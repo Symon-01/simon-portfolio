@@ -4,9 +4,9 @@
 import { useState } from 'react';
 
 // ── Brand colours ─────────────────────────────────────────────────────────────
-const BLUE  = '#283583';  // navy
-const GREEN = '#2e7d32';  // forest green
-const RED   = '#BB0000';  // deep red
+const BLUE  = '#273583';  // navy
+const GREEN = '#40a535';  // forest green
+const RED   = '#cd1719';  // deep red
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -67,33 +67,43 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
   }
 
   // ── INLINE variant ─────────────────────────────────────────────────────────
-  // Used on the Leadership Review listing page, sits below the navy nominate CTA.
-  // Uses a very faint navy blue background so it doesn't shout — calm and clean,
-  // distinct from the bold nominate banner above it without competing.
+  // Sits below the navy nominate CTA on the Leadership Review listing page.
+  // Editorial newspaper-ad feel: white background, bold red left accent bar,
+  // strong border — clearly distinct from the blue nominate banner above.
   if (variant === 'inline') {
     return (
       <div
-        className="rounded-2xl overflow-hidden"
+        className="rounded-2xl overflow-hidden bg-white"
         style={{
-          background: `${BLUE}0d`,       // ~5% opacity navy — barely-there tint
-          border: `1.5px solid ${BLUE}25`,
+          border: `1.5px solid #e2e8f0`,
+          boxShadow: '0 4px 24px rgba(40,53,131,0.10)',
+          display: 'flex',
         }}
       >
-        <div className="px-6 sm:px-10 py-8 sm:py-10">
+        <div className="flex-1 px-6 sm:px-10 py-8 sm:py-10">
 
-          {/* Label */}
-          <p
-            className="text-xs font-black uppercase tracking-[0.18em] mb-2 flex items-center gap-1.5"
-            style={{ color: BLUE }}
-          >
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
-                stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
-              />
-            </svg>
-            Stay Informed
-          </p>
+          {/* Top rule — newspaper-style double line */}
+          <div className="mb-5">
+            <div style={{ height: '3px', background: BLUE, marginBottom: '2px' }} />
+            <div style={{ height: '1px', background: BLUE, opacity: 0.3 }} />
+          </div>
+
+          {/* Label row */}
+          <div className="flex items-center gap-3 mb-3">
+            <p
+              className="text-xs font-black uppercase tracking-[0.2em]"
+              style={{ color: RED }}
+            >
+              ✉ Stay Informed
+            </p>
+            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
+            {/* Kenya flag stripe accent */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px', flexShrink: 0 }}>
+              <div style={{ width: '18px', height: '3px', background: '#006600', borderRadius: '1px' }} />
+              <div style={{ width: '18px', height: '3px', background: '#BB0000', borderRadius: '1px' }} />
+              <div style={{ width: '18px', height: '3px', background: '#000000', borderRadius: '1px' }} />
+            </div>
+          </div>
 
           {/* Heading */}
           <h3
@@ -119,7 +129,8 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
                 placeholder="Your name (optional)"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+                className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+                style={{ focusRingColor: BLUE } as React.CSSProperties}
               />
               <input
                 type="email"
@@ -127,7 +138,7 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
                 placeholder="Your email address *"
                 value={email}
                 onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-                className="flex-1 rounded-xl bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+                className="flex-1 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
                 style={{ border: `1.5px solid ${status === 'error' ? RED : '#e5e7eb'}` }}
               />
             </div>
@@ -165,54 +176,74 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
               </p>
             </div>
           </form>
+
+          {/* Bottom rule */}
+          <div className="mt-6">
+            <div style={{ height: '1px', background: '#e2e8f0' }} />
+          </div>
         </div>
       </div>
     );
   }
 
   // ── COMPACT variant ────────────────────────────────────────────────────────
-  // Sidebar card on the Issue Detail page, rendered inside IssueInfoPanel,
-  // positioned below the ShareAndSupportCard (see IssueInfoPanel.tsx).
-  //
-  // Header: faint navy blue background — calm, on-brand, not shouting.
-  // Button: forest green — different from the blue info panel header and red
-  //   accent label, so each element in the sidebar has its own colour identity.
-  // No stripes. No bold gradients. Professional and clean.
+  // Sidebar card on the Issue Detail page, rendered inside IssueDetailClient.
+  // Matches IssueInfoPanel's header style: solid navy header, white body.
+  // Red subscribe button to create a strong visual hierarchy.
+  // Unique identity: envelope icon in a red badge, bold serif headline.
   return (
     <div
-      className="rounded-2xl overflow-hidden bg-white"
-      style={{ border: '1.5px solid #e5e7eb', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+      className="rounded-2xl overflow-hidden"
+      style={{
+        border: `1.5px solid ${BLUE}`,
+        boxShadow: '0 6px 24px rgba(40,53,131,0.15)',
+      }}
     >
-      {/* Header — faint navy tint, red label for accent */}
+      {/* Solid navy header — matches IssueInfoPanel */}
       <div
-        className="px-4 py-4"
-        style={{
-          background: `${BLUE}1a`,         // ~10% opacity navy — clearly distinct from white
-          borderBottom: `1.5px solid ${BLUE}20`,
-        }}
+        className="px-4 py-4 flex items-start gap-3"
+        style={{ background: BLUE }}
       >
-        <p className="text-xs font-black uppercase tracking-widest mb-0.5" style={{ color: RED }}>
-          ✉ Stay Updated
-        </p>
-        <p
-          className="font-black text-gray-900 leading-snug text-sm"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+        {/* Envelope badge */}
+        <div
+          className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mt-0.5"
+          style={{ background: RED }}
         >
-          Get new issues in your inbox
-        </p>
-        <p className="text-xs text-gray-400 mt-0.5">Free · No spam · Unsubscribe anytime</p>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
+              stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p
+            className="font-black text-white leading-snug"
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: '0.95rem' }}
+          >
+            Get New Issues in Your Inbox
+          </p>
+          <p className="text-white/60 text-xs mt-1">No spam · Unsubscribe anytime</p>
+        </div>
       </div>
 
-      {/* Form */}
-      <div className="px-4 py-4 flex flex-col gap-2.5">
+      {/* Thin tricolour rule */}
+      <div style={{ display: 'flex', height: '3px' }}>
+        <div style={{ flex: 1, background: '#006600' }} />
+        <div style={{ flex: 1, background: RED }} />
+        <div style={{ flex: 1, background: '#000' }} />
+      </div>
+
+      {/* Form body */}
+      <div className="px-4 py-4 flex flex-col gap-2.5 bg-white">
         <input
           type="email"
           required
           placeholder="Your email address *"
           value={email}
           onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-          className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
-          style={{ borderColor: status === 'error' ? RED : '#e5e7eb' }}
+          className="w-full rounded-lg bg-gray-50 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+          style={{ border: `1.5px solid ${status === 'error' ? RED : '#e5e7eb'}` }}
         />
 
         {status === 'error' && (
@@ -239,10 +270,18 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
                   stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
                 />
               </svg>
-              Subscribe — Free
+              Subscribe — It&apos;s Free
             </>
           )}
         </button>
+
+        {/* Trust signals */}
+        <div className="flex items-center justify-center gap-2 pt-0.5">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1l1.5 4.5H14l-3.5 2.5 1.5 4.5L8 10l-4 2.5 1.5-4.5L2 5.5h4.5z" stroke={BLUE} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-xs text-gray-400 italic">Digital edition · Published by Simon Designs</span>
+        </div>
       </div>
     </div>
   );
