@@ -67,121 +67,106 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
   }
 
   // ── INLINE variant ─────────────────────────────────────────────────────────
-  // Sits below the navy nominate CTA on the Leadership Review listing page.
-  // Editorial newspaper-ad feel: white background, bold red left accent bar,
-  // strong border — clearly distinct from the blue nominate banner above.
   if (variant === 'inline') {
     return (
       <div
-        className="rounded-2xl overflow-hidden bg-white"
-        style={{
-          border: `1.5px solid #e2e8f0`,
-          boxShadow: '0 4px 24px rgba(40,53,131,0.10)',
-          display: 'flex',
-        }}
+        className="rounded-2xl overflow-hidden px-6 sm:px-10 py-8 sm:py-10"
+        style={{ background: BLUE }}
       >
-        <div className="flex-1 px-6 sm:px-10 py-8 sm:py-10">
+        {/* Top rule — newspaper-style double line */}
+        <div className="mb-5">
+          <div style={{ height: '3px', background: 'rgba(255,255,255,0.5)', marginBottom: '2px' }} />
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+        </div>
 
-          {/* Top rule — newspaper-style double line */}
-          <div className="mb-5">
-            <div style={{ height: '3px', background: BLUE, marginBottom: '2px' }} />
-            <div style={{ height: '1px', background: BLUE, opacity: 0.3 }} />
-          </div>
-
-          {/* Label row */}
-          <div className="flex items-center gap-3 mb-3">
-            <p
-              className="text-xs font-black uppercase tracking-[0.2em]"
-              style={{ color: RED }}
-            >
-              ✉ Stay Informed
-            </p>
-            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
-            {/* Kenya flag stripe accent */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px', flexShrink: 0 }}>
-              <div style={{ width: '18px', height: '3px', background: '#006600', borderRadius: '1px' }} />
-              <div style={{ width: '18px', height: '3px', background: '#BB0000', borderRadius: '1px' }} />
-              <div style={{ width: '18px', height: '3px', background: '#000000', borderRadius: '1px' }} />
-            </div>
-          </div>
-
-          {/* Heading */}
-          <h3
-            className="text-gray-900 mb-2 leading-tight"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 900,
-              fontSize: 'clamp(1.3rem, 3vw, 1.85rem)',
-            }}
-          >
-            Get New Issues Delivered to Your Inbox
-          </h3>
-
-          <p className="text-sm text-gray-500 leading-relaxed mb-6">
-            Be the first to read every new edition of The Leadership Review — free, straight to your inbox, no spam.
+        {/* Label row */}
+        <div className="flex items-center gap-3 mb-3">
+          <p className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            ✉ Stay Informed
           </p>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="flex flex-col sm:flex-row gap-3 mb-3">
-              <input
-                type="text"
-                placeholder="Your name (optional)"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
-                style={{ focusRingColor: BLUE } as React.CSSProperties}
-              />
-              <input
-                type="email"
-                required
-                placeholder="Your email address *"
-                value={email}
-                onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-                className="flex-1 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
-                style={{ border: `1.5px solid ${status === 'error' ? RED : '#e5e7eb'}` }}
-              />
-            </div>
-
-            {status === 'error' && (
-              <p className="text-xs mb-3" style={{ color: RED }}>{message}</p>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                style={{ background: RED }}
-              >
-                {status === 'loading' ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Subscribing…
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <path
-                        d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
-                        stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
-                      />
-                    </svg>
-                    Subscribe — It&apos;s Free
-                  </>
-                )}
-              </button>
-              <p className="text-xs text-gray-400">
-                Confirmation email sent. Unsubscribe anytime.
-              </p>
-            </div>
-          </form>
-
-          {/* Bottom rule */}
-          <div className="mt-6">
-            <div style={{ height: '1px', background: '#e2e8f0' }} />
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+          {/* Kenya flag stripe */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px', flexShrink: 0 }}>
+            <div style={{ width: '18px', height: '3px', background: '#006600', borderRadius: '1px' }} />
+            <div style={{ width: '18px', height: '3px', background: '#BB0000', borderRadius: '1px' }} />
+            <div style={{ width: '18px', height: '3px', background: '#000000', borderRadius: '1px' }} />
           </div>
         </div>
+
+        {/* Heading */}
+        <h3
+          className="text-white mb-2 leading-tight"
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontWeight: 900,
+            fontSize: 'clamp(1.3rem, 3vw, 1.85rem)',
+          }}
+        >
+          Get New Issues Delivered to Your Inbox
+        </h3>
+
+        <p className="text-sm leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
+          Be the first to read every new edition of The Leadership Review — free, straight to your inbox, no spam.
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <input
+              type="text"
+              placeholder="Your name (optional)"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="flex-1 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/40 transition-all"
+              style={{ background: 'white', border: '1.5px solid transparent' }}
+            />
+            <input
+              type="email"
+              required
+              placeholder="Your email address *"
+              value={email}
+              onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
+              className="flex-1 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/40 transition-all"
+              style={{ background: 'white', border: `1.5px solid ${status === 'error' ? RED : 'transparent'}` }}
+            />
+          </div>
+
+          {status === 'error' && (
+            <p className="text-xs mb-3" style={{ color: '#fca5a5' }}>{message}</p>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              style={{ background: RED }}
+            >
+              {status === 'loading' ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Subscribing…
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
+                      stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+                    />
+                  </svg>
+                  Subscribe — It&apos;s Free
+                </>
+              )}
+            </button>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              Confirmation email sent. Unsubscribe anytime.
+            </p>
+          </div>
+        </form>
+
+        {/* Bottom rule */}
+        <div className="mt-6" style={{ height: '1px', background: 'rgba(255,255,255,0.15)' }} />
       </div>
     );
   }

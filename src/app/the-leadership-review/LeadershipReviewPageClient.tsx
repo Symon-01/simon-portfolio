@@ -585,14 +585,57 @@ function NominationModal({ onClose }: { onClose: () => void }) {
 
 function CTAStrip({ onNominate }: { onNominate: () => void }) {
   return (
-    <div className="rounded-2xl p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 mt-12" style={{ background: `linear-gradient(135deg, ${BLUE} 0%, #1a2460 100%)` }}>
-      <div className="text-white text-center sm:text-left">
-        <p className="text-base sm:text-lg font-bold mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>Know a leader worth celebrating?</p>
-        <p className="text-xs opacity-70">Nominate a ward, constituency, county or national leader for a future edition.</p>
+    <div
+      className="rounded-2xl overflow-hidden mt-12"
+      style={{ border: `1.5px solid ${BLUE}30` }}
+    >
+      {/* Top accent rule — matches subscribe card style */}
+      <div style={{ display: 'flex', height: '4px' }}>
+        <div style={{ flex: 1, background: BLUE }} />
+        <div style={{ flex: 1, background: GREEN }} />
+        <div style={{ flex: 1, background: RED }} />
       </div>
-      <button onClick={onNominate} className="flex-shrink-0 text-sm font-bold px-6 py-3 rounded-xl transition-opacity hover:opacity-90 whitespace-nowrap" style={{ background: '#EF6203', color: 'white' }}>
-        Nominate a Leader →
-      </button>
+
+      <div
+        className="px-6 sm:px-10 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+        style={{ background: `${BLUE}0d` }}
+      >
+        {/* Left: icon + text */}
+        <div className="flex items-start gap-4 text-center sm:text-left">
+          {/* Star badge */}
+          <div
+            className="flex-shrink-0 hidden sm:flex w-10 h-10 rounded-lg items-center justify-center mt-0.5"
+            style={{ background: BLUE }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <p
+              className="font-bold mb-1 leading-snug"
+              style={{ fontFamily: "'Playfair Display', serif", color: BLUE, fontSize: 'clamp(1rem, 2.5vw, 1.15rem)' }}
+            >
+              Know a leader worth celebrating?
+            </p>
+            <p className="text-xs leading-relaxed" style={{ color: `${BLUE}99` }}>
+              Nominate a ward, constituency, county or national leader for a future edition of The Leadership Review.
+            </p>
+          </div>
+        </div>
+
+        {/* Right: button */}
+        <button
+          onClick={onNominate}
+          className="flex-shrink-0 flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-xl transition-opacity hover:opacity-90 whitespace-nowrap text-white"
+          style={{ background: RED }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Nominate a Leader →
+        </button>
+      </div>
     </div>
   );
 }
