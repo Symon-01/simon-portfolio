@@ -141,6 +141,7 @@ function ActionBar({
           strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
+        {/* Always show the count when liked, even if it was restored from localStorage */}
         {likeCount > 0 ? `Helpful (${likeCount})` : 'Helpful'}
       </button>
 
@@ -186,39 +187,40 @@ function ActionBar({
 }
 
 // ── Recursive reply node ───────────────────────────────────────────────────────
-// replyKey is the unique _key of this reply — used as the localStorage key
-// so the "already voted" state persists across refreshes at every nesting depth.
-function ReplyNode({
-  reply,
-  depth,
-}: {
-  reply: NestedReply;
-  depth: number;
-}) {
-  // ── Helpful — persisted in localStorage per reply _key ────────────────────
-  const storageKey = `helpful_reply_${reply._key}`;
+function ReplyNode({ reply, depth }: { reply: NestedReply; depth: number }) {
+  const storageKey    = `helpful_reply_${reply._key}`;
+  const storageCount  = `helpful_reply_count_${reply._key}`;
+
+  // Initialise count from Sanity data first, fall back to 0
   const [liked,     setLiked]     = useState(false);
   const [likeCount, setLikeCount] = useState(reply.helpfulCount ?? 0);
 
-  // Restore voted state from localStorage on mount
+  // On mount: restore both the voted flag AND the stored count from localStorage.
+  // This is the key fix — we also store the count so it survives refresh even
+  // when Sanity doesn't return helpfulCount for nested replies.
   useEffect(() => {
     try {
-      if (localStorage.getItem(storageKey) === '1') setLiked(true);
+      const hasVoted = localStorage.getItem(storageKey) === '1';
+      if (hasVoted) {
+        setLiked(true);
+        // Restore the persisted count. If Sanity returned a count already, use
+        // whichever is higher (Sanity count takes precedence if available).
+        const savedCount = parseInt(localStorage.getItem(storageCount) || '0', 10);
+        setLikeCount((current) => Math.max(current, savedCount));
+      }
     } catch { /* private browsing — silently ignore */ }
-  }, [storageKey]);
+  }, [storageKey, storageCount]);
 
   function handleLike() {
     if (liked) return;
+    const newCount = likeCount + 1;
     setLiked(true);
-    setLikeCount((c) => c + 1);
-    // Persist flag so vote survives refresh
-    try { localStorage.setItem(storageKey, '1'); } catch { /* ignore */ }
-    // NOTE: nested reply helpful counts are stored only in localStorage
-    // (not synced to Sanity) because Sanity's patch syntax doesn't support
-    // deeply nested array-of-array mutations. The top-level review helpful
-    // count IS synced to Sanity. For nested replies, localStorage is sufficient
-    // — the count resets if the user clears their browser data, which is
-    // an acceptable trade-off for deeply nested content.
+    setLikeCount(newCount);
+    // Persist BOTH the flag and the count so the number shows correctly on refresh
+    try {
+      localStorage.setItem(storageKey,   '1');
+      localStorage.setItem(storageCount, String(newCount));
+    } catch { /* ignore */ }
   }
 
   const [showReply, setShowReply] = useState(false);
@@ -239,13 +241,13 @@ function ReplyNode({
   async function handlePost(name: string, affiliation: string, text: string) {
     setPosting(true);
     const newReply: NestedReply = {
-      _key:        `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      _key:         `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       text,
-      date:        new Date().toISOString().split('T')[0],
-      authorName:  name,
-      affiliation: affiliation || undefined,
+      date:         new Date().toISOString().split('T')[0],
+      authorName:   name,
+      affiliation:  affiliation || undefined,
       helpfulCount: 0,
-      replies:     [],
+      replies:      [],
     };
     setChildren((prev) => [...prev, newReply]);
     setShowReply(false);
@@ -258,7 +260,6 @@ function ReplyNode({
         <Avatar name={reply.authorName || 'R'} size={30} />
         <div className="flex-1 min-w-0">
           <div className="rounded-xl px-3 py-2.5" style={{ background: '#f8f9ff', border: '1px solid #28358315' }}>
-            {/* Author row */}
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
               <span className="text-xs font-black" style={{ color: '#283583' }}>
                 {reply.authorName || 'Anonymous'}
@@ -275,11 +276,7 @@ function ReplyNode({
                 </span>
               )}
             </div>
-
-            {/* Reply text */}
             <p className="text-xs text-gray-700 leading-relaxed">{reply.text}</p>
-
-            {/* Action bar — with persisted helpful count */}
             <ActionBar
               likeCount={likeCount} liked={liked} onLike={handleLike}
               replyCount={children.length} showReply={showReply}
@@ -314,7 +311,6 @@ function ReviewCard({
   const reviewKey  = r._key || '';
   const storageKey = `helpful_${issueId}_${reviewKey}`;
 
-  // Helpful count — initial value from Sanity, flag from localStorage
   const [liked,     setLiked]     = useState(false);
   const [likeCount, setLikeCount] = useState(r.helpfulCount ?? 0);
 
@@ -393,7 +389,6 @@ function ReviewCard({
     >
       <div className="h-0.5 w-full" style={{ background: stripeGradients[index % 3] }} />
       <div className="p-4">
-        {/* Header */}
         <div className="flex items-start gap-2.5 mb-3">
           <Avatar name={r.reviewerName} />
           <div className="flex-1 min-w-0 pt-0.5">
@@ -429,12 +424,10 @@ function ReviewCard({
           </div>
         </div>
 
-        {/* Comment */}
         <p className="text-sm text-gray-700 italic leading-relaxed mb-1" style={{ fontFamily: "'Georgia', serif" }}>
           &ldquo;{r.comment}&rdquo;
         </p>
 
-        {/* Action bar */}
         <ActionBar
           likeCount={likeCount} liked={liked} onLike={handleLike}
           replyCount={replies.length} showReply={showReply}

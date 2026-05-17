@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getAllLeadershipReviewIssues, getBannerByLocation } from '@/lib/sanity.queries';
 import type { LeadershipReviewIssueSummary } from '@/types/leadershipReview';
 import AllIssuesGrid from '@/components/leadershipReview/AllIssuesGrid';
 import SupportButton from '@/components/SupportButton';
+import SubscribeForm from '@/components/SubscribeForm';
 
 // ── Brand colours ─────────────────────────────────────────────────────────────
 const BLUE  = '#273583';
@@ -91,7 +93,7 @@ const IMPACT_AREAS = [
 interface FormData {
   nominatorName: string;
   nominatorEmail: string;
-  nominatorPhone: string;       // combined dial+local, sent to API
+  nominatorPhone: string;
   nominatorCounty: string;
   leaderName: string;
   leaderPosition: string;
@@ -110,6 +112,45 @@ const EMPTY_FORM: FormData = {
   mainReason: '', areasOfImpact: [], notableAchievements: '',
   supportingLink: '', consentGiven: false,
 };
+
+// ── Subscribe status toast ────────────────────────────────────────────────────
+
+function SubscribeToast() {
+  const searchParams = useSearchParams();
+  const [visible, setVisible] = useState(false);
+  const [toast, setToast] = useState<{ message: string; color: string } | null>(null);
+
+  useEffect(() => {
+    const status = searchParams.get('subscribe');
+    if (!status) return;
+    const map: Record<string, { message: string; color: string }> = {
+      confirmed:    { message: '🎉 You\'re subscribed! Welcome to The Leadership Review.', color: GREEN },
+      already:      { message: '✅ You\'re already subscribed — watch your inbox!', color: BLUE },
+      unsubscribed: { message: 'You have been unsubscribed successfully.', color: '#666' },
+      invalid:      { message: 'That confirmation link is invalid or has expired. Please subscribe again.', color: RED },
+      error:        { message: 'Something went wrong. Please try again.', color: RED },
+    };
+    const t = map[status];
+    if (t) { setToast(t); setVisible(true); }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => setVisible(false), 6000);
+    return () => clearTimeout(timer);
+  }, [visible]);
+
+  if (!visible || !toast) return null;
+
+  return (
+    <div
+      className="fixed top-6 left-1/2 z-50 px-5 py-3 rounded-2xl text-white text-sm font-bold shadow-2xl transition-all"
+      style={{ transform: 'translateX(-50%)', background: toast.color, maxWidth: '90vw' }}
+    >
+      {toast.message}
+    </div>
+  );
+}
 
 // ── Masthead ──────────────────────────────────────────────────────────────────
 
@@ -217,7 +258,6 @@ function NominationModal({ onClose }: { onClose: () => void }) {
   const [submitted, setSubmitted]   = useState(false);
   const [error, setError]           = useState('');
 
-  // ── Phone state (local, not sent directly to API) ─────────────────
   const [localPhone, setLocalPhone]     = useState('');
   const [countryCode, setCountryCode]   = useState<[string, string, string, number]>(DEFAULT_CODE);
 
@@ -246,7 +286,6 @@ function NominationModal({ onClose }: { onClose: () => void }) {
     }));
   };
 
-  // ── Validation ────────────────────────────────────────────────────
   const phoneError = touched.localPhone && localPhone && !validatePhone(localPhone, countryCode[3])
     ? `Please enter a valid ${countryCode[1]} phone number`
     : '';
@@ -275,7 +314,6 @@ function NominationModal({ onClose }: { onClose: () => void }) {
   const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
-    // Combine dial code + local number before sending
     const fullPhone = localPhone ? `${countryCode[2]} ${localPhone}` : '';
     try {
       const res = await fetch('/api/nominate', {
@@ -293,7 +331,6 @@ function NominationModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // ── Shared styles ─────────────────────────────────────────────────
   const inputCls = (hasError?: boolean) =>
     `w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-gray-400 ${
       hasError
@@ -305,112 +342,58 @@ function NominationModal({ onClose }: { onClose: () => void }) {
   const reqStar   = <span style={{ color: RED }} className="ml-0.5">*</span>;
   const errMsg    = (msg: string) => msg ? <p className="text-xs text-red-500 mt-1">{msg}</p> : null;
 
-  // ── Step content ──────────────────────────────────────────────────
   const renderStep = () => {
     switch (step) {
-
       case 0:
         return (
           <div className="space-y-4">
-            {/* Full Name */}
             <div>
               <label className={labelCls}>Full Name {reqStar}</label>
-              <input
-                className={inputCls()}
-                placeholder="e.g. John Mwangi"
-                value={form.nominatorName}
-                onChange={e => set('nominatorName', e.target.value)}
-              />
+              <input className={inputCls()} placeholder="e.g. John Mwangi" value={form.nominatorName} onChange={e => set('nominatorName', e.target.value)} />
             </div>
-
-            {/* Email */}
             <div>
               <label className={labelCls}>Email Address {reqStar}</label>
-              <input
-                type="email"
-                className={inputCls(!!emailError)}
-                placeholder="john@example.com"
-                value={form.nominatorEmail}
-                onChange={e => set('nominatorEmail', e.target.value)}
-              />
+              <input type="email" className={inputCls(!!emailError)} placeholder="john@example.com" value={form.nominatorEmail} onChange={e => set('nominatorEmail', e.target.value)} />
               {errMsg(emailError)}
             </div>
-
-            {/* Phone — country dropdown + local number */}
             <div>
-              <label className={labelCls}>
-                Phone Number <span className="text-gray-400 font-normal normal-case">(optional)</span>
-              </label>
+              <label className={labelCls}>Phone Number <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
               <div style={{ display: 'flex', height: '42px' }}>
-                {/* Country code selector */}
                 <select
                   value={countryCode[2] + countryCode[1]}
                   onChange={e => {
                     const found = COUNTRY_CODES.find(c => c[2] + c[1] === e.target.value);
                     if (found) { setCountryCode(found); setLocalPhone(''); setTouched(p => ({ ...p, localPhone: false })); }
                   }}
-                  style={{
-                    flexShrink: 0, minWidth: '105px',
-                    border: `1px solid ${phoneError ? '#f87171' : '#e5e7eb'}`,
-                    borderRight: 'none', borderRadius: '0.5rem 0 0 0.5rem',
-                    background: '#f9fafb', padding: '0 8px',
-                    fontSize: '0.8rem', cursor: 'pointer', color: '#374151',
-                  }}
+                  style={{ flexShrink: 0, minWidth: '105px', border: `1px solid ${phoneError ? '#f87171' : '#e5e7eb'}`, borderRight: 'none', borderRadius: '0.5rem 0 0 0.5rem', background: '#f9fafb', padding: '0 8px', fontSize: '0.8rem', cursor: 'pointer', color: '#374151' }}
                   title="Select country code"
                 >
                   {COUNTRY_CODES.map(([flag, name, code]) => (
                     <option key={`${name}-${code}`} value={code + name}>{flag} {code}</option>
                   ))}
                 </select>
-
-                {/* Local number input */}
-                <input
-                  type="tel"
-                  value={localPhone}
-                  placeholder="Phone number"
-                  maxLength={countryCode[3] + 2}
-                  onChange={e => {
-                    setLocalPhone(e.target.value);
-                    setTouched(p => ({ ...p, localPhone: true }));
-                  }}
-                  style={{
-                    flex: 1, padding: '0 12px',
-                    border: `1px solid ${phoneError ? '#f87171' : '#e5e7eb'}`,
-                    borderRadius: '0 0.5rem 0.5rem 0',
-                    fontSize: '0.875rem', color: '#1f2937', outline: 'none',
-                    background: 'white',
-                  }}
+                <input type="tel" value={localPhone} placeholder="Phone number" maxLength={countryCode[3] + 2}
+                  onChange={e => { setLocalPhone(e.target.value); setTouched(p => ({ ...p, localPhone: true })); }}
+                  style={{ flex: 1, padding: '0 12px', border: `1px solid ${phoneError ? '#f87171' : '#e5e7eb'}`, borderRadius: '0 0.5rem 0.5rem 0', fontSize: '0.875rem', color: '#1f2937', outline: 'none', background: 'white' }}
                 />
               </div>
               {errMsg(phoneError)}
             </div>
-
-            {/* County */}
             <div>
               <label className={labelCls}>Your County {reqStar}</label>
-              <select
-                className={inputCls()}
-                value={form.nominatorCounty}
-                onChange={e => set('nominatorCounty', e.target.value)}
-              >
+              <select className={inputCls()} value={form.nominatorCounty} onChange={e => set('nominatorCounty', e.target.value)}>
                 <option value="">Select county…</option>
                 {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
         );
-
       case 1:
         return (
           <div className="space-y-4">
             <div>
               <label className={labelCls}>Leader's Full Name {reqStar}</label>
-              <input
-                className={inputCls()}
-                placeholder="e.g. Hon. Jane Wanjiku"
-                value={form.leaderName}
-                onChange={e => set('leaderName', e.target.value)}
-              />
+              <input className={inputCls()} placeholder="e.g. Hon. Jane Wanjiku" value={form.leaderName} onChange={e => set('leaderName', e.target.value)} />
             </div>
             <div>
               <label className={labelCls}>Leadership Position {reqStar}</label>
@@ -431,37 +414,22 @@ function NominationModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         );
-
       case 2:
         return (
           <div className="space-y-4">
             <div>
               <label className={labelCls}>Main Reason for Nomination {reqStar}</label>
-              <textarea
-                className={`${inputCls()} resize-none`} rows={4}
-                placeholder="Describe the leader's achievements, impact, development projects, integrity, or service to the people…"
-                value={form.mainReason} onChange={e => set('mainReason', e.target.value)}
-              />
+              <textarea className={`${inputCls()} resize-none`} rows={4} placeholder="Describe the leader's achievements, impact, development projects, integrity, or service to the people…" value={form.mainReason} onChange={e => set('mainReason', e.target.value)} />
               <p className="text-xs text-gray-400 mt-1">{form.mainReason.length} characters</p>
             </div>
             <div>
-              <label className={labelCls}>
-                Key Areas of Impact {reqStar}{' '}
-                <span className="text-gray-400 font-normal normal-case ml-1">(select all that apply)</span>
-              </label>
+              <label className={labelCls}>Key Areas of Impact {reqStar} <span className="text-gray-400 font-normal normal-case ml-1">(select all that apply)</span></label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {IMPACT_AREAS.map(area => {
                   const active = form.areasOfImpact.includes(area);
                   return (
-                    <button
-                      key={area} type="button" onClick={() => toggleImpact(area)}
-                      className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
-                      style={{
-                        background: active ? BLUE : 'white',
-                        color: active ? 'white' : '#555',
-                        borderColor: active ? BLUE : '#ddd',
-                      }}
-                    >
+                    <button key={area} type="button" onClick={() => toggleImpact(area)} className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+                      style={{ background: active ? BLUE : 'white', color: active ? 'white' : '#555', borderColor: active ? BLUE : '#ddd' }}>
                       {area}
                     </button>
                   );
@@ -470,37 +438,24 @@ function NominationModal({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <label className={labelCls}>Notable Achievements <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
-              <textarea
-                className={`${inputCls()} resize-none`} rows={3}
-                placeholder="e.g. Built 12 ECDE centres, launched bursary programme, improved road network…"
-                value={form.notableAchievements} onChange={e => set('notableAchievements', e.target.value)}
-              />
+              <textarea className={`${inputCls()} resize-none`} rows={3} placeholder="e.g. Built 12 ECDE centres, launched bursary programme, improved road network…" value={form.notableAchievements} onChange={e => set('notableAchievements', e.target.value)} />
             </div>
           </div>
         );
-
       case 3:
         return (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 leading-relaxed">
-              Supporting material strengthens the nomination and helps our editorial team verify the leader's impact. This field is optional but highly encouraged.
-            </p>
+            <p className="text-sm text-gray-500 leading-relaxed">Supporting material strengthens the nomination and helps our editorial team verify the leader's impact. This field is optional but highly encouraged.</p>
             <div>
               <label className={labelCls}>Supporting Link <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
-              <input
-                type="url" className={inputCls()}
-                placeholder="https://example.com/article-about-leader"
-                value={form.supportingLink} onChange={e => set('supportingLink', e.target.value)}
-              />
+              <input type="url" className={inputCls()} placeholder="https://example.com/article-about-leader" value={form.supportingLink} onChange={e => set('supportingLink', e.target.value)} />
               <p className="text-xs text-gray-400 mt-1">News articles, project websites, social media posts, government reports, etc.</p>
             </div>
           </div>
         );
-
       case 4:
         return (
           <div className="space-y-5">
-            {/* Summary card */}
             <div className="rounded-xl p-4 space-y-2 text-sm" style={{ border: `1.5px solid ${BLUE}20`, background: `${BLUE}08` }}>
               <p className="font-bold text-gray-700" style={{ fontFamily: "'Playfair Display', serif" }}>Nomination Summary</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
@@ -518,21 +473,15 @@ function NominationModal({ onClose }: { onClose: () => void }) {
                 ))}
               </div>
             </div>
-
-            {/* Three-colour accent bar */}
             <div style={{ display: 'flex', height: '3px', borderRadius: '99px', overflow: 'hidden', gap: '2px' }}>
               <div style={{ flex: 1, background: BLUE }} />
               <div style={{ flex: 1, background: GREEN }} />
               <div style={{ flex: 1, background: RED }} />
             </div>
-
-            {/* Consent */}
             <label className="flex items-start gap-3 cursor-pointer">
-              <div
-                className="mt-0.5 w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all"
+              <div className="mt-0.5 w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all"
                 style={{ background: form.consentGiven ? BLUE : 'white', borderColor: form.consentGiven ? BLUE : '#ccc' }}
-                onClick={() => set('consentGiven', !form.consentGiven)}
-              >
+                onClick={() => set('consentGiven', !form.consentGiven)}>
                 {form.consentGiven && (
                   <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
                     <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -540,20 +489,14 @@ function NominationModal({ onClose }: { onClose: () => void }) {
                 )}
               </div>
               <span className="text-sm text-gray-600 leading-relaxed">
-                I confirm that the information I have provided is accurate to the best of my knowledge, and I understand
-                that submission does not guarantee publication. {reqStar}
+                I confirm that the information I have provided is accurate to the best of my knowledge, and I understand that submission does not guarantee publication. {reqStar}
               </span>
             </label>
-
-            {/* Editorial note */}
             <div className="rounded-lg p-3" style={{ borderLeft: `4px solid ${BLUE}`, background: `${BLUE}0a` }}>
               <p className="text-xs text-gray-600 leading-relaxed italic">
-                <span className="font-semibold not-italic text-gray-700">Editorial Note:</span> All nominations undergo
-                review by The Leadership Review editorial team. We may reach out to you for further details before
-                making any publication decision.
+                <span className="font-semibold not-italic text-gray-700">Editorial Note:</span> All nominations undergo review by The Leadership Review editorial team. We may reach out to you for further details before making any publication decision.
               </p>
             </div>
-
             {error && (
               <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
                 <p className="text-sm text-red-600">{error}</p>
@@ -561,17 +504,14 @@ function NominationModal({ onClose }: { onClose: () => void }) {
             )}
           </div>
         );
-
       default: return null;
     }
   };
 
-  // ── Success screen ────────────────────────────────────────────────
   if (submitted) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}>
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
-          {/* Three-colour top bar */}
           <div style={{ display: 'flex', height: '4px', borderRadius: '99px 99px 0 0', overflow: 'hidden', marginBottom: '24px' }}>
             <div style={{ flex: 1, background: BLUE }} />
             <div style={{ flex: 1, background: GREEN }} />
@@ -582,118 +522,57 @@ function NominationModal({ onClose }: { onClose: () => void }) {
               <path d="M6 16L13 23L26 9" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Nomination Received!
-          </h3>
-          <p className="text-sm text-gray-500 leading-relaxed mb-6">
-            Thank you for recognising exceptional leadership. Our editorial team will review your submission and may contact you for more details.
-          </p>
-          <button
-            onClick={onClose}
-            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
-            style={{ background: BLUE }}
-          >
-            Close
-          </button>
+          <h3 className="text-xl font-bold text-gray-800 mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>Nomination Received!</h3>
+          <p className="text-sm text-gray-500 leading-relaxed mb-6">Thank you for recognising exceptional leadership. Our editorial team will review your submission and may contact you for more details.</p>
+          <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90" style={{ background: BLUE }}>Close</button>
         </div>
       </div>
     );
   }
 
-  // ── Modal ─────────────────────────────────────────────────────────
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden">
-
-        {/* ── Modal header with three-colour top stripe ── */}
         <div style={{ height: '4px', display: 'flex' }}>
           <div style={{ flex: 1, background: BLUE }} />
           <div style={{ flex: 1, background: GREEN }} />
           <div style={{ flex: 1, background: RED }} />
         </div>
-
         <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-gray-100">
           <div className="flex items-start justify-between gap-3">
             <div>
-              {/* Publication label with brand colours */}
               <div className="flex items-center gap-1.5 mb-1">
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: BLUE }} />
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: GREEN }} />
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: RED }} />
-                <span className="text-xs font-bold uppercase tracking-widest ml-1" style={{ color: BLUE }}>
-                  The Leadership Review
-                </span>
+                <span className="text-xs font-bold uppercase tracking-widest ml-1" style={{ color: BLUE }}>The Leadership Review</span>
               </div>
-              <h2 className="text-xl font-black text-gray-900 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Recognise Exceptional Leadership
-              </h2>
+              <h2 className="text-xl font-black text-gray-900 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>Recognise Exceptional Leadership</h2>
             </div>
-            <button
-              onClick={onClose}
-              className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500"
-              aria-label="Close"
-            >
-              ✕
-            </button>
+            <button onClick={onClose} className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500" aria-label="Close">✕</button>
           </div>
-
-          {/* Progress bar — three-colour segments */}
           <div className="flex items-center gap-1 mt-4">
             {STEPS.map((_, i) => {
               const segColors = [BLUE, BLUE, GREEN, GREEN, RED];
-              return (
-                <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300"
-                  style={{ background: i <= step ? segColors[i] : '#e5e7eb' }} />
-              );
+              return <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300" style={{ background: i <= step ? segColors[i] : '#e5e7eb' }} />;
             })}
           </div>
           <div className="flex items-center justify-between mt-1.5">
             <p className="text-xs font-semibold text-gray-500">Step {step + 1} of {STEPS.length}</p>
-            <p className="text-xs font-bold" style={{ color: BLUE }}>
-              {STEPS[step].icon} {STEPS[step].label}
-            </p>
+            <p className="text-xs font-bold" style={{ color: BLUE }}>{STEPS[step].icon} {STEPS[step].label}</p>
           </div>
         </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          {renderStep()}
-        </div>
-
-        {/* Footer */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">{renderStep()}</div>
         <div className="flex-shrink-0 px-6 pb-6 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
-          <button
-            onClick={() => setStep(s => s - 1)} disabled={step === 0}
-            className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            ← Back
-          </button>
-
+          <button onClick={() => setStep(s => s - 1)} disabled={step === 0} className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed">← Back</button>
           {step < STEPS.length - 1 ? (
-            <button
-              onClick={() => setStep(s => s + 1)} disabled={!canProceed()}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
-              style={{ background: step < 2 ? BLUE : step < 4 ? GREEN : RED }}
-            >
-              Continue →
-            </button>
+            <button onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90" style={{ background: step < 2 ? BLUE : step < 4 ? GREEN : RED }}>Continue →</button>
           ) : (
-            <button
-              onClick={handleSubmit} disabled={submitting || !canProceed()}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-              style={{ background: '#EF6203' }}
-            >
-              {submitting ? (
-                <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Submitting…</>
-              ) : 'Submit Nomination →'}
+            <button onClick={handleSubmit} disabled={submitting || !canProceed()} className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2" style={{ background: '#EF6203' }}>
+              {submitting ? (<><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Submitting…</>) : 'Submit Nomination →'}
             </button>
           )}
         </div>
-
       </div>
     </div>
   );
@@ -703,23 +582,12 @@ function NominationModal({ onClose }: { onClose: () => void }) {
 
 function CTAStrip({ onNominate }: { onNominate: () => void }) {
   return (
-    <div
-      className="rounded-2xl p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 mt-12"
-      style={{ background: `linear-gradient(135deg, ${BLUE} 0%, #1a2460 100%)` }}
-    >
+    <div className="rounded-2xl p-5 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 mt-12" style={{ background: `linear-gradient(135deg, ${BLUE} 0%, #1a2460 100%)` }}>
       <div className="text-white text-center sm:text-left">
-        <p className="text-base sm:text-lg font-bold mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
-          Know a leader worth celebrating?
-        </p>
-        <p className="text-xs opacity-70">
-          Nominate a ward, constituency, county or national leader for a future edition.
-        </p>
+        <p className="text-base sm:text-lg font-bold mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>Know a leader worth celebrating?</p>
+        <p className="text-xs opacity-70">Nominate a ward, constituency, county or national leader for a future edition.</p>
       </div>
-      <button
-        onClick={onNominate}
-        className="flex-shrink-0 text-sm font-bold px-6 py-3 rounded-xl transition-opacity hover:opacity-90 whitespace-nowrap"
-        style={{ background: '#EF6203', color: 'white' }}
-      >
+      <button onClick={onNominate} className="flex-shrink-0 text-sm font-bold px-6 py-3 rounded-xl transition-opacity hover:opacity-90 whitespace-nowrap" style={{ background: '#EF6203', color: 'white' }}>
         Nominate a Leader →
       </button>
     </div>
@@ -729,10 +597,10 @@ function CTAStrip({ onNominate }: { onNominate: () => void }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function LeadershipReviewPageClient() {
-  const [issues, setIssues]           = useState<LeadershipReviewIssueSummary[]>([]);
-  const [loading, setLoading]         = useState(true);
+  const [issues, setIssues]               = useState<LeadershipReviewIssueSummary[]>([]);
+  const [loading, setLoading]             = useState(true);
   const [mastheadBgUrl, setMastheadBgUrl] = useState<string | undefined>(undefined);
-  const [showModal, setShowModal]     = useState(false);
+  const [showModal, setShowModal]         = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -754,6 +622,9 @@ export default function LeadershipReviewPageClient() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');
       `}</style>
 
+      {/* Subscribe confirmation toast — reads ?subscribe= from URL */}
+      <SubscribeToast />
+
       {showModal && <NominationModal onClose={closeModal} />}
 
       <main>
@@ -764,8 +635,7 @@ export default function LeadershipReviewPageClient() {
 
             <div className="flex items-center gap-4 mb-8">
               <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${BLUE}, transparent)` }} />
-              <h2 className="text-base sm:text-lg font-bold text-gray-800 px-2 whitespace-nowrap"
-                style={{ fontFamily: "'Playfair Display', serif" }}>
+              <h2 className="text-base sm:text-lg font-bold text-gray-800 px-2 whitespace-nowrap" style={{ fontFamily: "'Playfair Display', serif" }}>
                 All Published Issues
               </h2>
               <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${BLUE}, transparent)` }} />
@@ -773,8 +643,7 @@ export default function LeadershipReviewPageClient() {
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
-                  style={{ borderColor: BLUE, borderTopColor: 'transparent' }} />
+                <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: BLUE, borderTopColor: 'transparent' }} />
                 <p className="text-sm text-gray-400">Loading issues…</p>
               </div>
             ) : (
@@ -783,7 +652,12 @@ export default function LeadershipReviewPageClient() {
 
             <CTAStrip onNominate={openModal} />
 
-            <div className="mt-12 flex justify-center">
+            {/* ── Subscribe form — above Support button ── */}
+            <div className="mt-8">
+              <SubscribeForm variant="inline" />
+            </div>
+
+            <div className="mt-8 flex justify-center">
               <SupportButton position="bottom" />
             </div>
             <div className="mt-8 h-0.5" style={{ background: 'linear-gradient(to right, transparent, #EF6203, transparent)' }} />

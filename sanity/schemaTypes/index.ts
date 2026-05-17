@@ -22,6 +22,7 @@ import servicesFeatures from './servicesFeatures';
 import contactInfo from './contactInfo';
 import leadershipReview from './leadershipReview';
 import leadershipNomination from './leadershipNomination';
+import subscriber from './subscriber';
 
 export const schemaTypes = [
   portfolio,
@@ -46,4 +47,5 @@ export const schemaTypes = [
   contactInfo,
   leadershipReview,
   leadershipNomination,
+  subscriber,         // ← Newsletter subscribers
 ];
