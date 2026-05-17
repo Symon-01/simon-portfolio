@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getAllLeadershipReviewIssues, getBannerByLocation } from '@/lib/sanity.queries';
@@ -113,9 +113,8 @@ const EMPTY_FORM: FormData = {
   supportingLink: '', consentGiven: false,
 };
 
-// ── Subscribe status toast ────────────────────────────────────────────────────
-
-function SubscribeToast() {
+// ── Subscribe status toast (inner) ── uses useSearchParams, must be inside Suspense
+function SubscribeToastInner() {
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
   const [toast, setToast] = useState<{ message: string; color: string } | null>(null);
@@ -149,6 +148,15 @@ function SubscribeToast() {
     >
       {toast.message}
     </div>
+  );
+}
+
+// ── Subscribe status toast (outer) ── wraps inner in Suspense boundary ────────
+function SubscribeToast() {
+  return (
+    <Suspense fallback={null}>
+      <SubscribeToastInner />
+    </Suspense>
   );
 }
 
