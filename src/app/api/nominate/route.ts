@@ -32,6 +32,13 @@ function buildEmailHtml(data: {
 }) {
   const position = data.leaderPosition === 'Other' ? data.leaderPositionOther : data.leaderPosition;
 
+  // ── Fix: encode subject & body as whole strings to avoid + signs ──
+  const mailtoSubject = encodeURIComponent(`Re: Leadership Nomination — ${data.leaderName}`);
+  const mailtoBody = encodeURIComponent(
+    `Dear ${data.nominatorName},\n\nThank you for nominating ${data.leaderName} for The Leadership Review.\n\n`
+  );
+  const mailtoHref = `mailto:${data.nominatorEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
+
   const row = (label: string, value: string | undefined) =>
     value
       ? `<tr>
@@ -107,7 +114,7 @@ function buildEmailHtml(data: {
           <!-- Reply CTA -->
           <div style="background:#f0f4ff;border-radius:10px;padding:16px 20px;text-align:center;margin-bottom:8px;">
             <p style="margin:0 0 10px 0;font-size:13px;color:#444;">Reply directly to the nominator:</p>
-            <a href="mailto:${data.nominatorEmail}?subject=Re: Leadership Nomination — ${encodeURIComponent(data.leaderName)}&body=Dear ${encodeURIComponent(data.nominatorName)},%0A%0AThank you for nominating ${encodeURIComponent(data.leaderName)} for The Leadership Review.%0A%0A"
+            <a href="${mailtoHref}"
                style="display:inline-block;background:#283583;color:#fff;font-size:13px;font-weight:700;padding:10px 24px;border-radius:8px;text-decoration:none;">
               Reply to ${data.nominatorName} →
             </a>
@@ -184,9 +191,9 @@ export async function POST(request: Request) {
 
     // ── Send email notification ─────────────────────────────────────────────
     await resend.emails.send({
-      from: 'The Leadership Review <nominations@simondesigns.co.ke>', // ← update once domain verified; use onboarding@resend.dev for testing
+      from: 'The Leadership Review <onboarding@resend.dev>',
       to: 'simonmachariamugo@gmail.com',
-      replyTo: nominatorEmail,   // ← hitting Reply in Gmail goes straight to the nominator
+      replyTo: nominatorEmail,
       subject: `🏛️ New Nomination: ${leaderName} (${leaderPosition === 'Other' ? leaderPositionOther : leaderPosition})`,
       html: buildEmailHtml({
         nominatorName,

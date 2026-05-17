@@ -33,10 +33,31 @@ export default defineType({
       type: 'string',
       readOnly: true,
     }),
+
+    // ── Estimator fields ─────────────────────────────────────────────────────
+    // Only populated when the quote request came from the pricing estimator.
+
+    defineField({
+      name: 'originService',
+      title: '📌 Origin Service (from Estimator)',
+      type: 'string',
+      description: 'The specific service the client was estimating — e.g. "Magazine Layouts | KES 3,460". Always captured even if the client rewrites Project Details.',
+      readOnly: true,
+    }),
+    defineField({
+      name: 'estimateSummary',
+      title: '🧮 Estimate Breakdown (from Estimator)',
+      type: 'text',
+      description: 'The full estimator configuration the client set before requesting a formal quote.',
+      readOnly: true,
+    }),
+    // ─────────────────────────────────────────────────────────────────────────
+
     defineField({
       name: 'projectDetails',
-      title: 'Project Details',
+      title: 'Project Details (Client Message)',
       type: 'text',
+      description: 'What the client wrote freely in the Project Details field.',
       readOnly: true,
     }),
     defineField({
@@ -82,19 +103,21 @@ export default defineType({
   preview: {
     select: {
       title: 'fullName',
-      subtitle: 'email',
+      subtitle: 'originService',
+      email: 'email',
       status: 'status',
     },
-    prepare({ title, subtitle, status }) {
-      const statusEmoji = {
+    prepare({ title, subtitle, email, status }) {
+      const statusEmoji: Record<string, string> = {
         unread: '🔵',
         read: '✅',
         replied: '📧',
         resolved: '✔️',
       };
       return {
-        title: `${statusEmoji[status as keyof typeof statusEmoji] || '📝'} ${title}`,
-        subtitle: subtitle,
+        title: `${statusEmoji[status] || '📝'} ${title}`,
+        // Shows the origin service in the list if available, otherwise email
+        subtitle: subtitle ? `📌 ${subtitle}` : email,
       };
     },
   },

@@ -1,8 +1,6 @@
 'use client';
 
 // FILE LOCATION: src/components/PricingGuide.tsx
-// Self-contained — estimator modal, service rows, and all variable configs live here.
-// No sub-component imports needed beyond lucide-react and next/navigation.
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -11,9 +9,9 @@ import {
   ChevronDown, ChevronUp, Sparkles, X, Calculator,
   ArrowRight, Info, Tag, ChevronRight,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useQuoteModal } from '@/contexts/QuoteModalContext';
 
-// ─── External types (passed in from PricingPageClient) ────────────────────────
+// ─── External types ───────────────────────────────────────────────────────────
 
 interface PricingService {
   _id: string;
@@ -50,7 +48,7 @@ interface PricingGuideProps {
   settings: PricingSettings | null;
 }
 
-// ─── Estimator types (internal) ───────────────────────────────────────────────
+// ─── Estimator types ──────────────────────────────────────────────────────────
 
 interface SliderFactor {
   key: string; label: string; type: 'slider';
@@ -91,13 +89,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 // ─── Variable pricing configs ─────────────────────────────────────────────────
-// Each entry: [keyword(s) to match in service name (lowercase), config builder]
-// A service name only needs to INCLUDE one of these keywords to trigger the estimator.
-// Add more entries here as you expand your service list.
 
 const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
 
-  // ── Print & Publishing ────────────────────────────────────────────────────
   [['magazine'], (base, name) => ({
     serviceName: name, basePrice: base,
     factors: [
@@ -156,7 +150,6 @@ const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
     note: 'Includes 2 revision rounds. Print-ready PDF supplied for all formats.',
   })],
 
-  // ── Marketing Materials ───────────────────────────────────────────────────
   [['flyer', 'brochure'], (base, name) => ({
     serviceName: name, basePrice: base,
     factors: [
@@ -193,7 +186,6 @@ const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
     note: 'Supplied as high-res PDF / TIFF at the required DPI for printing.',
   })],
 
-  // ── UI/UX Design ──────────────────────────────────────────────────────────
   [['website ui', 'web ui', 'website design', 'web design'], (base, name) => ({
     serviceName: name, basePrice: base,
     factors: [
@@ -231,7 +223,6 @@ const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
     note: 'All wireframes delivered in Figma with a clickable flow.',
   })],
 
-  // ── Packaging Design ──────────────────────────────────────────────────────
   [['product packaging', 'packaging'], (base, name) => ({
     serviceName: name, basePrice: base,
     factors: [
@@ -259,7 +250,6 @@ const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
     note: 'Supplied as print-ready PDF + editable source file.',
   })],
 
-  // ── Brand Identity ────────────────────────────────────────────────────────
   [['brand guideline', 'brand guide', 'brand manual'], (base, name) => ({
     serviceName: name, basePrice: base,
     factors: [
@@ -275,8 +265,7 @@ const VAR_CONFIGS: [string[], (base: number, name: string) => EstConfig][] = [
 
 ];
 
-// ─── Helper: resolve variable config for a service ────────────────────────────
-// Checks if ANY keyword in a keyword group is included in the service name.
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function resolveConfig(service: PricingService): EstConfig | null {
   const lower = service.name.toLowerCase();
@@ -288,7 +277,19 @@ function resolveConfig(service: PricingService): EstConfig | null {
   return null;
 }
 
-// ─── Helper: sanity image URL ─────────────────────────────────────────────────
+function resolveProjectType(serviceName: string): string {
+  const n = serviceName.toLowerCase();
+  if (n.includes('brand') || n.includes('logo') || n.includes('identity')) return 'branding';
+  if (n.includes('market') || n.includes('flyer') || n.includes('poster') || n.includes('banner')) return 'marketing';
+  if (n.includes('ui') || n.includes('ux') || n.includes('interface') || n.includes('web')) return 'uiux';
+  if (
+    n.includes('print') || n.includes('publish') || n.includes('book') ||
+    n.includes('magazine') || n.includes('catalog') || n.includes('booklet') ||
+    n.includes('layout') || n.includes('menu') || n.includes('annual report')
+  ) return 'print';
+  if (n.includes('packag') || n.includes('label')) return 'packaging';
+  return '';
+}
 
 function sanityUrl(asset: { _ref?: string; url?: string }): string | null {
   if (asset.url) return asset.url;
@@ -299,8 +300,6 @@ function sanityUrl(asset: { _ref?: string; url?: string }): string | null {
   return `https://cdn.sanity.io/images/${pid}/${ds}/${id}`;
 }
 
-// ─── Helper: format discount label ───────────────────────────────────────────
-
 function fmtDiscount(raw: string): string {
   const t = raw.trim();
   if (t.startsWith('-')) return t;
@@ -310,7 +309,7 @@ function fmtDiscount(raw: string): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ESTIMATOR MODAL (inline — no external import needed)
+// ESTIMATOR MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface EstimatorProps {
@@ -318,13 +317,13 @@ interface EstimatorProps {
   accentColor: string;
   currency: string;
   onClose: () => void;
+  /** Now receives the estimate total as a number too */
   onGetQuote: (name: string, total: number, summary: string) => void;
 }
 
 function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: EstimatorProps) {
   const al = accentColor + '22';
 
-  // Lock body scroll while modal is open
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -378,8 +377,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
     return lines.join('\n');
   };
 
-  // createPortal renders outside the card DOM tree, so position:fixed is
-  // never clipped by the card's overflow:hidden or any parent transform.
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
@@ -423,7 +420,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
         ._est_dim:hover{background:#f3f4f6;color:#374151}
       `}</style>
 
-      {/* Backdrop */}
       <div
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         style={{
@@ -433,7 +429,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
           padding: '1rem', animation: '_est_fi .22s ease',
         }}
       >
-        {/* Panel */}
         <div
           className="_est_panel"
           style={{
@@ -503,7 +498,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
             {config.factors.map((factor) => (
               <div key={factor.key} style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
 
-                {/* Slider */}
                 {factor.type === 'slider' && (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -531,7 +525,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
                   </>
                 )}
 
-                {/* Select */}
                 {factor.type === 'select' && (
                   <>
                     <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#374151' }}>{factor.label}</span>
@@ -552,7 +545,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
                   </>
                 )}
 
-                {/* Toggle */}
                 {factor.type === 'toggle' && (
                   <div
                     onClick={() => setVals((v) => ({ ...v, [factor.key]: !v[factor.key] }))}
@@ -575,7 +567,6 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
                         </div>
                       )}
                     </div>
-                    {/* Switch */}
                     <div style={{
                       width: 38, height: 22, borderRadius: 999, flexShrink: 0,
                       background: vals[factor.key] ? accentColor : '#e5e7eb',
@@ -652,7 +643,7 @@ function EstimatorModal({ config, accentColor, currency, onClose, onGetQuote }: 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SERVICE ROW (inline)
+// SERVICE ROW
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface ServiceRowProps {
@@ -684,7 +675,6 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
       `}</style>
 
       <div className="_sr">
-        {/* Name + price */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '.5rem' }}>
           <span style={{ fontSize: '.82rem', fontWeight: 600, color: '#374151', lineHeight: 1.35, flex: 1 }}>
             {service.name}
@@ -707,7 +697,6 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
           )}
         </div>
 
-        {/* Description */}
         {service.description &&
           service.description.trim().toLowerCase() !== service.name.trim().toLowerCase() && (
           <div style={{ fontSize: '.71rem', color: '#9ca3af', lineHeight: 1.45, marginTop: 3 }}>
@@ -715,7 +704,6 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
           </div>
         )}
 
-        {/* Discount pill + estimate button */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 4 }}>
           {service.discountLabel && (
             <span style={{
@@ -732,11 +720,7 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
             <button
               className="_est_btn"
               onClick={() => setOpen(true)}
-              style={{
-                border: `1.5px solid ${accentColor}`,
-                background: al,
-                color: accentColor,
-              }}
+              style={{ border: `1.5px solid ${accentColor}`, background: al, color: accentColor }}
             >
               <Calculator size={11} />
               Estimate Price
@@ -752,7 +736,10 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
           accentColor={accentColor}
           currency={currency}
           onClose={() => setOpen(false)}
-          onGetQuote={(name, total, summary) => { setOpen(false); onGetQuote(name, total, summary); }}
+          onGetQuote={(name, total, summary) => {
+            setOpen(false);
+            onGetQuote(name, total, summary);
+          }}
         />
       )}
     </>
@@ -765,7 +752,7 @@ function ServiceRow({ service, accentColor, currency, estConfig, onGetQuote }: S
 
 export default function PricingGuide({ categories, settings }: PricingGuideProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const router = useRouter();
+  const { openModal } = useQuoteModal();
 
   const toggle = (id: string) =>
     setExpanded((prev) => {
@@ -774,12 +761,17 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
       return next;
     });
 
+  // ── handleGetQuote: passes all three pieces of data to the modal ─────────
   const handleGetQuote = useCallback(
-    (serviceName: string, estimate: number, details: string) => {
-      const p = new URLSearchParams({ service: serviceName, estimate: String(estimate), details });
-      router.push(`/contact?${p.toString()}`);
+    (serviceName: string, estimateTotal: number, summary: string) => {
+      openModal({
+        originService:   `${serviceName} | KES ${estimateTotal.toLocaleString()}`, // hidden field
+        estimateTotal,                                                               // for budget auto-select
+        estimateSummary: summary,                                                    // read-only card
+        projectType:     resolveProjectType(serviceName),                            // dropdown pre-select
+      });
     },
-    [router]
+    [openModal]
   );
 
   const currency = settings?.currencySymbol || 'KES';
@@ -839,7 +831,6 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
       <section className="pg-section">
         <div className="pg-inner">
 
-          {/* Heading */}
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <div className="pg-eyebrow"><Sparkles size={11} /> Transparent &amp; Flexible</div>
             <h2 className="pg-title">{settings?.pageTitle || 'Our Pricing Guide'}</h2>
@@ -848,7 +839,6 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
             </p>
           </div>
 
-          {/* Legend */}
           <div className="pg-legend">
             <div className="pg-legend-item">
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#048F02', flexShrink: 0 }} />
@@ -860,7 +850,6 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
             </div>
           </div>
 
-          {/* Cards */}
           <div className="pg-grid">
             {categories.map((cat, idx) => {
               const accent   = ACCENTS[idx % ACCENTS.length];
@@ -871,18 +860,15 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
 
               return (
                 <div key={cat._id} className="pg-card">
-                  {/* Top stripe */}
                   <div className="pg-stripe"
                     style={{ background: `linear-gradient(90deg,${accent.from},${accent.to})` }} />
 
-                  {/* Image */}
                   {imgUrl && (
                     <div className="pg-img">
                       <img src={imgUrl} alt={cat.categoryImage?.alt || cat.name} />
                     </div>
                   )}
 
-                  {/* Body */}
                   <div className="pg-body">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', marginBottom: 0 }}>
                       <div className="pg-ibadge"
@@ -904,11 +890,7 @@ export default function PricingGuide({ categories, settings }: PricingGuideProps
                     <button
                       className="pg-toggle"
                       onClick={() => toggle(cat._id)}
-                      style={{
-                        color: accent.from,
-                        background: accent.light,
-                        border: `1.5px solid ${accent.from}`,
-                      }}
+                      style={{ color: accent.from, background: accent.light, border: `1.5px solid ${accent.from}` }}
                     >
                       {isOpen
                         ? <><ChevronUp size={12} /> Hide Services</>

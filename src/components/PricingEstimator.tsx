@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Calculator, ArrowRight, Info } from 'lucide-react';
+import { useQuoteModal } from '@/contexts/QuoteModalContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,7 +17,7 @@ export interface VariableFactor {
   max?: number;
   step?: number;
   unit?: string;
-  pricePerUnit?: number;  // KES per unit (e.g. KES 120 per page)
+  pricePerUnit?: number;
   // select
   options?: { label: string; value: string; priceAdd: number }[];
   // toggle
@@ -37,12 +38,36 @@ export interface EstimatorConfig {
 interface Props {
   config: EstimatorConfig;
   onClose: () => void;
-  onGetQuote: (serviceName: string, estimate: number, details: string) => void;
+  /** @deprecated kept for backwards-compat but no longer used — the estimator
+   *  now opens the global quote modal directly. */
+  onGetQuote?: (serviceName: string, estimate: number, details: string) => void;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Maps a service name to the closest matching projectType option value
+ * used in the quote-modal <select>.
+ */
+function resolveProjectType(serviceName: string): string {
+  const name = serviceName.toLowerCase();
+  if (name.includes('brand') || name.includes('logo') || name.includes('identity')) return 'branding';
+  if (name.includes('market') || name.includes('flyer') || name.includes('poster') || name.includes('banner')) return 'marketing';
+  if (name.includes('ui') || name.includes('ux') || name.includes('interface') || name.includes('web')) return 'uiux';
+  if (
+    name.includes('print') || name.includes('publish') || name.includes('book') ||
+    name.includes('magazine') || name.includes('catalog') || name.includes('booklet') ||
+    name.includes('layout')
+  ) return 'print';
+  if (name.includes('packag') || name.includes('label')) return 'packaging';
+  return ''; // fallback — user can pick manually
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function PricingEstimator({ config, onClose, onGetQuote }: Props) {
+export default function PricingEstimator({ config, onClose }: Props) {
+  const { openModal } = useQuoteModal();
+
   const [values, setValues] = useState<Record<string, number | string | boolean>>(() => {
     const init: Record<string, number | string | boolean> = {};
     config.factors.forEach((f) => {
@@ -88,6 +113,15 @@ export default function PricingEstimator({ config, onClose, onGetQuote }: Props)
     });
     lines.push(`Estimated Total: ${config.currency} ${total.toLocaleString()}`);
     return lines.join('\n');
+  };
+
+  // ── The key handler: close estimator → open quote modal pre-filled ──────────
+  const handleGetFormalQuote = () => {
+    onClose(); // close the estimator first
+    openModal({
+      projectType: resolveProjectType(config.serviceName),
+      description: buildSummary(),
+    });
   };
 
   return (
@@ -454,7 +488,11 @@ export default function PricingEstimator({ config, onClose, onGetQuote }: Props)
 
       <div
         className="est-overlay"
-        style={{ '--est-accent': config.accentColor, '--est-accent-to': config.accentColor + 'cc', '--est-accent-light': config.accentColor + '18' } as React.CSSProperties}
+        style={{
+          '--est-accent': config.accentColor,
+          '--est-accent-to': config.accentColor + 'cc',
+          '--est-accent-light': config.accentColor + '18',
+        } as React.CSSProperties}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         <div className="est-panel">
@@ -513,7 +551,11 @@ export default function PricingEstimator({ config, onClose, onGetQuote }: Props)
                     />
                     <div className="slider-minmax">
                       <span>{factor.min ?? 1} {factor.unit ?? ''}</span>
-                      <span>{factor.pricePerUnit ? `+${config.currency} ${factor.pricePerUnit.toLocaleString()} per ${factor.unit ?? 'unit'}` : ''}</span>
+                      <span>
+                        {factor.pricePerUnit
+                          ? `+${config.currency} ${factor.pricePerUnit.toLocaleString()} per ${factor.unit ?? 'unit'}`
+                          : ''}
+                      </span>
                       <span>{factor.max ?? 100} {factor.unit ?? ''}</span>
                     </div>
                   </>
@@ -532,7 +574,12 @@ export default function PricingEstimator({ config, onClose, onGetQuote }: Props)
                     >
                       {factor.options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                          {opt.label}{opt.priceAdd > 0 ? ` (+${config.currency} ${opt.priceAdd.toLocaleString()})` : opt.priceAdd < 0 ? ` (${config.currency} ${opt.priceAdd.toLocaleString()})` : ''}
+                          {opt.label}
+                          {opt.priceAdd > 0
+                            ? ` (+${config.currency} ${opt.priceAdd.toLocaleString()})`
+                            : opt.priceAdd < 0
+                            ? ` (${config.currency} ${opt.priceAdd.toLocaleString()})`
+                            : ''}
                         </option>
                       ))}
                     </select>
@@ -548,7 +595,9 @@ export default function PricingEstimator({ config, onClose, onGetQuote }: Props)
                     <div>
                       <div className="toggle-text">{factor.toggleLabel ?? factor.label}</div>
                       {factor.togglePriceAdd != null && factor.togglePriceAdd > 0 && (
-                        <div className="toggle-add">+{config.currency} {factor.togglePriceAdd.toLocaleString()}</div>
+                        <div className="toggle-add">
+                          +{config.currency} {factor.togglePriceAdd.toLocaleString()}
+                        </div>
                       )}
                     </div>
                     <div className={`toggle-switch${values[factor.key] ? ' on' : ''}`}>
@@ -571,10 +620,7 @@ export default function PricingEstimator({ config, onClose, onGetQuote }: Props)
 
           {/* Footer CTAs */}
           <div className="est-footer">
-            <button
-              className="est-cta-btn"
-              onClick={() => onGetQuote(config.serviceName, total, buildSummary())}
-            >
+            <button className="est-cta-btn" onClick={handleGetFormalQuote}>
               Get a Formal Quote <ArrowRight size={15} />
             </button>
             <button className="est-dismiss" onClick={onClose}>

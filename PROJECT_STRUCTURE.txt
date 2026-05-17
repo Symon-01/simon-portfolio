@@ -63,6 +63,7 @@ simon-designs/
 │   │   ├── creativePhilosophy.ts
 │   │   ├── designTools.ts
 │   │   ├── index.ts
+│   │   ├── leadershipNomination.ts
 │   │   ├── leadershipReview.ts
 │   │   ├── missionVision.ts
 │   │   ├── myStorySection.ts
@@ -90,9 +91,11 @@ simon-designs/
 │   │   ├── api
 │   │   │   ├── contact
 │   │   │   │   └── route.ts
-│   │   │   └── leadership-review
-│   │   │       └── reviews
-│   │   │           └── route.ts
+│   │   │   ├── leadership-review
+│   │   │   │   └── reviews
+│   │   │   │       └── route.ts
+│   │   │   └── nominate
+│   │   │       └── route.ts
 │   │   ├── contact
 │   │   │   └── page.tsx
 │   │   ├── globals.css
@@ -116,7 +119,6 @@ simon-designs/
 │   │   │   ├── SimonArtsPageClient.tsx
 │   │   │   └── [slug]
 │   │   │       └── page.tsx
-│   │   ├── sitemap.ts
 │   │   ├── test-banners
 │   │   │   └── page.tsx
 │   │   ├── test-sanity
