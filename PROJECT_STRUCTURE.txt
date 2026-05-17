@@ -77,6 +77,7 @@ simon-designs/
 │   │   ├── servicesProcess.ts
 │   │   ├── simonArts.ts
 │   │   ├── skillsExpertise.ts
+│   │   ├── subscriber.ts
 │   │   └── whoWeAre.ts
 │   ├── static
 │   │   └── .gitkeep
@@ -89,12 +90,20 @@ simon-designs/
 │   │   ├── about-me
 │   │   │   └── page.tsx
 │   │   ├── api
+│   │   │   ├── confirm-subscription
+│   │   │   │   └── route.ts
 │   │   │   ├── contact
 │   │   │   │   └── route.ts
 │   │   │   ├── leadership-review
 │   │   │   │   └── reviews
 │   │   │   │       └── route.ts
-│   │   │   └── nominate
+│   │   │   ├── nominate
+│   │   │   │   └── route.ts
+│   │   │   ├── notify-subscribers
+│   │   │   │   └── route.ts
+│   │   │   ├── subscribe
+│   │   │   │   └── route.ts
+│   │   │   └── unsubscribe
 │   │   │       └── route.ts
 │   │   ├── contact
 │   │   │   └── page.tsx
@@ -209,6 +218,7 @@ simon-designs/
 │   │   ├── SimonArtsHero.tsx
 │   │   ├── SkillsExpertise.tsx
 │   │   ├── Stats.tsx
+│   │   ├── SubscribeForm.tsx
 │   │   ├── SupportButton.tsx
 │   │   ├── TawkToWidget.tsx
 │   │   ├── UniversalCTA.tsx

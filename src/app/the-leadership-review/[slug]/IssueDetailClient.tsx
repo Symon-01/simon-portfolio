@@ -13,6 +13,7 @@ import ViewerToolbar from '@/components/leadershipReview/ViewerToolbar';
 import OnlineArticleView from '@/components/leadershipReview/OnlineArticleView';
 import DesktopPdfViewer from '@/components/leadershipReview/DesktopPdfViewer';
 import MobilePdfViewer from '@/components/leadershipReview/MobilePdfViewer';
+import SubscribeForm from '@/components/SubscribeForm';
 
 // ── Download helper ───────────────────────────────────────────────────────────
 async function triggerDownload(url: string, filename: string) {
@@ -63,11 +64,7 @@ export default function IssueDetailClient({ issue }: Props) {
         <p className="text-sm text-gray-500 mb-6">
           We couldn&apos;t find the issue you&apos;re looking for.
         </p>
-        <Link
-          href="/the-leadership-review"
-          className="inline-flex items-center text-sm font-bold gap-2"
-          style={{ color: '#283583' }}
-        >
+        <Link href="/the-leadership-review" className="inline-flex items-center text-sm font-bold gap-2" style={{ color: '#283583' }}>
           ← Back to All Issues
         </Link>
       </div>
@@ -98,14 +95,6 @@ export default function IssueDetailClient({ issue }: Props) {
     />
   ) : null;
 
-  // ── Online article view ────────────────────────────────────────────────────
-  // NOTE: We do NOT pass issueTitle as a prop here.
-  // Your Sanity article content already begins with the issue title as the
-  // first H2 block. Passing it separately caused a duplicate heading.
-  // The OnlineArticleView Portable Text renderer handles the title styling.
-  //
-  // We DO pass both introCardColor and quoteColor so they can be set
-  // independently per-issue in Sanity Studio (e.g. blue intro + green quotes).
   const onlineArticle =
     viewMode === 'online' && hasOnlineVersion ? (
       <OnlineArticleView
@@ -124,6 +113,8 @@ export default function IssueDetailClient({ issue }: Props) {
 
           {/* ── Desktop layout ─────────────────────────────────────────────── */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_300px] gap-8 items-start">
+
+            {/* Main content column */}
             <div>
               {pdfUrl ? (
                 <>
@@ -143,13 +134,17 @@ export default function IssueDetailClient({ issue }: Props) {
                 </>
               ) : (
                 <div className="bg-white border border-gray-200 rounded-2xl flex items-center justify-center py-24">
-                  <p className="text-sm text-gray-400 italic">
-                    PDF not yet available for this issue.
-                  </p>
+                  <p className="text-sm text-gray-400 italic">PDF not yet available for this issue.</p>
                 </div>
               )}
               {reviewsSection}
             </div>
+
+            {/* ── Desktop sidebar ───────────────────────────────────────────
+                Order: Issue Info → Share & Support → Subscribe → Also Read
+                Subscribe sits directly below Share so the flow reads naturally:
+                "you just shared this — want to be notified of the next one?"
+            */}
             <div className="flex flex-col gap-4 sticky top-6">
               <IssueInfoPanel
                 issue={issue}
@@ -159,6 +154,7 @@ export default function IssueDetailClient({ issue }: Props) {
                 hideCover={false}
               />
               <ShareAndSupportCard title={issue.title} />
+              <SubscribeForm variant="compact" />
               {issue.relatedIssue && <AlsoReadCard issue={issue.relatedIssue} />}
             </div>
           </div>
@@ -193,7 +189,9 @@ export default function IssueDetailClient({ issue }: Props) {
                 <p className="text-sm text-gray-400 italic">PDF not yet available.</p>
               </div>
             )}
+            {/* Mobile order: Share → Subscribe → Reviews → Also Read */}
             <ShareAndSupportCard title={issue.title} />
+            <SubscribeForm variant="compact" />
             {reviewsSection}
             {issue.relatedIssue && <AlsoReadCard issue={issue.relatedIssue} />}
           </div>

@@ -1,11 +1,12 @@
 'use client';
+// FILE: src/components/SubscribeForm.tsx
 
 import { useState } from 'react';
 
 // ── Brand colours ─────────────────────────────────────────────────────────────
-const BLUE  = '#273583';
-const GREEN = '#40a535';
-const RED   = '#cd1719';
+const BLUE  = '#283583';  // navy
+const GREEN = '#2e7d32';  // forest green
+const RED   = '#BB0000';  // deep red
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -42,24 +43,18 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
     }
   };
 
-  // ── Success state ─────────────────────────────────────────────────
+  // ── Success state (shared) ─────────────────────────────────────────────────
   if (status === 'success') {
     return (
       <div
-        className="rounded-2xl p-5 sm:p-6 text-center"
-        style={{ background: `linear-gradient(135deg, ${GREEN}15 0%, ${BLUE}10 100%)`, border: `1.5px solid ${GREEN}40` }}
+        className="rounded-2xl p-6 text-center"
+        style={{ background: `${GREEN}12`, border: `1.5px solid ${GREEN}40` }}
       >
-        {/* Three-colour bar */}
-        <div className="flex h-1 rounded-full overflow-hidden mb-4 mx-auto" style={{ maxWidth: '120px' }}>
-          <div className="flex-1" style={{ background: BLUE }} />
-          <div className="flex-1" style={{ background: GREEN }} />
-          <div className="flex-1" style={{ background: RED }} />
-        </div>
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+          className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-3"
           style={{ background: GREEN }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M4 12l5 5L20 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
@@ -71,150 +66,183 @@ export default function SubscribeForm({ variant = 'inline' }: { variant?: Varian
     );
   }
 
-  // ── Inline variant (used on the Leadership Review index page) ─────
+  // ── INLINE variant ─────────────────────────────────────────────────────────
+  // Used on the Leadership Review listing page, sits below the navy nominate CTA.
+  // Uses a very faint navy blue background so it doesn't shout — calm and clean,
+  // distinct from the bold nominate banner above it without competing.
   if (variant === 'inline') {
     return (
       <div
-        className="rounded-2xl p-5 sm:p-7"
+        className="rounded-2xl overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${BLUE}08 0%, ${GREEN}08 100%)`,
-          border: `1.5px solid ${BLUE}20`,
+          background: `${BLUE}0d`,       // ~5% opacity navy — barely-there tint
+          border: `1.5px solid ${BLUE}25`,
         }}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: BLUE }} />
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: GREEN }} />
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: RED }} />
-          </div>
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest" style={{ color: BLUE }}>
-              Stay Informed
-            </p>
-            <p className="font-black text-gray-800 leading-tight text-sm sm:text-base" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Get New Issues Delivered to Your Inbox
-            </p>
-          </div>
-        </div>
-        <p className="text-xs text-gray-500 leading-relaxed mb-4">
-          Be the first to read every new edition of The Leadership Review — free, straight to your inbox, no spam.
-        </p>
+        <div className="px-6 sm:px-10 py-8 sm:py-10">
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="flex flex-col sm:flex-row gap-2 mb-2">
-            <input
-              type="text"
-              placeholder="Your name (optional)"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-              style={{ focusRingColor: BLUE } as React.CSSProperties}
-            />
-            <input
-              type="email"
-              required
-              placeholder="Your email address *"
-              value={email}
-              onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-              className="flex-1 rounded-xl border bg-white px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-              style={{ borderColor: status === 'error' ? RED : '#e5e7eb' }}
-            />
-          </div>
-
-          {status === 'error' && (
-            <p className="text-xs mb-2" style={{ color: RED }}>{message}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: `linear-gradient(135deg, ${BLUE} 0%, #1a2460 100%)` }}
+          {/* Label */}
+          <p
+            className="text-xs font-black uppercase tracking-[0.18em] mb-2 flex items-center gap-1.5"
+            style={{ color: BLUE }}
           >
-            {status === 'loading' ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Subscribing…
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Subscribe — It&apos;s Free
-              </>
-            )}
-          </button>
-
-          <p className="text-xs text-gray-400 mt-2 leading-relaxed">
-            We&apos;ll send a confirmation email. You can unsubscribe at any time.
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
+                stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+              />
+            </svg>
+            Stay Informed
           </p>
-        </form>
+
+          {/* Heading */}
+          <h3
+            className="text-gray-900 mb-2 leading-tight"
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 900,
+              fontSize: 'clamp(1.3rem, 3vw, 1.85rem)',
+            }}
+          >
+            Get New Issues Delivered to Your Inbox
+          </h3>
+
+          <p className="text-sm text-gray-500 leading-relaxed mb-6">
+            Be the first to read every new edition of The Leadership Review — free, straight to your inbox, no spam.
+          </p>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="flex flex-col sm:flex-row gap-3 mb-3">
+              <input
+                type="text"
+                placeholder="Your name (optional)"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+              />
+              <input
+                type="email"
+                required
+                placeholder="Your email address *"
+                value={email}
+                onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
+                className="flex-1 rounded-xl bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+                style={{ border: `1.5px solid ${status === 'error' ? RED : '#e5e7eb'}` }}
+              />
+            </div>
+
+            {status === 'error' && (
+              <p className="text-xs mb-3" style={{ color: RED }}>{message}</p>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                style={{ background: RED }}
+              >
+                {status === 'loading' ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Subscribing…
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path
+                        d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
+                        stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+                      />
+                    </svg>
+                    Subscribe — It&apos;s Free
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-gray-400">
+                Confirmation email sent. Unsubscribe anytime.
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     );
   }
 
-  // ── Compact variant (used in sidebar / issue detail page) ─────────
+  // ── COMPACT variant ────────────────────────────────────────────────────────
+  // Sidebar card on the Issue Detail page, rendered inside IssueInfoPanel,
+  // positioned below the ShareAndSupportCard (see IssueInfoPanel.tsx).
+  //
+  // Header: faint navy blue background — calm, on-brand, not shouting.
+  // Button: forest green — different from the blue info panel header and red
+  //   accent label, so each element in the sidebar has its own colour identity.
+  // No stripes. No bold gradients. Professional and clean.
   return (
     <div
-      className="rounded-2xl overflow-hidden"
-      style={{ border: `1.5px solid ${BLUE}20` }}
+      className="rounded-2xl overflow-hidden bg-white"
+      style={{ border: '1.5px solid #e5e7eb', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
     >
-      {/* Header bar */}
-      <div className="px-4 py-3" style={{ background: BLUE }}>
-        <div className="flex items-center gap-2 mb-0.5">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-            <path d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <p className="text-white font-black text-xs uppercase tracking-widest">Stay Updated</p>
-        </div>
-        <p className="text-white/80 text-xs leading-snug" style={{ fontFamily: "'Playfair Display', serif" }}>
+      {/* Header — faint navy tint, red label for accent */}
+      <div
+        className="px-4 py-4"
+        style={{
+          background: `${BLUE}1a`,         // ~10% opacity navy — clearly distinct from white
+          borderBottom: `1.5px solid ${BLUE}20`,
+        }}
+      >
+        <p className="text-xs font-black uppercase tracking-widest mb-0.5" style={{ color: RED }}>
+          ✉ Stay Updated
+        </p>
+        <p
+          className="font-black text-gray-900 leading-snug text-sm"
+          style={{ fontFamily: "'Playfair Display', serif" }}
+        >
           Get new issues in your inbox
         </p>
+        <p className="text-xs text-gray-400 mt-0.5">Free · No spam · Unsubscribe anytime</p>
       </div>
 
-      {/* Form body */}
-      <div className="bg-white p-4">
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-2">
-          <input
-            type="email"
-            required
-            placeholder="Your email address *"
-            value={email}
-            onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-            className="w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
-            style={{ borderColor: status === 'error' ? RED : '#e5e7eb' }}
-          />
-          {status === 'error' && (
-            <p className="text-xs" style={{ color: RED }}>{message}</p>
+      {/* Form */}
+      <div className="px-4 py-4 flex flex-col gap-2.5">
+        <input
+          type="email"
+          required
+          placeholder="Your email address *"
+          value={email}
+          onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
+          className="w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all"
+          style={{ borderColor: status === 'error' ? RED : '#e5e7eb' }}
+        />
+
+        {status === 'error' && (
+          <p className="text-xs" style={{ color: RED }}>{message}</p>
+        )}
+
+        <button
+          type="submit"
+          onClick={handleSubmit as any}
+          disabled={status === 'loading'}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-xs font-black hover:opacity-90 disabled:opacity-50 transition-all"
+          style={{ background: RED }}
+        >
+          {status === 'loading' ? (
+            <>
+              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Subscribing…
+            </>
+          ) : (
+            <>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M1 4l7 5 7-5M1 4v9a1 1 0 001 1h12a1 1 0 001-1V4M1 4a1 1 0 011-1h12a1 1 0 011 1"
+                  stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                />
+              </svg>
+              Subscribe — Free
+            </>
           )}
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-xs font-black hover:opacity-90 disabled:opacity-50 transition-all"
-            style={{ background: GREEN }}
-          >
-            {status === 'loading' ? (
-              <>
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Subscribing…
-              </>
-            ) : (
-              'Subscribe — Free'
-            )}
-          </button>
-          <p className="text-xs text-gray-400 text-center leading-tight">
-            Confirmation email sent. Unsubscribe anytime.
-          </p>
-        </form>
-      </div>
-
-      {/* Three-colour footer stripe */}
-      <div className="flex h-1">
-        <div className="flex-1" style={{ background: BLUE }} />
-        <div className="flex-1" style={{ background: GREEN }} />
-        <div className="flex-1" style={{ background: RED }} />
+        </button>
       </div>
     </div>
   );
