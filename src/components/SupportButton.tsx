@@ -172,7 +172,7 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
             </h3>
             
             <p className="text-gray-600 text-sm mb-6 text-center">
-              Enter the amount you'd like to contribute. Every support helps us create more amazing designs!
+              Enter the amount you'd like to support us with. Every support helps us create more amazing designs!
             </p>
 
             <div className="mb-6">
