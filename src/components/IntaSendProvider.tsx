@@ -22,15 +22,15 @@ export default function IntaSendProvider() {
     // Preload IntaSend script globally
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/intasend-inlinejs-sdk@3.0.4/build/intasend-inline.js';
-    script.async = false; // Load synchronously for immediate availability
+    script.async = false;
     
     script.onload = () => {
       if (window.IntaSend) {
         try {
-          // Initialize once globally
+          // Initialize once globally — LIVE mode
           window.intaSendInstance = new window.IntaSend({
-            publicAPIKey: "ISPubKey_test_1f96fe11-a51a-45aa-bba4-34d57bcc4510",
-            live: false,
+            publicAPIKey: "ISPubKey_live_21190558-5e93-43fa-a463-35d4c93ba453", // ← Replace with your live key from IntaSend → Integrations
+            live: true, // ← Changed from false to true
           });
           window.intaSendLoaded = true;
           console.log('IntaSend initialized globally');
@@ -43,5 +43,5 @@ export default function IntaSendProvider() {
     document.head.appendChild(script);
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 }

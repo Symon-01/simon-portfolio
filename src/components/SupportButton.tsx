@@ -20,21 +20,18 @@ declare global {
 export default function SupportButton({ position = 'top', className = '' }: SupportButtonProps) {
   const [isReady, setIsReady] = useState(true);
   const [showAmountModal, setShowAmountModal] = useState(false);
-  const [customAmount, setCustomAmount] = useState(''); // Empty by default
+  const [customAmount, setCustomAmount] = useState('');
 
   useEffect(() => {
-    // If already loaded, use existing instance
     if (window.intaSendLoaded && window.intaSendInstance) {
       return;
     }
 
-    // If script exists but not initialized
     if (window.IntaSend && !window.intaSendInstance) {
       initializeIntaSend();
       return;
     }
 
-    // Load script if not present
     if (!document.querySelector('script[src*="intasend-inline.js"]')) {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/intasend-inlinejs-sdk@3.0.4/build/intasend-inline.js';
@@ -56,8 +53,8 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
     if (typeof window !== 'undefined' && window.IntaSend) {
       try {
         window.intaSendInstance = new window.IntaSend({
-          publicAPIKey: "ISPubKey_test_1f96fe11-a51a-45aa-bba4-34d57bcc4510",
-          live: false,
+          publicAPIKey: "ISPubKey_live_21190558-5e93-43fa-a463-35d4c93ba453", // ← Replace with your live key from IntaSend → Integrations
+          live: true, // ← Changed from false to true
         });
         window.intaSendLoaded = true;
       } catch (error) {
@@ -71,7 +68,6 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
   };
 
   const handlePayment = () => {
-    // Initialize if not already done
     if (!window.intaSendInstance && window.IntaSend) {
       initializeIntaSend();
     }
@@ -127,7 +123,6 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
               cursor: 'pointer',
             }}
           >
-            {/* Icon */}
             <svg
               className="w-6 h-6 transition-transform group-hover:rotate-12"
               fill="none"
@@ -142,10 +137,8 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
               />
             </svg>
 
-            {/* Text */}
             <span className="text-base md:text-lg">Support our Work</span>
 
-            {/* Shimmer effect */}
             <div
               className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity"
               style={{
@@ -156,7 +149,6 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
           </button>
         </div>
 
-        {/* Payment methods info */}
         <p className="text-center mt-3 text-sm text-gray-600">
           💳 Cards · 📱 M-Pesa · 🏦 Bank Transfer
         </p>
@@ -207,7 +199,6 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
               </div>
             </div>
 
-            {/* Trust indicators */}
             <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-gray-200">
               <div className="flex items-center gap-1 text-xs text-gray-600">
                 <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -224,7 +215,6 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3">
               <button
                 onClick={() => setShowAmountModal(false)}
@@ -247,43 +237,24 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
       )}
 
       <style jsx>{`
-        /* Shimmer animation */
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
         }
-
-        /* Smooth continuous pop animation */
         @keyframes smooth-pop {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.06);
-          }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.06); }
         }
-
-        /* Pulse glow animation */
         @keyframes pulse-glow {
-          0%, 100% {
-            box-shadow: 0 4px 15px rgba(4, 143, 2, 0.3);
-          }
-          50% {
-            box-shadow: 0 6px 25px rgba(4, 143, 2, 0.5), 0 0 30px rgba(4, 143, 2, 0.2);
-          }
+          0%, 100% { box-shadow: 0 4px 15px rgba(4, 143, 2, 0.3); }
+          50% { box-shadow: 0 6px 25px rgba(4, 143, 2, 0.5), 0 0 30px rgba(4, 143, 2, 0.2); }
         }
-
-        /* Apply animations to button */
         .support-button-pop {
           animation: smooth-pop 2.5s ease-in-out infinite, pulse-glow 2.5s ease-in-out infinite;
         }
-
-        /* Speed up animation on hover */
         .support-button-pop:hover {
           animation: smooth-pop 1.2s ease-in-out infinite, pulse-glow 1.2s ease-in-out infinite;
         }
-
-        /* Hide number input spinners */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
           -webkit-appearance: none;
