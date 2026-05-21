@@ -1,4 +1,5 @@
 // FILE LOCATION: src/app/portfolio/[slug]/ProjectDetailClient.tsx
+
 "use client";
 
 import { use, useEffect, useState } from 'react';
@@ -35,6 +36,8 @@ export default function ProjectDetailClient({
         description,
         client,
         projectDate,
+        deliverables,
+        tools,
 
         "images": images[]{
           "_type": _type,

@@ -1,18 +1,16 @@
 // FILE LOCATION: src/types/portfolio.ts
 
-// Enhanced Testimonial with ratings
 export interface Testimonial {
   quote: string;
   author: string;
   position: string;
   company?: string;
-  rating: number; // 1-5 stars
+  rating: number;
   photo?: any;
   date?: string;
   verified?: boolean;
 }
 
-// Legacy testimonial for backward compatibility
 export interface LegacyTestimonial {
   quote: string;
   author: string;
@@ -38,8 +36,8 @@ export interface RelatedProject {
   title: string;
   slug: { current: string };
   category: string;
-  featured: boolean;        // ✅ ADDED
-  description?: string;     // ✅ ADDED
+  featured: boolean;
+  description?: string;
   images: any[];
 }
 
@@ -55,6 +53,10 @@ export interface Project {
   tags?: string[];
   featured: boolean;
   projectUrl?: string;
+  // ── SANITY-DRIVEN FIELDS ─────────────────────────────
+  deliverables?: string[];   // e.g. ["Print-Ready PDF", "CMYK Color Files"]
+  tools?: string[];          // e.g. ["Adobe InDesign", "Photoshop"]
+  // ─────────────────────────────────────────────────────
   testimonials?: Testimonial[];
   testimonial?: LegacyTestimonial;
   approach?: ApproachStep[];

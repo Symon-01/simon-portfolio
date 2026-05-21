@@ -54,12 +54,10 @@ export default {
       type: 'array',
       description: 'Upload project images. For new images, use "Add Project Image" to get the Cover Image toggle. Existing images are still fully supported.',
       of: [
-        // ✅ OLD FORMAT — keeps all existing images working, no reupload needed
         {
           type: 'image',
           options: { hotspot: true }
         },
-        // ✅ NEW FORMAT — use this for new images going forward (has Cover Image toggle)
         {
           type: 'object',
           name: 'projectImage',
@@ -110,6 +108,36 @@ export default {
       type: 'array',
       of: [{ type: 'string' }]
     },
+
+    // ── DELIVERABLES ─────────────────────────────────────────────────────────
+    // List the specific deliverables provided in this project.
+    // e.g. "Print-Ready PDF", "CMYK Color Files", "Editorial Layout", "Logo Files"
+    {
+      name: 'deliverables',
+      title: 'Service & Deliverables',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'List what was delivered in this project. E.g. "Print-Ready PDF", "CMYK Color Files", "Editorial Layout", "Logo Files", "Brand Guidelines PDF". Shown as green chips in the project header.',
+      options: {
+        layout: 'tags'
+      }
+    },
+
+    // ── TOOLS USED ───────────────────────────────────────────────────────────
+    // Array of tool names shown as coloured badges in the project header card.
+    // Type them exactly as you want displayed, e.g:
+    // "Adobe InDesign", "Photoshop", "Illustrator", "Figma", "Canva", "CorelDRAW"
+    {
+      name: 'tools',
+      title: 'Tools Used',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'List the software/tools used. E.g. "Adobe InDesign", "Photoshop", "Illustrator", "Figma". Shown as coloured badges in the project header.',
+      options: {
+        layout: 'tags'
+      }
+    },
+
     {
       name: 'featured',
       title: 'Featured Project',
@@ -122,7 +150,6 @@ export default {
       type: 'url'
     },
 
-    // Client Testimonials
     {
       name: 'testimonials',
       title: 'Client Testimonials',
@@ -208,7 +235,6 @@ export default {
       ]
     },
 
-    // Legacy testimonial — hidden but kept for backward compatibility
     {
       name: 'testimonial',
       title: 'Legacy Testimonial (Old Format)',
@@ -228,7 +254,6 @@ export default {
       ]
     },
 
-    // Creative Approach
     {
       name: 'approach',
       title: 'Creative Approach',
@@ -248,7 +273,6 @@ export default {
       ]
     },
 
-    // Downloadable Files
     {
       name: 'downloadableFiles',
       title: 'Downloadable Files',
@@ -265,7 +289,6 @@ export default {
       ]
     },
 
-    // Related Projects
     {
       name: 'relatedProjects',
       title: 'Related Projects',
@@ -279,7 +302,6 @@ export default {
   preview: {
     select: {
       title: 'title',
-      // ✅ Falls back gracefully for both old and new image formats
       media: 'images.0',
       category: 'category'
     },
