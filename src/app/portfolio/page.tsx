@@ -1,6 +1,8 @@
-// FILE LOCATION: src/app/portfolio/page.tsx
 import type { Metadata } from "next";
+import { client } from '@/lib/sanity';
 import PortfolioPageClient from './PortfolioPageClient';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Portfolio – Our Design Work | Simon Designs",
@@ -20,6 +22,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PortfolioPage() {
-  return <PortfolioPageClient />;
+export default async function PortfolioPage() {
+  let projects = [];
+  try {
+    const query = `*[_type == "portfolio"] | order(order asc, _createdAt desc) {
+      _id,
+      title,
+      slug,
+      category,
+      description,
+      featured,
+      "coverImage": coalesce(
+        images[_type == "projectImage" && isCover == true][0].asset.asset->url,
+        images[_type == "projectImage"][0].asset.asset->url,
+        images[isCover == true][0].asset->url,
+        images[0].asset->url
+      ),
+      tags
+    }`;
+    projects = await client.fetch(query, {}, { next: { revalidate: 3600 } });
+  } catch (e) {
+    console.error('Portfolio page server fetch failed:', e);
+  }
+
+  return <PortfolioPageClient initialProjects={projects} />;
 }

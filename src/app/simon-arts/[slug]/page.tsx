@@ -1,190 +1,78 @@
-// FILE LOCATION: src/app/simon-arts/[slug]/page.tsx
-
-"use client";
-
-import { use, useEffect, useState } from 'react';
+import type { Metadata } from "next";
 import { client } from '@/lib/sanity';
-import Link from 'next/link';
-import ArtworkHeader from '@/components/simonArts/ArtworkHeader';
-import ArtworkImages from '@/components/simonArts/ArtworkImages';
-import ArtworkTechnicalDetails from '@/components/simonArts/ArtworkTechnicalDetails';
-import ArtworkStory from '@/components/simonArts/ArtworkStory';
-import ArtworkTags from '@/components/simonArts/ArtworkTags';
-import ArtworkPurchaseCTA from '@/components/simonArts/ArtworkPurchaseCTA';
-import ArtworkLightbox from '@/components/simonArts/ArtworkLightbox';
-import SupportButton from '@/components/SupportButton';
+import ArtworkDetailClient from './ArtworkDetailClient';
 import { Artwork } from '@/types/simonArts';
 
-export default function ArtworkDetailPage({
+export const revalidate = 3600;
+
+const artworkQuery = `*[_type == "simonArts" && slug.current == $slug][0]{
+  _id,
+  title,
+  slug,
+  description,
+  subject,
+  mainImage,
+  detailImages,
+  medium,
+  paperType,
+  dimensions,
+  timeToComplete,
+  year,
+  story,
+  category,
+  tags,
+  availableForSale,
+  price,
+  featured
+}`;
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const artwork = await client.fetch(
+      `*[_type == "simonArts" && slug.current == $slug][0]{
+        title, description
+      }`,
+      { slug },
+      { next: { revalidate: 3600 } }
+    );
+    if (!artwork) return {};
+    return {
+      title: `${artwork.title} – Simon Arts | Simon Designs`,
+      description: artwork.description?.slice(0, 160) || 'Unique pencil artwork by Simon Macharia.',
+      openGraph: {
+        title: `${artwork.title} – Simon Arts`,
+        description: artwork.description?.slice(0, 160) || 'Unique pencil artwork by Simon Macharia.',
+        url: `https://simondesigns.co.ke/simon-arts/${slug}`,
+        siteName: 'Simon Designs',
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${artwork.title} – Simon Arts`,
+        description: artwork.description?.slice(0, 160),
+      },
+    };
+  } catch (e) {
+    console.error(`generateMetadata failed for artwork "${slug}":`, e);
+    return { title: 'Simon Arts | Simon Designs' };
+  }
+}
+
+export default async function ArtworkDetailPage({
   params
 }: {
   params: Promise<{ slug: string }>
 }) {
-  // Unwrap params using React.use()
-  const { slug } = use(params);
- 
-  const [artwork, setArtwork] = useState<Artwork | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  useEffect(() => {
-    const fetchArtwork = async () => {
-      const query = `*[_type == "simonArts" && slug.current == $slug][0]{
-        _id,
-        title,
-        slug,
-        description,
-        subject,
-        mainImage,
-        detailImages,
-        medium,
-        paperType,
-        dimensions,
-        timeToComplete,
-        year,
-        story,
-        category,
-        tags,
-        availableForSale,
-        price,
-        featured
-      }`;
-     
-      try {
-        const data = await client.fetch(query, { slug });
-        setArtwork(data);
-      } catch (error) {
-        console.error('Error fetching artwork:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArtwork();
-  }, [slug]);
-
-  const openLightbox = (index: number) => {
-    setCurrentImageIndex(index);
-    setLightboxOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeLightbox = () => {
-    setLightboxOpen(false);
-    document.body.style.overflow = 'unset';
-  };
-
-  const allImages = artwork ? [artwork.mainImage, ...(artwork.detailImages || [])] : [];
-
-  const goToNext = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-  };
-
-  const goToPrevious = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 card-desc">Loading artwork...</p>
-      </div>
-    );
+  const { slug } = await params;
+  let artwork: Artwork | null = null;
+  try {
+    artwork = await client.fetch(artworkQuery, { slug }, { next: { revalidate: 3600 } });
+  } catch (e) {
+    console.error('Artwork detail server fetch failed:', e);
   }
 
-  if (!artwork) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="section-title font-bold mb-4 text-gray-900">Artwork Not Found</h1>
-          <p className="section-desc text-gray-600 mb-6">Sorry, we couldn't find the artwork you're looking for.</p>
-          <Link
-            href="/simon-arts"
-            className="inline-flex items-center font-semibold link-text"
-            style={{ color: '#048F02' }}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Gallery
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
-         
-          {/* Back Button */}
-          <Link
-            href="/simon-arts"
-            className="inline-flex items-center font-semibold mb-6 transition-colors link-text"
-            style={{ color: '#048F02' }}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Gallery
-          </Link>
-
-          {/* All sections as separate components */}
-          <ArtworkHeader artwork={artwork} />
-         
-          <ArtworkImages
-            mainImage={artwork.mainImage}
-            detailImages={artwork.detailImages}
-            title={artwork.title}
-            onImageClick={openLightbox}
-          />
-         
-          <ArtworkTechnicalDetails artwork={artwork} />
-         
-          <ArtworkStory story={artwork.story} />
-         
-          {artwork.tags && artwork.tags.length > 0 && (
-            <ArtworkTags tags={artwork.tags} />
-          )}
-         
-          {artwork.availableForSale && (
-            <ArtworkPurchaseCTA price={artwork.price} />
-          )}
-
-          {/* Support Button - Bottom */}
-          <div className="text-center my-8">
-            <SupportButton position="bottom" />
-          </div>
-
-          {/* Back to Gallery Button */}
-          <div className="text-center mt-8">
-            <Link
-              href="/simon-arts"
-              className="inline-flex items-center font-semibold link-text transition-colors"
-              style={{ color: '#048F02' }}
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to All Artworks
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Lightbox Modal */}
-      {lightboxOpen && (
-        <ArtworkLightbox
-          images={allImages}
-          currentIndex={currentImageIndex}
-          title={artwork.title}
-          onClose={closeLightbox}
-          onNext={goToNext}
-          onPrevious={goToPrevious}
-        />
-      )}
-    </>
-  );
+  return <ArtworkDetailClient initialArtwork={artwork} />;
 }

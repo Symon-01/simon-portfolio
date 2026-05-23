@@ -1,5 +1,7 @@
-// src/app/about/page.tsx
 import type { Metadata } from "next";
+import AboutPageClient from './AboutPageClient';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "About Us – Simon Designs",
@@ -18,13 +20,6 @@ export const metadata: Metadata = {
     ],
   },
 };
-
-// ⚠️ IMPORTANT: Remove 'use client' when adding metadata
-// Metadata only works in Server Components
-// But your hooks need Client Component...
-
-// Solution: Keep the page as Server Component and move client logic to a separate component
-import AboutPageClient from './AboutPageClient';
 
 export default function AboutPage() {
   return <AboutPageClient />;

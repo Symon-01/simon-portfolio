@@ -1,6 +1,9 @@
-// FILE LOCATION: src/app/simon-arts/page.tsx
 import type { Metadata } from "next";
+import { client, urlFor } from '@/lib/sanity';
 import SimonArtsPageClient from './SimonArtsPageClient';
+import { Artwork } from '@/types/simonArts';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Simon Arts – Unique Pencil Drawings & Artistic Creations",
@@ -20,6 +23,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SimonArtsPage() {
-  return <SimonArtsPageClient />;
+export default async function SimonArtsPage() {
+  let artworks: Artwork[] = [];
+  try {
+    const query = `*[_type == "simonArts"] | order(year desc) {
+      _id,
+      title,
+      slug,
+      description,
+      mainImage,
+      category,
+      year,
+      medium,
+      featured,
+      availableForSale
+    }`;
+    artworks = await client.fetch(query, {}, { next: { revalidate: 3600 } });
+  } catch (e) {
+    console.error('Simon Arts page server fetch failed:', e);
+  }
+
+  return <SimonArtsPageClient initialArtworks={artworks} />;
 }

@@ -1,6 +1,7 @@
-// src/app/services/page.tsx
 import type { Metadata } from "next";
 import ServicesPageClient from './ServicesPageClient';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Our Services – Professional Graphic Design | Simon Designs",

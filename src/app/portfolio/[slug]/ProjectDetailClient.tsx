@@ -1,9 +1,6 @@
-// FILE LOCATION: src/app/portfolio/[slug]/ProjectDetailClient.tsx
-
 "use client";
 
-import { use, useEffect, useState } from 'react';
-import { client } from '@/lib/sanity';
+import { useState } from 'react';
 import Link from 'next/link';
 import ProjectHeader from '@/components/portfolio/ProjectHeader';
 import ProjectGallery from '@/components/portfolio/ProjectGallery';
@@ -17,125 +14,13 @@ import RelatedProjects from '@/components/portfolio/RelatedProjects';
 import SupportButton from '@/components/SupportButton';
 import { Project } from '@/types/portfolio';
 
-export default function ProjectDetailClient({
-  params
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const unwrappedParams = use(params);
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
+interface ProjectDetailClientProps {
+  initialProject: Project | null;
+  slug: string;
+}
 
-  useEffect(() => {
-    const fetchProject = async () => {
-      const query = `*[_type == "portfolio" && slug.current == $slug][0]{
-        _id,
-        title,
-        slug,
-        category,
-        description,
-        client,
-        projectDate,
-        deliverables,
-        tools,
-
-        "images": images[]{
-          "_type": _type,
-          "url": select(
-            _type == "projectImage" => asset.asset->url,
-            asset->url
-          ),
-          "isCover": select(
-            _type == "projectImage" => isCover,
-            false
-          ),
-          "alt": select(
-            _type == "projectImage" => alt,
-            ""
-          )
-        },
-
-        tags,
-        featured,
-        projectUrl,
-
-        testimonials[]{
-          quote,
-          author,
-          position,
-          company,
-          rating,
-          photo,
-          date,
-          verified
-        },
-
-        testimonial{
-          quote,
-          author,
-          position,
-          photo
-        },
-
-        approach[]{
-          stepTitle,
-          stepDescription
-        },
-
-        downloadableFiles[]{
-          "asset": asset->{
-            url
-          },
-          fileTitle,
-          fileDescription
-        },
-
-        relatedProjects[]->{
-          _id,
-          title,
-          slug,
-          category,
-          featured,
-          description,
-          "images": images[]{
-            "_type": _type,
-            "url": select(
-              _type == "projectImage" => asset.asset->url,
-              asset->url
-            ),
-            "isCover": select(
-              _type == "projectImage" => isCover,
-              false
-            ),
-            "alt": select(
-              _type == "projectImage" => alt,
-              ""
-            )
-          }
-        }
-      }`;
-
-      try {
-        const data = await client.fetch(query, { slug: unwrappedParams.slug });
-        console.log('🔍 FULL PROJECT DATA:', data);
-        setProject(data);
-      } catch (error) {
-        console.error('Error fetching project:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProject();
-  }, [unwrappedParams.slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-600 card-desc">Loading project...</p>
-      </div>
-    );
-  }
+export default function ProjectDetailClient({ initialProject, slug }: ProjectDetailClientProps) {
+  const [project] = useState<Project | null>(initialProject);
 
   if (!project) {
     return (
@@ -161,36 +46,13 @@ export default function ProjectDetailClient({
   return (
     <>
       <style jsx>{`
-        .section-title {
-          font-size: 2rem !important;
-          line-height: 1.3 !important;
-          margin-bottom: 0.375rem !important;
-        }
-        .section-desc {
-          font-size: 1rem !important;
-          line-height: 1.6 !important;
-        }
-        .card-title {
-          font-size: 0.95rem !important;
-          font-weight: 700 !important;
-        }
-        .card-desc {
-          font-size: 0.875rem !important;
-          line-height: 1.5 !important;
-        }
-        .link-text {
-          font-size: 0.875rem !important;
-        }
+        .section-title { font-size: 2rem !important; line-height: 1.3 !important; margin-bottom: 0.375rem !important; }
+        .section-desc { font-size: 1rem !important; line-height: 1.6 !important; }
+        .card-title { font-size: 0.95rem !important; font-weight: 700 !important; }
+        .card-desc { font-size: 0.875rem !important; line-height: 1.5 !important; }
+        .link-text { font-size: 0.875rem !important; }
         @media (min-width: 1024px) {
-          a.cta-button {
-            padding: 10px 28px !important;
-            font-size: 0.9375rem !important;
-            min-height: 44px !important;
-            font-weight: 600 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-          }
+          a.cta-button { padding: 10px 28px !important; font-size: 0.9375rem !important; min-height: 44px !important; font-weight: 600 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
         }
         @media (max-width: 1023px) {
           .section-title { font-size: 1.5rem !important; margin-bottom: 0.25rem !important; }

@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { getAllLeadershipReviewIssues, getBannerByLocation } from '@/lib/sanity.queries';
 import type { LeadershipReviewIssueSummary } from '@/types/leadershipReview';
 import AllIssuesGrid from '@/components/leadershipReview/AllIssuesGrid';
 import SupportButton from '@/components/SupportButton';
@@ -52,7 +51,7 @@ const COUNTRY_CODES: [string, string, string, number][] = [
   ['🇶🇦', 'Qatar',           '+974', 8],
 ];
 
-const DEFAULT_CODE = COUNTRY_CODES[0]; // Kenya
+const DEFAULT_CODE = COUNTRY_CODES[0];
 
 function validatePhone(local: string, expected: number): boolean {
   if (!local) return true;
@@ -113,13 +112,19 @@ const EMPTY_FORM: FormData = {
   supportingLink: '', consentGiven: false,
 };
 
-// ── Subscribe status toast (inner) ── uses useSearchParams, must be inside Suspense
+interface LeadershipReviewPageClientProps {
+  initialIssues: LeadershipReviewIssueSummary[];
+  initialMastheadBgUrl?: string;
+}
+
+// ── Subscribe status toast ────────────────────────────────────────────────────
+
 function SubscribeToastInner() {
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
   const [toast, setToast] = useState<{ message: string; color: string } | null>(null);
 
-  useEffect(() => {
+  useState(() => {
     const status = searchParams.get('subscribe');
     if (!status) return;
     const map: Record<string, { message: string; color: string }> = {
@@ -131,13 +136,7 @@ function SubscribeToastInner() {
     };
     const t = map[status];
     if (t) { setToast(t); setVisible(true); }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!visible) return;
-    const timer = setTimeout(() => setVisible(false), 6000);
-    return () => clearTimeout(timer);
-  }, [visible]);
+  });
 
   if (!visible || !toast) return null;
 
@@ -151,7 +150,6 @@ function SubscribeToastInner() {
   );
 }
 
-// ── Subscribe status toast (outer) ── wraps inner in Suspense boundary ────────
 function SubscribeToast() {
   return (
     <Suspense fallback={null}>
@@ -259,26 +257,15 @@ const STEPS = [
 ];
 
 function NominationModal({ onClose }: { onClose: () => void }) {
-  const [step, setStep]         = useState(0);
-  const [form, setForm]         = useState<FormData>(EMPTY_FORM);
-  const [touched, setTouched]   = useState<Partial<Record<string, boolean>>>({});
+  const [step, setStep]             = useState(0);
+  const [form, setForm]             = useState<FormData>(EMPTY_FORM);
+  const [touched, setTouched]       = useState<Partial<Record<string, boolean>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
   const [error, setError]           = useState('');
 
-  const [localPhone, setLocalPhone]     = useState('');
-  const [countryCode, setCountryCode]   = useState<[string, string, string, number]>(DEFAULT_CODE);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, []);
+  const [localPhone, setLocalPhone]   = useState('');
+  const [countryCode, setCountryCode] = useState<[string, string, string, number]>(DEFAULT_CODE);
 
   const set = (field: keyof FormData, value: string | boolean | string[]) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -341,14 +328,12 @@ function NominationModal({ onClose }: { onClose: () => void }) {
 
   const inputCls = (hasError?: boolean) =>
     `w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 transition-all placeholder:text-gray-400 ${
-      hasError
-        ? 'border-red-400 focus:ring-red-200 focus:border-red-400'
-        : `border-gray-200 focus:border-[${BLUE}]`
+      hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200'
     }`;
 
-  const labelCls  = 'block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide';
-  const reqStar   = <span style={{ color: RED }} className="ml-0.5">*</span>;
-  const errMsg    = (msg: string) => msg ? <p className="text-xs text-red-500 mt-1">{msg}</p> : null;
+  const labelCls = 'block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide';
+  const reqStar  = <span style={{ color: RED }} className="ml-0.5">*</span>;
+  const errMsg   = (msg: string) => msg ? <p className="text-xs text-red-500 mt-1">{msg}</p> : null;
 
   const renderStep = () => {
     switch (step) {
@@ -585,37 +570,21 @@ function NominationModal({ onClose }: { onClose: () => void }) {
 
 function CTAStrip({ onNominate }: { onNominate: () => void }) {
   return (
-    <div
-      className="rounded-2xl overflow-hidden mt-12"
-      style={{ border: `1.5px solid ${BLUE}30` }}
-    >
-      {/* Top accent rule — matches subscribe card style */}
+    <div className="rounded-2xl overflow-hidden mt-12" style={{ border: `1.5px solid ${BLUE}30` }}>
       <div style={{ display: 'flex', height: '4px' }}>
         <div style={{ flex: 1, background: BLUE }} />
         <div style={{ flex: 1, background: GREEN }} />
         <div style={{ flex: 1, background: RED }} />
       </div>
-
-      <div
-        className="px-6 sm:px-10 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-        style={{ background: `${BLUE}0d` }}
-      >
-        {/* Left: icon + text */}
+      <div className="px-6 sm:px-10 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: `${BLUE}0d` }}>
         <div className="flex items-start gap-4 text-center sm:text-left">
-          {/* Star badge */}
-          <div
-            className="flex-shrink-0 hidden sm:flex w-10 h-10 rounded-lg items-center justify-center mt-0.5"
-            style={{ background: BLUE }}
-          >
+          <div className="flex-shrink-0 hidden sm:flex w-10 h-10 rounded-lg items-center justify-center mt-0.5" style={{ background: BLUE }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <div>
-            <p
-              className="font-bold mb-1 leading-snug"
-              style={{ fontFamily: "'Playfair Display', serif", color: BLUE, fontSize: 'clamp(1rem, 2.5vw, 1.15rem)' }}
-            >
+            <p className="font-bold mb-1 leading-snug" style={{ fontFamily: "'Playfair Display', serif", color: BLUE, fontSize: 'clamp(1rem, 2.5vw, 1.15rem)' }}>
               Know a leader worth celebrating?
             </p>
             <p className="text-xs leading-relaxed" style={{ color: `${BLUE}99` }}>
@@ -623,13 +592,7 @@ function CTAStrip({ onNominate }: { onNominate: () => void }) {
             </p>
           </div>
         </div>
-
-        {/* Right: button */}
-        <button
-          onClick={onNominate}
-          className="flex-shrink-0 flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-xl transition-opacity hover:opacity-90 whitespace-nowrap text-white"
-          style={{ background: RED }}
-        >
+        <button onClick={onNominate} className="flex-shrink-0 flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-xl transition-opacity hover:opacity-90 whitespace-nowrap text-white" style={{ background: RED }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L2 9.5h7.5z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -640,25 +603,13 @@ function CTAStrip({ onNominate }: { onNominate: () => void }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────────
 
-export default function LeadershipReviewPageClient() {
-  const [issues, setIssues]               = useState<LeadershipReviewIssueSummary[]>([]);
-  const [loading, setLoading]             = useState(true);
-  const [mastheadBgUrl, setMastheadBgUrl] = useState<string | undefined>(undefined);
-  const [showModal, setShowModal]         = useState(false);
-
-  useEffect(() => {
-    Promise.all([
-      getAllLeadershipReviewIssues(),
-      getBannerByLocation('leadership-review'),
-    ]).then(([issuesData, banner]) => {
-      setIssues(issuesData);
-      const url = banner?.images?.[0]?.image?.asset?.url;
-      if (url) setMastheadBgUrl(url);
-    }).catch(console.error).finally(() => setLoading(false));
-  }, []);
-
+export default function LeadershipReviewPageClient({
+  initialIssues,
+  initialMastheadBgUrl,
+}: LeadershipReviewPageClientProps) {
+  const [showModal, setShowModal] = useState(false);
   const openModal  = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
 
@@ -668,13 +619,11 @@ export default function LeadershipReviewPageClient() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');
       `}</style>
 
-      {/* Subscribe confirmation toast — reads ?subscribe= from URL */}
       <SubscribeToast />
-
       {showModal && <NominationModal onClose={closeModal} />}
 
       <main>
-        <Masthead bgImageUrl={mastheadBgUrl} />
+        <Masthead bgImageUrl={initialMastheadBgUrl} />
 
         <section className="py-10 bg-gray-50 min-h-screen">
           <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12">
@@ -687,18 +636,10 @@ export default function LeadershipReviewPageClient() {
               <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${BLUE}, transparent)` }} />
             </div>
 
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: BLUE, borderTopColor: 'transparent' }} />
-                <p className="text-sm text-gray-400">Loading issues…</p>
-              </div>
-            ) : (
-              <AllIssuesGrid issues={issues} />
-            )}
+            <AllIssuesGrid issues={initialIssues} />
 
             <CTAStrip onNominate={openModal} />
 
-            {/* ── Subscribe form — above Support button ── */}
             <div className="mt-8">
               <SubscribeForm variant="inline" />
             </div>

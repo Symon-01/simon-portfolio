@@ -1,4 +1,3 @@
-// FILE LOCATION: src/app/portfolio/PortfolioPageClient.tsx
 'use client';
 
 import { useEffect, Suspense } from 'react';
@@ -9,7 +8,11 @@ import PortfolioCTA from "@/components/PortfolioCTA";
 import SupportButton from "@/components/SupportButton";
 import LeadershipReviewWindow from "@/components/LeadershipReviewWindow";
 
-function PortfolioContent() {
+interface PortfolioPageClientProps {
+  initialProjects?: any[];
+}
+
+function PortfolioContent({ initialProjects }: PortfolioPageClientProps) {
   const { openModal } = useQuoteModal();
 
   useEffect(() => {
@@ -31,7 +34,6 @@ function PortfolioContent() {
   }, [openModal]);
 
   return (
-    // ✅ Removed overflow-x-hidden from main — was causing scroll hang
     <main>
       <UniversalHero
         location="portfolio-hero"
@@ -43,10 +45,8 @@ function PortfolioContent() {
         ]}
       />
 
-      {/* ✅ Removed wrapping section+div — PortfolioGrid handles its own container */}
-      <PortfolioGrid />
+      <PortfolioGrid initialProjects={initialProjects} />
 
-      {/* Support button + divider */}
       <div className="bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-12 pb-8">
           <div className="pt-2 flex justify-center">
@@ -61,15 +61,13 @@ function PortfolioContent() {
         </div>
       </div>
 
-      {/* Leadership Review editorial window — hidden page, not in nav */}
       <LeadershipReviewWindow />
-
       <PortfolioCTA />
     </main>
   );
 }
 
-export default function PortfolioPageClient() {
+export default function PortfolioPageClient({ initialProjects }: PortfolioPageClientProps) {
   return (
     <Suspense fallback={
       <main>
@@ -78,7 +76,7 @@ export default function PortfolioPageClient() {
         </div>
       </main>
     }>
-      <PortfolioContent />
+      <PortfolioContent initialProjects={initialProjects} />
     </Suspense>
   );
 }
