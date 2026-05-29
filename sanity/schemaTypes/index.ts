@@ -1,4 +1,7 @@
 // FILE: sanity/schemaTypes/index.ts
+//
+// CHANGE FROM ORIGINAL:
+// Added import and registration of supportPage schema.
 
 import portfolio from './portfolio';
 import service from './service';
@@ -23,6 +26,7 @@ import contactInfo from './contactInfo';
 import leadershipReview from './leadershipReview';
 import leadershipNomination from './leadershipNomination';
 import subscriber from './subscriber';
+import supportPage from './supportPage'; // ← NEW
 
 export const schemaTypes = [
   portfolio,
@@ -47,5 +51,6 @@ export const schemaTypes = [
   contactInfo,
   leadershipReview,
   leadershipNomination,
-  subscriber,         // ← Newsletter subscribers
+  subscriber,
+  supportPage, // ← NEW
 ];

@@ -33,6 +33,7 @@ export default {
           { title: 'Contact - Hero', value: 'contact-hero' },
           { title: 'Contact - CTA', value: 'contact-cta' },
           { title: 'Leadership Review - Masthead', value: 'leadership-review' },
+          { title: 'Support - Hero', value: 'Support-hero' },
         ],
         layout: 'dropdown'
       },

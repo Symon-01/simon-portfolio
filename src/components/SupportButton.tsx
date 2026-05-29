@@ -1,12 +1,14 @@
 // FILE LOCATION: src/components/SupportButton.tsx
 //
-// CHANGE FROM ORIGINAL:
-// Now links to /support page instead of opening a modal.
-// The full support experience lives on the dedicated page.
+// CHANGES FROM PREVIOUS VERSION:
+// Animation now uses a global <style> tag injected into document head
+// instead of styled-jsx, which doesn't work on <Link> elements.
+// This ensures the pop and glow animations actually run on the button.
 
 "use client";
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 interface SupportButtonProps {
   position?: 'top' | 'bottom';
@@ -14,15 +16,41 @@ interface SupportButtonProps {
 }
 
 export default function SupportButton({ position = 'top', className = '' }: SupportButtonProps) {
+  // Inject animation CSS globally — styled-jsx doesn't apply to Link components
+  useEffect(() => {
+    const styleId = 'support-button-animations';
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes support-pop {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+      }
+      @keyframes support-glow {
+        0%, 100% { box-shadow: 0 4px 15px rgba(4,143,2,0.3); }
+        50% { box-shadow: 0 6px 25px rgba(4,143,2,0.55), 0 0 32px rgba(4,143,2,0.22); }
+      }
+      .support-btn-anim {
+        animation: support-pop 2.5s ease-in-out infinite,
+                   support-glow 2.5s ease-in-out infinite;
+      }
+      .support-btn-anim:hover {
+        animation: support-pop 1.2s ease-in-out infinite,
+                   support-glow 1.2s ease-in-out infinite;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
+
   return (
     <div className={`${position === 'top' ? 'mb-8' : 'mt-8'} ${className}`}>
       <div className="flex justify-center">
         <Link
           href="/support"
-          className="support-button support-button-pop group relative inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+          className="support-btn-anim group relative inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-105"
           style={{
             background: 'linear-gradient(135deg, #048F02 0%, #06b003 100%)',
-            boxShadow: '0 4px 15px rgba(4, 143, 2, 0.3)',
           }}
         >
           <svg
@@ -45,23 +73,6 @@ export default function SupportButton({ position = 'top', className = '' }: Supp
       <p className="text-center mt-3 text-sm text-gray-600">
         💳 Cards · 📱 M-Pesa · 🏦 Bank Transfer
       </p>
-
-      <style jsx>{`
-        @keyframes smooth-pop {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.06); }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 4px 15px rgba(4, 143, 2, 0.3); }
-          50% { box-shadow: 0 6px 25px rgba(4, 143, 2, 0.5), 0 0 30px rgba(4, 143, 2, 0.2); }
-        }
-        .support-button-pop {
-          animation: smooth-pop 2.5s ease-in-out infinite, pulse-glow 2.5s ease-in-out infinite;
-        }
-        .support-button-pop:hover {
-          animation: smooth-pop 1.2s ease-in-out infinite, pulse-glow 1.2s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }
